@@ -1,36 +1,47 @@
-import { useState } from "react";
+import Container from "./components/Container";
+import Card from "./components/Card";
+import SectionTitle from "./components/SectionTitle";
+import ProgressBar from "./components/ProgressBar";
 import HabitList from "./components/HabitList";
-import DailyWord from "./components/DailyWord";
 
-export default function App() {
+export default function App(){
 
-  const [points,setPoints] = useState(0);
+ return(
 
-  function addPoints(){
-    setPoints(points + 10);
-  }
+  <Container>
 
-  return (
+   <header>
+    <h1>NEX</h1>
+   </header>
 
-    <div className="app">
+   <Card>
 
-      <header>
+    <SectionTitle text="Today's Focus"/>
 
-        <h1>NEX</h1>
-        <p>Points: {points}</p>
+    <h2 className="daily-word">
+     Clarity
+    </h2>
 
-      </header>
+   </Card>
 
-      <main>
+   <Card>
 
-        <DailyWord />
+    <SectionTitle text="Habits"/>
 
-        <HabitList onComplete={addPoints} />
+    <HabitList/>
 
-      </main>
+   </Card>
 
-    </div>
+   <Card>
 
-  );
+    <SectionTitle text="Progress"/>
+
+    <ProgressBar value={40}/>
+
+   </Card>
+
+  </Container>
+
+ )
 
 }
