@@ -1,46 +1,51 @@
-import Container from "./components/Container";
-import Card from "./components/Card";
-import SectionTitle from "./components/SectionTitle";
-import ProgressBar from "./components/ProgressBar";
+import { useState,useEffect } from "react";
+import DailyWord from "./components/DailyWord";
 import HabitList from "./components/HabitList";
+import { saveData,loadData } from "./services/storage";
+import ProgressBar from "./components/ProgressBar";
 
 export default function App(){
 
+ const [points,setPoints] = useState(0);
+
+ useEffect(()=>{
+
+  const savedPoints = loadData("points");
+
+  if(savedPoints){
+   setPoints(savedPoints);
+  }
+
+ },[]);
+
+ useEffect(()=>{
+
+  saveData("points",points);
+
+ },[points]);
+
+ function addPoints(){
+  setPoints(points + 10);
+ }
+
  return(
 
-  <Container>
+  <div className="app">
 
    <header>
+
     <h1>NEX</h1>
+    <p>Points: {points}</p>
+
    </header>
 
-   <Card>
+   <DailyWord/>
 
-    <SectionTitle text="Today's Focus"/>
+   <HabitList onHabitCompleted={addPoints}/>
 
-    <h2 className="daily-word">
-     Clarity
-    </h2>
+   <ProgressBar value={40}></ProgressBar>
 
-   </Card>
-
-   <Card>
-
-    <SectionTitle text="Habits"/>
-
-    <HabitList/>
-
-   </Card>
-
-   <Card>
-
-    <SectionTitle text="Progress"/>
-
-    <ProgressBar value={40}/>
-
-   </Card>
-
-  </Container>
+  </div>
 
  )
 

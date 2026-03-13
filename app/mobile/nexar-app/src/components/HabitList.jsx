@@ -1,19 +1,27 @@
 import { useState } from "react";
 
-export default function HabitList(){
+export default function HabitList({onHabitCompleted}){
 
  const [habits,setHabits] = useState([
-   {name:"Exercise",done:false},
-   {name:"Study",done:false},
-   {name:"Read",done:false}
+  {name:"Exercise",done:false},
+  {name:"Study",done:false},
+  {name:"Read",done:false}
  ]);
 
  function toggleHabit(index){
 
-  const updated = [...habits];
-  updated[index].done = !updated[index].done;
+  const updatedHabits = [...habits];
 
-  setHabits(updated);
+  const habit = updatedHabits[index];
+
+  habit.done = !habit.done;
+
+  if(habit.done){
+   onHabitCompleted();
+  }
+
+  setHabits(updatedHabits);
+
  }
 
  return(
@@ -23,21 +31,23 @@ export default function HabitList(){
    <h3>Habits</h3>
 
    {habits.map((habit,index)=>(
-     <div key={index}>
 
-       <input
-        type="checkbox"
-        checked={habit.done}
-        onChange={()=>toggleHabit(index)}
-       />
+    <div key={index} className="habit">
 
-       {habit.name}
+     <input
+      type="checkbox"
+      checked={habit.done}
+      onChange={()=>toggleHabit(index)}
+     />
 
-     </div>
+     <span>{habit.name}</span>
+
+    </div>
+
    ))}
 
   </div>
 
- );
+ )
 
 }

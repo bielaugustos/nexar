@@ -1,31 +1,34 @@
-import { useEffect, useState } from "react";
-
-const words = [
-"Clarity",
-"Focus",
-"Patience",
-"Discipline",
-"Courage",
-"Creation",
-"Balance"
-];
+import { useState, useEffect } from "react";
 
 export default function DailyWord(){
 
  const [word,setWord] = useState("");
 
+ const words = [
+   "Patience",
+  "Clarity",
+  "Focus",
+  "Courage",
+  "Discipline",
+  "Balance"
+ ];
+
  useEffect(()=>{
 
-   const day = new Date().getDate();
-   const selected = words[day % words.length];
+  const day = new Date().getDate();
 
-   setWord(selected);
+  const selectedWord = words[day % words.length];
+
+  setWord(selectedWord);
 
  },[]);
 
- return (
+ return(
+
   <h2 className="daily-word">
    {word}
   </h2>
+
  );
+
 }

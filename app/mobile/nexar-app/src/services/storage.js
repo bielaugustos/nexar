@@ -11,6 +11,10 @@ export function loadData(key){
 
  const item = localStorage.getItem(key);
 
- return item ? JSON.parse(item) : null;
+ if(!item){
+  return null;
+ }
+
+ return JSON.parse(item);
 
 }
