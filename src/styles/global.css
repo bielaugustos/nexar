@@ -1,0 +1,347 @@
+@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans:wght@400;700&display=swap');
+
+/* ══════════════════════════════════════
+   TEMA CLARO
+══════════════════════════════════════ */
+:root {
+  --bg:        #f5f0e8;
+  --surface:   #ede8e0;
+  --white:     #fff;
+  --ink:       #111;
+  --ink2:      #333;
+  --ink3:      #555;
+  --border:    #111;
+  --gold:      #f0c020;  /* amber original */
+  --gold-dk:   #b08000;  /* amber escuro original */
+  --gold-lt:   #fae080;  /* amber claro original */
+  --shadow:    #111;
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --fb:        13px;
+  --radius:    4px;
+}
+
+/* ══════════════════════════════════════
+   TEMA ESCURO
+══════════════════════════════════════ */
+[data-theme='dark'] {
+  --bg:      #1a1a1a;
+  --surface: #252525;
+  --white:   #2e2e2e;
+  --ink:     #f0e8d0;
+  --ink2:    #d4c8a8;
+  --ink3:    #a89c7c;
+  --border:  #f0e8d0;
+  --shadow:  #f0e8d044;
+  --gold-dk: #e0c060;  /* amber claro p/ dark mode */
+  --gold-lt:  #3a2800;  /* amber fundo dark */
+}
+
+/* ══════════════════════════════════════
+   RESET
+══════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: light;
+}
+
+[data-theme='dark'] html,
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-body);
+  background: #e8e2d8;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  /* Remove estilo nativo em iOS */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input, select, textarea {
+  font-family: var(--font-body);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ══════════════════════════════════════
+   APP WRAPPER — mobile first
+   max-width cresce por breakpoint
+══════════════════════════════════════ */
+/*
+  Layout em 3 faixas: Header (fixo) · Main (scroll) · Nav (fixa)
+
+  height: 100dvh   → usa a altura real da viewport no mobile,
+                      descontando barra de endereço do browser.
+                      Fallback: 100vh para browsers mais antigos.
+  overflow: hidden  → impede que o container pai faça scroll.
+  O scroll fica APENAS no .nex-main.
+*/
+.nex-app {
+  background: var(--bg);
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-left:  2px solid var(--border);
+  border-right: 2px solid var(--border);
+  transition: background 0.3s, border-color 0.3s;
+  position: relative;
+
+  /*
+    Reserva espaço para a BottomNav fixada (≈ 60px).
+    Sem isso, o último item da tela fica escondido atrás da nav.
+    safe-area-inset-bottom soma o espaço do home indicator no iPhone.
+  */
+  padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 600px)  { .nex-app { max-width: 640px; } }
+@media (min-width: 1024px) { .nex-app { max-width: 860px; } }
+
+/* ══════════════════════════════════════
+   UTILITÁRIOS
+══════════════════════════════════════ */
+.card {
+  background: var(--surface);
+  border: 2.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow: 3px 3px 0 var(--shadow);
+  transition: background 0.3s;
+}
+
+.card-title {
+  font-size: var(--fb);
+  font-weight: 700;
+  color: var(--ink);
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Botões base — fundo claro → texto escuro por padrão */
+.btn {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 2px 2px 0 var(--shadow);
+  background: var(--white);
+  color: var(--ink);           /* PRETO no fundo claro ✓ */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.btn:hover   { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--shadow); }
+.btn:active  { transform: translate(1px, 1px);   box-shadow: 1px 1px 0 var(--shadow); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Amarelo → PRETO ✓ */
+.btn-primary {
+  background: var(--gold);
+  color: #111;
+  border-color: var(--gold-dk);
+  box-shadow: 2px 2px 0 var(--gold-dk);
+}
+.btn-primary:hover { box-shadow: 3px 3px 0 var(--gold-dk); }
+
+/* Perigo → hover vermelho com texto escuro ✓ */
+.btn-danger:hover {
+  background: #fee;
+  border-color: #c0392b;
+  color: #8b1a1a;
+  box-shadow: 2px 2px 0 #c0392b;
+}
+
+/* Input */
+.input {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 13px;
+  background: var(--white);
+  color: var(--ink);           /* PRETO no branco ✓ */
+  outline: none;
+  box-shadow: 2px 2px 0 var(--shadow);
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input:focus       { border-color: var(--gold-dk); box-shadow: 2px 2px 0 var(--gold-dk); }
+.input::placeholder { color: var(--ink3); }
+
+/* Barra de progresso */
+.pbar-wrap {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 2px;
+  height: 22px;
+  overflow: hidden;
+  transition: background 0.3s;
+  position: relative;
+}
+
+.pbar-fill {
+  height: 100%;
+  background: var(--gold);
+  border-right: 2px solid var(--border);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pbar-label {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Pontos de prioridade */
+.pri-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.pri-lbl { font-size: 10px; font-weight: 700; }
+.pri-alta  { color: #8b1a1a; }
+.pri-media { color: #7d6608; }
+.pri-baixa { color: #1a5c34; }
+[data-theme='dark'] .pri-alta  { color: #f1948a; }
+[data-theme='dark'] .pri-media { color: var(--gold); }
+[data-theme='dark'] .pri-baixa { color: #58d68d; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 24px 0;
+  color: var(--ink3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.empty-state p { font-size: 13px; color: var(--ink3); }
+
+/* ══════════════════════════════════════
+   CHECKBOX ANIMADO
+══════════════════════════════════════ */
+.hcheck {
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.18s, transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hcheck:hover        { border-color: var(--gold-dk); box-shadow: 2px 2px 0 var(--gold-dk); }
+.hcheck.done         { background: var(--gold); border-color: var(--gold-dk); box-shadow: 2px 2px 0 var(--gold-dk); }
+.hcheck.inactive     { opacity: 0.4; cursor: default; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hcheck.done { animation: pop 0.22s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+  @keyframes pop {
+    0%  { transform: scale(1);    }
+    40% { transform: scale(1.22); }
+    70% { transform: scale(0.92); }
+    100%{ transform: scale(1);    }
+  }
+}
+
+.check-svg {
+  width: 13px;
+  height: 13px;
+  overflow: visible;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.hcheck.done .check-svg { opacity: 1; transform: scale(1); }
+
+.check-path {
+  fill: none;
+  stroke: #111;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hcheck.done .check-path { animation: draw-check 0.25s ease forwards 0.05s; }
+  @keyframes draw-check { to { stroke-dashoffset: 0; } }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hcheck.done .check-path { stroke-dashoffset: 0; }
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  border: 2px solid var(--gold-dk);
+  box-shadow: 3px 3px 0 var(--gold-dk);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 999;
+}
+
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ══════════════════════════════════════
+   SCROLLBAR CUSTOMIZADA
+══════════════════════════════════════ */
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }

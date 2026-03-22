@@ -1,0 +1,50 @@
+.page { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+/* Stats */
+.statsRow { display: flex; gap: 8px; }
+.statBox { flex: 1; background: var(--white); border: 2px solid var(--border); border-radius: 3px; padding: 10px 6px; text-align: center; box-shadow: 2px 2px 0 var(--shadow); }
+.statVal { display: block; font-size: 20px; font-weight: 700; color: var(--ink); font-family: var(--font-display); }
+.statLbl { display: block; font-size: 9px; color: var(--ink3); font-weight: 700; text-transform: uppercase; margin-top: 2px; }
+.topTags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+
+/* Nova entrada */
+.newBtn { margin-left: auto; padding: 4px 10px; font-size: 11px; }
+.newEntry { display: flex; flex-direction: column; gap: 10px; }
+
+.promptRow { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 3px; padding: 8px 12px; }
+.promptText { flex: 1; font-size: 13px; font-weight: 700; color: var(--ink); font-style: italic; }
+.promptNext { background: none; border: none; cursor: pointer; font-size: 16px; color: var(--ink3); line-height: 1; transition: transform .2s; }
+.promptNext:hover { transform: rotate(180deg); color: var(--ink); }
+
+.entryTextarea { resize: vertical; min-height: 110px; font-size: 13px; line-height: 1.6; }
+
+.moodRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.moodLabel { font-size: 11px; font-weight: 700; color: var(--ink3); display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.moodOptions { display: flex; gap: 6px; }
+.moodBtn { background: var(--white); border: 2px solid var(--border); border-radius: 4px; padding: 5px 8px; font-size: 18px; cursor: pointer; line-height: 1; transition: all .1s; box-shadow: 1px 1px 0 var(--shadow); }
+.moodBtn:hover { transform: scale(1.1); }
+.moodSel { box-shadow: 2px 2px 0 var(--shadow); transform: scale(1.05); }
+
+.tagRow { display: flex; align-items: flex-start; gap: 7px; }
+.tagList { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+.tag { display: inline-flex; align-items: center; gap: 3px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 2px 8px; font-size: 11px; font-weight: 700; color: var(--ink3); }
+.tagDel { background: none; border: none; cursor: pointer; font-size: 13px; color: var(--ink3); line-height: 1; padding: 0; transition: color .1s; }
+.tagDel:hover { color: #c0392b; }
+.tagInput { border: none; background: transparent; font-size: 11px; font-family: var(--font-body); color: var(--ink); outline: none; min-width: 60px; }
+
+.entryActions { display: flex; gap: 8px; }
+
+/* Cards de entrada */
+.entryCard { border: 2px solid var(--border); border-radius: 4px; padding: 12px; background: var(--white); margin-bottom: 8px; box-shadow: 2px 2px 0 var(--shadow); }
+.entryCard:last-child { margin-bottom: 0; }
+.entryHeader { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.entryDate { font-size: 11px; font-weight: 700; color: var(--ink3); display: flex; align-items: center; gap: 4px; }
+.entryMood { font-size: 11px; font-weight: 700; margin-left: auto; }
+.entryDel { background: none; border: none; cursor: pointer; color: var(--ink3); display: flex; align-items: center; padding: 2px; transition: color .15s; }
+.entryDel:hover { color: #c0392b; }
+.entryText { font-size: 13px; color: var(--ink); line-height: 1.6; white-space: pre-wrap; margin-bottom: 8px; }
+.entryTags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+/* Busca */
+.searchRow { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 8px 10px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 3px; }
+.searchInput { flex: 1; border: none; background: transparent; font-size: 12px; font-family: var(--font-body); color: var(--ink); outline: none; }

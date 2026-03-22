@@ -1,0 +1,341 @@
+/* ══════════════════════════════════════
+   TAXA POR DIA DA SEMANA
+══════════════════════════════════════ */
+.wdChart {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  height: 100px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.wdCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.wdPct {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--ink3);
+  min-height: 12px;
+}
+
+.wdBarWrap {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+}
+
+.wdBar {
+  width: 100%;
+  border: 2px solid var(--border);
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wdLbl {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink3);
+}
+
+/* ══════════════════════════════════════
+   TENDÊNCIA 30 DIAS
+══════════════════════════════════════ */
+.trendSvgWrap {
+  margin: 4px 0 8px;
+  padding: 4px 0;
+}
+
+.trendFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.trendLbl {
+  font-size: 10px;
+  color: var(--ink3);
+  font-weight: 700;
+}
+
+.trendBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border: 1.5px solid;
+  border-radius: 20px;
+}
+
+/* ══════════════════════════════════════
+   STREAKS
+══════════════════════════════════════ */
+.streakList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.streakRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.streakName {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  width: 90px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.streakBars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.streakBarWrap {
+  height: 7px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.streakBarRecord {
+  height: 100%;
+  background: var(--border);
+  border-radius: 2px;
+  transition: width 0.6s;
+  opacity: 0.4;
+}
+
+.streakBarCurrent {
+  height: 100%;
+  background: var(--gold);
+  border-right: 1px solid var(--gold-dk);
+  border-radius: 2px;
+  transition: width 0.6s;
+}
+
+.streakNums {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.streakCur { font-size: 13px; font-weight: 700; color: var(--ink); }
+.streakRec { font-size: 10px; color: var(--ink3); font-weight: 700; }
+
+.streakLegend {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--ink3);
+  font-weight: 700;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+
+.legDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+/* ══════════════════════════════════════
+   RANKING DE CONSISTÊNCIA
+══════════════════════════════════════ */
+.rankList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rankRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rankPos {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.rankInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.rankName {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rankBarWrap {
+  height: 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.rankBar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rankRate {
+  font-size: 13px;
+  font-weight: 700;
+  width: 38px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   DISTRIBUIÇÃO POR PRIORIDADE
+══════════════════════════════════════ */
+.stackBar {
+  display: flex;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.stackSeg {
+  height: 100%;
+  transition: width 0.6s;
+}
+
+.priLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.priLegRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.priLegDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  flex-shrink: 0;
+}
+
+.priLegLbl   { font-size: 12px; font-weight: 700; color: var(--ink); flex: 1; }
+.priLegCount { font-size: 11px; color: var(--ink3); font-weight: 700; }
+.priLegPct   { font-size: 12px; font-weight: 700; width: 36px; text-align: right; }
+
+/* ══════════════════════════════════════
+   RECORDES PESSOAIS
+══════════════════════════════════════ */
+.recordsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 480px) {
+  .recordsGrid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.recordCard { cursor:pointer; transition:transform .15s, box-shadow .15s; text-align:center; font-family:var(--font-body); /* button reset */
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 8px;
+  text-align: center;
+  box-shadow: 2px 2px 0 var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  animation: cardIn .35s ease both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(10px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);   }
+}
+
+.recordVal  { font-size: 18px; font-weight: 700; color: var(--ink); font-family: var(--font-display); line-height: 1.1; }
+.recordUnit { font-size: 11px; font-weight: 400; color: var(--ink3); }
+.recordLbl  { font-size: 9px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .3px; line-height: 1.3; }
+.recordsHint { font-size: 11px; color: var(--ink3); text-align: center; margin-top: 8px; font-style: italic; }
+
+/* ══════════════════════════════════════
+   INSIGHT COMPARTILHADO
+══════════════════════════════════════ */
+.insight {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  box-shadow: 1px 1px 0 var(--shadow);
+  font-size: 11px;
+  color: var(--ink2);
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.recordCardActive { border-color:var(--gold-dk) !important; background:var(--gold) !important; box-shadow:3px 3px 0 var(--gold-dk) !important; transform:translate(-1px,-1px); }
+.recordCardActive .recordVal { color:var(--ink) !important; }
+.recordCard:hover:not(.recordCardActive) { transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--shadow); }
+
+.recordDetail {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  animation: detailIn .2s ease;
+}
+@keyframes detailIn { from { opacity:0; transform:translateY(-4px) } to { opacity:1; transform:none } }
+.recordDetailText { font-size:12px; color:var(--ink); line-height:1.6; }

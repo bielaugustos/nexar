@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>ioversoroot · offline</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f2eb;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body        { background: #111; }
+      .card       { background: #1a1a1a; border-color: #2a2a2a; }
+      .title      { color: #f0e8d0; }
+      .sub, .note { color: #666; }
+    }
+
+    .card {
+      background: #fff;
+      border: 2px solid #e5e0d5;
+      border-radius: 12px;
+      padding: 28px 24px;
+      text-align: center;
+      max-width: 300px;
+      width: 100%;
+    }
+
+    .icon-wrap {
+      width: 44px;
+      height: 44px;
+      background: #fef3c7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 6px;
+    }
+
+    .sub {
+      font-size: 12px;
+      color: #777;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background: #f0c020;
+      border: 2px solid #b08000;
+      border-radius: 6px;
+      padding: 9px 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #111;
+      font-family: inherit;
+      width: 100%;
+      box-shadow: 2px 2px 0 #b08000;
+      transition: transform .1s, box-shadow .1s;
+    }
+
+    button:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0 #b08000;
+    }
+
+    .note {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 14px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-wrap">
+      <!-- wifi-slash inline SVG -->
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+           stroke="#d97706" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <line x1="1" y1="1" x2="23" y2="23"/>
+        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+        <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/>
+        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <circle cx="12" cy="20" r="1" fill="#d97706" stroke="none"/>
+      </svg>
+    </div>
+    <p class="title">Sem conexão</p>
+    <p class="sub">Seus hábitos e dados continuam acessíveis. Só as funcionalidades de IA ficam indisponíveis.</p>
+    <button onclick="location.reload()">Tentar novamente</button>
+    <p class="note">ioversoroot · dados salvos localmente</p>
+  </div>
+</body>
+</html>
