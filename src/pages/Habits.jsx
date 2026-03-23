@@ -19,6 +19,7 @@ import { calcLevel }     from '../services/levels'
 import { useSound, playClickDirect, playSaveDirect } from '../hooks/useSound'
 import { CheckBox }      from '../components/CheckBox'
 import { toast }         from '../components/Toast'
+import { usePlan }       from '../hooks/usePlan'
 import styles            from './Habits.module.css'
 
 // ══════════════════════════════════════
@@ -1410,32 +1411,16 @@ export default function Habits() {
   const { habits, history, toggleHabit, saveHabit, addHabit, deleteHabit, soundOn } = useApp()
   const { allPoints } = useHabits()
   const { playCheck, playUncheck } = useSound(soundOn)
+  const { can } = usePlan()
+
+  // calOwned: reativo via usePlan (sincroniza eventos nex_plan_changed + nex_shop_changed)
+  const calOwned = can('habits_calendar')
 
   const [calVisible, setCalVisible] = useState(() => loadStorage('nex_cal_visible', true))
-  const [calOwned,   setCalOwned]   = useState(() => {
-    try {
-      const isPro  = (localStorage.getItem('nex_plan') || 'free') === 'pro'
-      const inShop = JSON.parse(localStorage.getItem('nex_shop_owned') || '[]').includes('util_calendar')
-      return isPro || inShop
-    }
-    catch { return false }
-  })
   useEffect(() => {
-    const sync = () => {
-      setCalVisible(loadStorage('nex_cal_visible', true))
-      try {
-        const isPro  = (localStorage.getItem('nex_plan') || 'free') === 'pro'
-        const inShop = JSON.parse(localStorage.getItem('nex_shop_owned') || '[]').includes('util_calendar')
-        setCalOwned(isPro || inShop)
-      }
-      catch { /* keep previous */ }
-    }
+    const sync = () => setCalVisible(loadStorage('nex_cal_visible', true))
     window.addEventListener('nex_shop_changed', sync)
-    window.addEventListener('nex_plan_changed', sync)
-    return () => {
-      window.removeEventListener('nex_shop_changed', sync)
-      window.removeEventListener('nex_plan_changed', sync)
-    }
+    return () => window.removeEventListener('nex_shop_changed', sync)
   }, [])
 
   const [newName,      setNewName]      = useState('')

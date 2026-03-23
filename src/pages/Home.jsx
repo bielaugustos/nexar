@@ -11,6 +11,7 @@ import { useStats }    from '../hooks/useStats'
 import { toast }       from '../components/Toast'
 import { useSound }    from '../hooks/useSound'
 import { calcLevel }   from '../services/levels'
+import { usePlan }    from '../hooks/usePlan'
 import styles from './Home.module.css'
 
 
@@ -198,7 +199,8 @@ function CalendarioCard({ history }) {
 const WEEK_FULL = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
 
 function InsightsCard({ history, habits }) {
-  const isPro = (localStorage.getItem('nex_plan') || 'free') === 'pro'
+  const { can } = usePlan()
+  const isPro = can('insights_home')
 
   const insights = useMemo(() => {
     if (!isPro) return null

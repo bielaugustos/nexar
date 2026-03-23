@@ -4,11 +4,16 @@ Aplicativo de desenvolvimento pessoal que une rastreamento de hábitos, finança
 
 ---
 
+<<<<<<< HEAD
 <img width="1153" height="801" alt="project8" src="https://github.com/user-attachments/assets/ee4dfc19-ac08-438b-921a-746f24a4deba" />
 
 
 ## Visão Geral
 
+=======
+## Visão Geral
+
+>>>>>>> 93f48be ((fix) prepare to upscale app with navigation map)
 | Área | O que faz |
 |---|---|
 | **Hábitos** | CRUD completo com subtarefas, prioridades, frequência personalizada e histórico |

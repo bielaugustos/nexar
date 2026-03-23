@@ -21,6 +21,7 @@ import { THEMES, applyTheme } from '../services/themes'
 import { LegalModal, useLegal } from '../components/LegalModal'
 import { toast }     from '../components/Toast'
 import { playPurchaseDirect, playClickDirect } from '../hooks/useSound'
+import { usePlan }   from '../hooks/usePlan'
 import styles        from './Profile.module.css'
 
 // ══════════════════════════════════════
@@ -612,15 +613,15 @@ const PRO_FEATURES = [
 ]
 
 function PlansCard() {
-  const [plan,        setPlan]        = useState(() => localStorage.getItem('nex_plan') || 'free')
+  // plan/setPlan vêm do contexto central — único source of truth
+  // Supabase: usePlan() passará a ler de user.user_metadata
+  const { plan, isPro, setPlan } = usePlan()
   const [showCheckout,setShowCheckout]= useState(false)
   const [cardNum,     setCardNum]     = useState('')
   const [cardExp,     setCardExp]     = useState('')
   const [cardCvc,     setCardCvc]     = useState('')
   const [processing,  setProcessing]  = useState(false)
   const [open,        setOpen]        = useState(false)
-
-  const isPro = plan === 'pro'
 
   function fmtCard(v) {
     return v.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim()
@@ -634,8 +635,8 @@ function PlansCard() {
     e.preventDefault()
     setProcessing(true)
     // Simulação de processamento (fictício)
+    // Supabase: trocar por chamada à API de pagamento + updateUser()
     setTimeout(() => {
-      localStorage.setItem('nex_plan', 'pro')
       setPlan('pro')
       setProcessing(false)
       setShowCheckout(false)
@@ -645,7 +646,6 @@ function PlansCard() {
 
   function cancelPro() {
     if (!window.confirm('Cancelar o plano Pro? Você voltará ao plano gratuito.')) return
-    localStorage.setItem('nex_plan', 'free')
     setPlan('free')
     toast('Plano cancelado. Você está no plano gratuito.')
   }
@@ -1097,6 +1097,7 @@ export default function Profile({ onNavigate }) {
   const { habits, history, theme, setTheme, soundOn, setSoundOn, resetDay } = useApp()
   const { allPoints }          = useHabits()
   const { streak, daysActive } = useStats(history)
+  const { can }                = usePlan()
 
   const [shopOpen, setShopOpen] = useState(false)
   const legal = useLegal()
@@ -1226,18 +1227,18 @@ export default function Profile({ onNavigate }) {
 
       {/* Dados — compacto com explicações */}
       {(() => {
-        const isPro = (localStorage.getItem('nex_plan') || 'free') === 'pro'
+        const canExport = can('export_json')
         return (
           <div className="card">
             <div className="card-title">
               <PiDownloadSimpleBold size={15}/> Seus Dados
-              {!isPro && (
+              {!canExport && (
                 <span style={{ marginLeft:'auto', fontSize:10, fontWeight:700, color:'var(--ink3)', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:4, padding:'2px 8px' }}>
                   Plano Pro
                 </span>
               )}
             </div>
-            {!isPro ? (
+            {!canExport ? (
               <div style={{ display:'flex', flexDirection:'column', gap:8, padding:'8px 0' }}>
                 <p style={{ fontSize:12, color:'var(--ink3)', margin:0, lineHeight:1.5 }}>
                   Exportação e restauração de backup estão disponíveis no plano Pro.

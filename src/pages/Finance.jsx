@@ -13,6 +13,7 @@ import {
 } from 'react-icons/pi'
 import { toast } from '../components/Toast'
 import { playSaveDirect, playErrorDirect } from '../hooks/useSound'
+import { usePlan } from '../hooks/usePlan'
 import styles from './Finance.module.css'
 
 // ══════════════════════════════════════
@@ -1209,6 +1210,7 @@ function MonthTabBar({ monthOffset, onChange }) {
 // ══════════════════════════════════════
 export default function Finance() {
   const fin         = useFinance()
+  const { can }     = usePlan()
   const [formType,  setFormType]  = useState(null)     // 'income' | 'expense' | null
   const [quickMode, setQuickMode] = useState(null)     // null | 'reserve' | 'meta'
   const [monthOffset, setMonthOffset] = useState(0)
@@ -1309,7 +1311,7 @@ export default function Finance() {
           )}
 
           {/* BLOCO 5: Histórico 6 meses (Pro) ou teaser */}
-          {(localStorage.getItem('nex_plan') || 'free') === 'pro'
+          {can('finance_sixmonth')
             ? <SixMonthChart last6={fin.last6} />
             : <PremiumTeaser />
           }

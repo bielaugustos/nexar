@@ -1,0 +1,67 @@
+/* ══════════════════════════════════════
+   ProGate — estilos do teaser padrão
+   ══════════════════════════════════════ */
+
+/* Badge inline (compact=true) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--ink3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  vertical-align: middle;
+}
+
+/* Card teaser padrão */
+.teaser {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 16px;
+  text-align: center;
+  opacity: .65;
+}
+
+.teaserIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink3);
+}
+
+.teaserTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.teaserDesc {
+  font-size: 11px;
+  color: var(--ink3);
+  margin: 0;
+  max-width: 220px;
+  line-height: 1.5;
+}
+
+.teaserBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin-top: 2px;
+}

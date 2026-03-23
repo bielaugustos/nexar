@@ -6,13 +6,18 @@
 //   • history  — histórico diário de conclusões
 //   • theme    — tema de cores ativo
 //   • soundOn  — preferência de som
+//   • plan     — plano do usuário ('free' | 'pro')
 //
 // Ações expostas:
 //   toggleHabit, saveHabit, addHabit, deleteHabit, resetDay,
-//   setTheme, toggleTheme, setSoundOn
+//   setTheme, toggleTheme, setSoundOn, setPlan
 //
 // Persistência: localStorage com prefixo "nex_"
 // Reset automático: todos os dias à meia-noite (fuso local)
+//
+// Supabase-ready: quando migrar auth, mover `plan` para
+// ser derivado de user.user_metadata via hook usePlan.js.
+// O restante do contexto (habits, history…) pode coexistir.
 // ══════════════════════════════════════
 import {
   createContext, useContext, useState,
@@ -144,6 +149,7 @@ export function AppProvider({ children }) {
   const [history,   setHistory]    = useState(() => loadStorage('nex_history', {}))
   const [theme,     setThemeState] = useState(() => initTheme())
   const [soundOn,   setSoundOnSt]  = useState(() => loadStorage('nex_sound', true))
+  const [plan,      setPlanState]  = useState(() => loadStorage('nex_plan', 'free'))
 
   // ── Efeitos de persistência e sincronização ──
 
@@ -152,6 +158,12 @@ export function AppProvider({ children }) {
 
   // Persiste preferência de som
   useEffect(() => { saveStorage('nex_sound', soundOn) }, [soundOn])
+
+  // Persiste plano e notifica outros componentes
+  useEffect(() => {
+    saveStorage('nex_plan', plan)
+    window.dispatchEvent(new Event('nex_plan_changed'))
+  }, [plan])
 
   // Persiste hábitos e registra o dia atual no histórico
   useEffect(() => {
@@ -250,11 +262,17 @@ export function AppProvider({ children }) {
     setSoundOnSt(typeof val === 'function' ? val : () => val)
   }, [])
 
+  // Define o plano do usuário ('free' | 'pro')
+  // Supabase: substituir por mutation na tabela de subscriptions
+  const setPlan = useCallback((val) => {
+    setPlanState(val)
+  }, [])
+
   // ── Valor exposto pelo contexto ──
   const value = {
-    habits, history, theme, soundOn,
+    habits, history, theme, soundOn, plan,
     toggleHabit, saveHabit, addHabit, deleteHabit, resetDay,
-    toggleTheme, setTheme, setSoundOn,
+    toggleTheme, setTheme, setSoundOn, setPlan,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
