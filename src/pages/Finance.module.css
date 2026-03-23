@@ -5,7 +5,22 @@
   gap: 10px;
 }
 
-@media (min-width: 600px) { .page { padding: 16px; } }
+@media (min-width: 600px) { .page { padding: 16px; gap: 12px; } }
+@media (min-width: 1024px) { .page { padding: 20px; gap: 14px; } }
+
+/* Stagger de entrada */
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .page > * { animation: cardIn 0.30s ease both; }
+  .page > :nth-child(1) { animation-delay: 0.00s; }
+  .page > :nth-child(2) { animation-delay: 0.05s; }
+  .page > :nth-child(3) { animation-delay: 0.10s; }
+  .page > :nth-child(4) { animation-delay: 0.15s; }
+  .page > :nth-child(5) { animation-delay: 0.20s; }
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* ══ NAVEGAÇÃO ══ */
 .navTabs { display: flex; gap: 5px; }
@@ -123,6 +138,35 @@
 .txEmptyTip   { font-size: 11px; color: var(--ink3); line-height: 1.5; background: var(--surface); border: 1.5px solid var(--border); border-radius: 3px; padding: 8px 10px; width: 100%; }
 .txEmptyBtn   { width: 100%; justify-content: center; margin-top: 4px; }
 
+.comecarBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--shadow);
+  transition: box-shadow .1s, transform .1s;
+  margin-top: 4px;
+}
+.comecarBtn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+@keyframes comecarPress {
+  0%   { transform: scale(1);    background: var(--ink); color: var(--bg); box-shadow: 3px 3px 0 var(--shadow); }
+  20%  { transform: scale(.93);  background: var(--ink); color: var(--bg); box-shadow: 1px 1px 0 var(--shadow); }
+  55%  { transform: scale(1.05); background: #27ae60;    color: #fff;     box-shadow: 4px 4px 0 #1a7a44; }
+  100% { transform: scale(1);    background: var(--ink); color: var(--bg); box-shadow: 3px 3px 0 var(--shadow); }
+}
+
 /* ══ BLOCO 4: META DO MÊS ══ */
 .goalEmptyDesc { font-size: 12px; color: var(--ink3); line-height: 1.5; margin-bottom: 8px; }
 .goalMetaRow   { display: flex; align-items: baseline; gap: 6px; padding: 6px 0 2px; }
@@ -147,6 +191,257 @@
   border: 1.5px solid var(--border); border-radius: 10px;
   color: var(--ink3); background: var(--surface);
 }
+
+/* ══════════════════════════════════════
+   GRÁFICO 6 MESES
+   ══════════════════════════════════════ */
+
+/* ── Cabeçalho ── */
+.sixHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.sixHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sixTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.sixPeriodBadge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  color: var(--ink3);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+.sixNetTotal {
+  font-size: 13px;
+  font-weight: 800;
+}
+.sixNetPos { color: #27ae60; }
+.sixNetNeg { color: #e74c3c; }
+
+/* ── 3 chips resumo ── */
+.sixChips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.sixChip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.sixChipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sixChipLabel {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  color: var(--ink3);
+  text-transform: uppercase;
+}
+.sixChipVal {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink1);
+}
+
+/* ── Área do gráfico ── */
+.sixChart {
+  position: relative;
+}
+
+/* Y-axis: labels alinhados à altura das barras */
+.sixYAxis {
+  position: absolute;
+  left: 0;
+  /* alinhado exatamente com a área de barras */
+  top: 0;
+  bottom: 36px;        /* mesmo padding que sixLabelsRow height */
+  width: 28px;
+  pointer-events: none;
+}
+.sixYLabel {
+  position: absolute;
+  right: 4px;
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--ink3);
+  white-space: nowrap;
+  transform: translateY(50%);  /* centraliza na linha de grade */
+  line-height: 1;
+}
+
+/* Área das barras: height fixo, grid lines e colunas */
+.sixBarsArea {
+  position: relative;
+  height: 88px;
+  margin-left: 32px;   /* espaço para y-axis */
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+/* Grid lines — bottom: X% relativo a 88px ✓ */
+.sixGridLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--border);
+  pointer-events: none;
+}
+
+/* Colunas de barras */
+.sixBarCol {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  transition: background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sixBarColActive { background: var(--bg2); }
+
+.sixBars {
+  width: 100%;
+  display: flex;
+  gap: 1px;
+  align-items: flex-end;
+  height: 100%;
+}
+.sixBarInc {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  background: #27ae60;
+  transition: height .3s cubic-bezier(.4,0,.2,1);
+  min-height: 2px;
+}
+.sixBarExp {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  background: #e74c3c;
+  opacity: .75;
+  transition: height .3s cubic-bezier(.4,0,.2,1);
+  min-height: 2px;
+}
+.sixBarColActive .sixBarInc { opacity: 1; }
+.sixBarColActive .sixBarExp { opacity: 1; }
+
+/* Labels: linha separada abaixo das barras */
+.sixLabelsRow {
+  display: flex;
+  gap: 3px;
+  margin-left: 32px;
+  margin-top: 4px;
+  height: 32px;
+}
+.sixLabelCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 2px 0;
+  border-radius: 0 0 6px 6px;
+  transition: background .15s;
+}
+.sixLabelColActive { background: var(--bg2); }
+
+.sixBalance {
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: .1px;
+}
+.sixBalancePos { color: #27ae60; }
+.sixBalanceNeg { color: #e74c3c; }
+
+.sixLabel {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: .2px;
+}
+
+/* Mobile: esconde y-axis, expande barras */
+@media (max-width: 360px) {
+  .sixYAxis  { display: none; }
+  .sixBarsArea, .sixLabelsRow { margin-left: 0; }
+}
+
+/* ── Tooltip ── */
+.sixTooltip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 11px;
+  flex-wrap: wrap;
+}
+.sixTipLabel {
+  font-weight: 700;
+  color: var(--ink);
+  margin-right: 2px;
+}
+.sixTipRow {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--ink2);
+}
+.sixTipInc { color: #27ae60; font-weight: 700; }
+.sixTipExp { color: #e74c3c; font-weight: 700; }
+.sixTipBold { font-weight: 700; }
+
+.sixTooltipPinned {
+  border-color: var(--gold-dk);
+  background: var(--gold);
+  box-shadow: 2px 2px 0 var(--gold-dk);
+}
+.sixTooltipPinned .sixTipLabel { color: var(--ink); }
+.sixTooltipPinned .sixTipRow   { color: var(--ink2); }
+
+.sixTipDismiss {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink3);
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.sixTipDismiss:hover { color: var(--ink); }
 
 /* ── legado (usado por EmergencyCard / GoalsCard) ── */
 .fab { width: 100%; justify-content: center; font-size: 13px; padding: 10px; }
@@ -238,21 +533,24 @@
 .txFilterActive { background: var(--ink); color: var(--gold); }
 
 /* ── Linha de transação ── */
-.txRow { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.txRow { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .txRow:last-child { border-bottom: none; }
-.txIcon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.txIcon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .txIconIn  { background: #eaf3de; color: #1a5c34; }
 .txIconOut { background: #fcebeb; color: #922b21; }
 [data-theme='dark'] .txIconIn  { background: #1a2e10; color: #58d68d; }
 [data-theme='dark'] .txIconOut { background: #2e1010; color: #f1948a; }
-.txInfo { flex: 1; min-width: 0; }
-.txDesc { font-size: 13px; font-weight: 700; color: var(--ink); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.txMeta { font-size: 10px; color: var(--ink3); }
-.txAmount { font-size: 13px; font-weight: 700; white-space: nowrap; }
+.txInfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.txTopLine { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.txBottomLine { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.txDesc { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.txMeta { font-size: 10px; color: var(--ink3); white-space: nowrap; }
+.txAmount { font-size: 13px; font-weight: 800; white-space: nowrap; flex-shrink: 0; }
 .txAmountIn  { color: #27ae60; }
 .txAmountOut { color: #e74c3c; }
-.txRemove { background: none; border: none; cursor: pointer; color: var(--ink3); padding: 4px; display: flex; align-items: center; transition: color .15s; flex-shrink: 0; }
-.txRemove:hover { color: #c0392b; }
+.txActions { display: flex; gap: 2px; flex-shrink: 0; }
+.txRemove { background: none; border: none; cursor: pointer; color: var(--ink3); padding: 4px 5px; display: flex; align-items: center; transition: color .15s; border-radius: 3px; }
+.txRemove:hover { color: #c0392b; background: #fff5f5; }
 .loadMore { width: 100%; border: 1.5px dashed var(--border); border-radius: 3px; padding: 8px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--font-body); background: none; color: var(--ink3); margin-top: 8px; transition: background .15s; }
 .loadMore:hover { background: var(--surface); }
 
@@ -324,8 +622,8 @@
 /* Edição inline de transações */
 .txEditRow { display:flex; flex-direction:column; gap:5px; padding:8px 0; border-bottom:1px solid var(--border); }
 .txEditInput { font-size:12px; padding:5px 8px; }
-.txEdit { background:none; border:none; cursor:pointer; color:var(--ink3); padding:4px; display:flex; align-items:center; transition:color .1s; }
-.txEdit:hover { color:var(--gold-dk); }
+.txEdit { background:none; border:none; cursor:pointer; color:var(--ink3); padding:4px 5px; display:flex; align-items:center; transition:color .1s; border-radius:3px; }
+.txEdit:hover { color:var(--gold-dk); background: #fffbf0; }
 
 /* Aportes */
 .depositActions { display:flex; gap:6px; align-items:center; margin-top:6px; }

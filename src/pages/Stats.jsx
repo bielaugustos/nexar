@@ -26,8 +26,10 @@ function habitStreaks(habitId, history) {
     if (history[k]?.habits?.[habitId]) { run++; record = Math.max(record, run) }
     else run = 0
   }
-  // Streak atual — conta de hoje para o passado até quebrar a sequência
-  for (let i = 0; i < 365; i++) {
+  // Streak atual — começa de ontem se hoje ainda não tem registro do hábito
+  const todayKey = new Date().toISOString().slice(0, 10)
+  const hasTodayActivity = !!history[todayKey]?.habits?.[habitId]
+  for (let i = hasTodayActivity ? 0 : 1; i < 365; i++) {
     const d = new Date(); d.setDate(d.getDate() - i)
     const k = d.toISOString().slice(0, 10)
     if (history[k]?.habits?.[habitId]) current++
@@ -495,7 +497,7 @@ export default function Stats() {
   const dayCount = Object.keys(history).filter(k => history[k]?.done > 0).length
 
   return (
-    <main style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <main className={styles.page}>
 
       {/* Sempre visível — mesmo sem dados */}
       <PersonalRecords

@@ -14,6 +14,19 @@
 @media (min-width: 600px)  { .page { padding: 18px; gap: 18px; } }
 @media (min-width: 1024px) { .page { padding: 24px; gap: 20px; } }
 
+/* Stagger de entrada no desktop */
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .page > * { animation: cardIn 0.30s ease both; }
+  .page > :nth-child(1) { animation-delay: 0.00s; }
+  .page > :nth-child(2) { animation-delay: 0.06s; }
+  .page > :nth-child(3) { animation-delay: 0.12s; }
+  .page > :nth-child(4) { animation-delay: 0.18s; }
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ── Botão Novo ── */
 .newBtn {
   margin-left: auto;
@@ -358,10 +371,34 @@
   color: var(--ink);
   box-shadow: 1px 1px 0 var(--shadow);
   transition: transform 0.1s, box-shadow 0.1s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .ptsOpt { padding: 9px 2px; font-size: 12px; }
 }
 
 .ptsSel { background: var(--gold); border-color: var(--gold-dk); color: #111; box-shadow: 2px 2px 0 var(--gold-dk); }
 .ptsOpt:hover:not(.ptsSel) { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--shadow); }
+
+@keyframes ptsJump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.ptsPress {
+  animation: ptsJump .5s ease-in-out both;
+}
+
+@keyframes ioBadgeFlash {
+  0%   { transform: scale(1);    opacity: 1; }
+  40%  { transform: scale(1.18); opacity: .85; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.habPtsFlash {
+  animation: ioBadgeFlash .5s ease-in-out both;
+}
 
 /* Ícones */
 .iconGrid {
@@ -1439,7 +1476,7 @@
 /* Nível row */
 .ioLevel {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   padding: 10px 12px;
   background: var(--white);
@@ -1534,6 +1571,12 @@
   font-family: var(--font-body);
   transition: all .12s;
   letter-spacing: .3px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .ioChip { padding: 6px 12px; font-size: 11px; }
 }
 .ioChip:hover {
   border-color: var(--gold-dk);
@@ -1616,6 +1659,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .blockTitle {
@@ -2056,6 +2103,12 @@
   cursor: pointer;
   font-family: var(--font-body);
   transition: all .12s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .quickEditBtn { padding: 8px 13px; font-size: 12px; }
 }
 
 .quickEditBtn:hover {
@@ -2302,4 +2355,153 @@
   white-space: nowrap;
   flex-shrink: 0;
   margin-left: auto;
+}
+
+.habPts {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--gold-dk);
+  background: color-mix(in srgb, var(--gold) 18%, var(--white));
+  border: 1.5px solid var(--gold-dk);
+  border-radius: 3px;
+  padding: 1px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: .3px;
+}
+
+/* ══════════════════════════════════════
+   SEARCH BAR
+══════════════════════════════════════ */
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-family: var(--font-body);
+  color: var(--ink);
+  outline: none;
+}
+
+.searchInput::placeholder { color: var(--ink3); }
+
+.searchClear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink3);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  transition: color .12s;
+}
+.searchClear:hover { color: var(--ink); }
+
+/* ══════════════════════════════════════
+   QUICK DELETE BUTTON
+══════════════════════════════════════ */
+.quickDelBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  padding: 5px 8px;
+  color: var(--ink3);
+  cursor: pointer;
+  transition: all .12s;
+  margin-left: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .quickDelBtn { padding: 8px 11px; }
+}
+.quickDelBtn:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+  background: #fff5f5;
+}
+
+/* ══════════════════════════════════════
+   ARCHIVE BUTTON (EditPanel)
+══════════════════════════════════════ */
+.archiveBtn {
+  background: var(--surface) !important;
+  border: 1.5px solid var(--border) !important;
+  color: var(--ink3) !important;
+  box-shadow: none !important;
+}
+.archiveBtn:hover {
+  border-color: var(--ink2) !important;
+  color: var(--ink) !important;
+  background: var(--bg) !important;
+}
+
+/* ══════════════════════════════════════
+   ARCHIVED SECTION CARDS
+══════════════════════════════════════ */
+.archivedCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.archivedCard:last-child { border-bottom: none; }
+
+.archivedName {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ink3);
+  font-weight: 500;
+  text-decoration: line-through;
+  text-decoration-color: var(--border);
+}
+
+.unarchiveBtn {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 6px;
+  color: var(--ink3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all .12s;
+}
+.unarchiveBtn:hover {
+  border-color: #27ae60;
+  color: #27ae60;
+  background: #f0faf4;
+}
+
+.archiveDelBtn {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 6px;
+  color: var(--ink3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all .12s;
+}
+.archiveDelBtn:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+  background: #fff5f5;
 }

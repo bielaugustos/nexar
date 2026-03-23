@@ -9,6 +9,8 @@ import {
   PiChartBarBold, PiMedalBold, PiBriefcaseBold, PiCaretDownBold, PiRocketLaunchBold,
   PiStarBold, PiCheckCircleBold,
   PiCalendarBold, PiLockSimpleBold,
+  PiKeyBold, PiEyeBold, PiEyeSlashBold,
+  PiCrownBold, PiCreditCardBold, PiXBold, PiSparkleBold,
 } from 'react-icons/pi'
 import { useApp }      from '../context/AppContext'
 import { useHabits }   from '../hooks/useHabits'
@@ -17,8 +19,8 @@ import { calcLevel }   from '../services/levels'
 import { loadStorage, saveStorage } from '../services/storage'
 import { THEMES, applyTheme } from '../services/themes'
 import { LegalModal, useLegal } from '../components/LegalModal'
-import { AITeaser }       from '../components/AITeaser'
 import { toast }     from '../components/Toast'
+import { playPurchaseDirect, playClickDirect } from '../hooks/useSound'
 import styles        from './Profile.module.css'
 
 // ══════════════════════════════════════
@@ -277,6 +279,7 @@ const THEME_LIST = [
   { id:'desert',   name:'Desert',   emoji:'🏜️', free:false, shopId:'theme_desert'   },
   { id:'dracula',  name:'Dracula',  emoji:'🧛',  free:false, shopId:'theme_dracula'  },
   { id:'nord',     name:'Nord',     emoji:'🏔️', free:false, shopId:'theme_nord'     },
+  { id:'glass',    name:'Vidro',    emoji:'🪟',  free:false, shopId:'theme_glass'    },
 ]
 
 function ThemePicker({ currentTheme, onChangeTheme, ownedItems }) {
@@ -323,6 +326,7 @@ function ThemePicker({ currentTheme, onChangeTheme, ownedItems }) {
 // ══════════════════════════════════════
 const SHOP_ITEMS = [
   { id:'util_progress',   cat:'utilidade', name:'Experiência',   icon:'📊', desc:'Disponível gratuitamente — adiciona a tela de Conquistas e Estatísticas à navegação.', cost:0, pillar:'Rotina', pillarColor:'#27ae60' },
+  { id:'util_mentor',     cat:'utilidade', name:'Mentor IA',     icon:'🤖', desc:'Disponível gratuitamente — adiciona a tela do Mentor e Diário de Reflexão à navegação.', cost:0, pillar:'Bem-estar', pillarColor:'#8e44ad' },
   { id:'util_calendar',   cat:'utilidade', name:'Calendário',    icon:'📅', desc:'Desbloqueado com 500 io — exibe o calendário mensal na tela de hábitos. Pode ser ocultado a qualquer momento.', cost:500, toggle:true, pillar:'Rotina', pillarColor:'#27ae60' },
   { id:'avatar_eagle',    cat:'avatar',   name:'Águia',         icon:'🦅', desc:'Disponível gratuitamente — adicione ao seu perfil agora.',           cost:0,    pillar:'Rotina',    pillarColor:'#27ae60' },
   { id:'avatar_monk',     cat:'avatar',   name:'Monge',         icon:'🧘', desc:'Disponível gratuitamente — adicione ao seu perfil agora.',           cost:0,    pillar:'Bem-estar', pillarColor:'#8e44ad' },
@@ -334,6 +338,7 @@ const SHOP_ITEMS = [
   { id:'theme_nord',      cat:'tema',     name:'Nord',          icon:'🏔️',desc:'Desbloqueado com 1000 io acumulados.', cost:1000, pillar:'Bem-estar', pillarColor:'#8e44ad' },
   { id:'theme_midnight',  cat:'tema',     name:'Midnight',      icon:'🌌', desc:'Desbloqueado com 1200 io acumulados.', cost:1200, pillar:'Bem-estar', pillarColor:'#8e44ad' },
   { id:'theme_forest',    cat:'tema',     name:'Forest',        icon:'🌿', desc:'Desbloqueado com 1200 io acumulados.', cost:1200, pillar:'Bem-estar', pillarColor:'#8e44ad' },
+  { id:'theme_glass',     cat:'tema',     name:'Vidro',         icon:'🪟', desc:'O tema mais exclusivo — glassmorphism inspirado no design Apple. Desbloqueado com 2000 io.', cost:2000, pillar:'Bem-estar', pillarColor:'#8e44ad' },
 ]
 
 const CAT_LABELS = { all:'Todos', tema:'Temas', avatar:'Avatares', utilidade:'Utilitários' }
@@ -370,6 +375,7 @@ function RewardsShop({ allPoints, onItemBought, isOpen, onToggle }) {
     if (item.cat === 'avatar') localStorage.setItem('nex_avatar', item.icon)
     if (onItemBought) onItemBought(item.id)
     window.dispatchEvent(new Event('nex_shop_changed'))
+    playPurchaseDirect()
     const msg = {
       util_calendar:  'Calendário desbloqueado! Visível na tela de hábitos.',
       util_freeze:    'Streak Freeze ativado!',
@@ -384,6 +390,7 @@ function RewardsShop({ allPoints, onItemBought, isOpen, onToggle }) {
     setCalVisible(next)
     saveStorage('nex_cal_visible', next)
     window.dispatchEvent(new Event('nex_shop_changed'))
+    playClickDirect()
   }
 
   const ownedCount = SHOP_ITEMS.filter(i => owned.has(i.id)).length
@@ -464,6 +471,302 @@ function RewardsShop({ allPoints, onItemBought, isOpen, onToggle }) {
 
         </div>
       </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════
+// CHAVE API — configuração pelo usuário
+// ══════════════════════════════════════
+function ApiKeyCard() {
+  const [key,     setKey]     = useState(() => localStorage.getItem('nex_apikey') || '')
+  const [input,   setInput]   = useState(() => localStorage.getItem('nex_apikey') || '')
+  const [show,    setShow]    = useState(false)
+  const [open,    setOpen]    = useState(false)
+  const [editing, setEditing] = useState(false)
+
+  const hasSaved = key && key.startsWith('sk-ant-')
+
+  function save() {
+    const trimmed = input.trim()
+    if (!trimmed) { toast('Cole sua chave API antes de salvar.'); return }
+    if (!trimmed.startsWith('sk-ant-')) { toast('Chave inválida — deve começar com sk-ant-'); return }
+    localStorage.setItem('nex_apikey', trimmed)
+    setKey(trimmed)
+    setEditing(false)
+    toast('Chave API salva!')
+  }
+
+  function remove() {
+    if (!window.confirm('Remover a chave API? O Mentor IA ficará desativado.')) return
+    localStorage.removeItem('nex_apikey')
+    setKey(''); setInput(''); setEditing(false)
+    toast('Chave removida.')
+  }
+
+  const masked = key ? key.slice(0, 10) + '••••••••••••' + key.slice(-4) : ''
+
+  return (
+    <div className={styles.shopWrapper}>
+      <div className={styles.shopTrigger} onClick={() => setOpen(o => !o)} role="button" tabIndex={0}
+        onKeyDown={e => e.key === 'Enter' && setOpen(o => !o)}>
+        <span className={styles.settingIcon}><PiKeyBold size={16}/></span>
+        <div style={{ flex:1 }}>
+          <span className={styles.settingLabel}>Chave API Claude</span>
+          <p className={styles.settingDesc}>
+            {hasSaved ? 'Chave configurada — Mentor IA ativo' : 'Necessária para usar o Mentor IA'}
+          </p>
+        </div>
+        {hasSaved && <span style={{ fontSize:10, fontWeight:700, color:'#27ae60', marginRight:6, background:'#27ae6022', border:'1px solid #27ae6044', borderRadius:4, padding:'2px 6px' }}>Ativa</span>}
+        <span className={`${styles.shopArrow} ${open ? styles.shopArrowOpen : ''}`}><PiCaretDownBold size={14}/></span>
+      </div>
+
+      <div className={`${styles.shopDrawer} ${open ? styles.shopDrawerOpen : ''}`}>
+        <div className={styles.shopDrawerInner} style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
+          {/* Passo a passo */}
+          <div style={{ background:'var(--surface)', border:'1.5px solid var(--border)', borderRadius:4, padding:'10px 12px', display:'flex', flexDirection:'column', gap:8 }}>
+            <p style={{ fontSize:11, fontWeight:700, color:'var(--ink2)', margin:0 }}>Como obter sua chave:</p>
+            {[
+              { n:1, text:'Acesse', link:'console.anthropic.com', href:'https://console.anthropic.com' },
+              { n:2, text:'Vá em API Keys → Create Key', link:null },
+              { n:3, text:'Copie e cole abaixo', link:null },
+            ].map(s => (
+              <div key={s.n} style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ minWidth:18, height:18, borderRadius:'50%', background:'var(--gold)', color:'var(--ink)', fontSize:10, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>{s.n}</span>
+                <span style={{ fontSize:11, color:'var(--ink2)' }}>
+                  {s.text}{' '}
+                  {s.link && <a href={s.href} target="_blank" rel="noopener noreferrer" style={{ color:'var(--gold-dk)', fontWeight:700 }}>{s.link}</a>}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Input ou display da chave */}
+          {hasSaved && !editing ? (
+            <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+              <div style={{ flex:1, background:'var(--surface)', border:'1.5px solid var(--border)', borderRadius:4, padding:'8px 10px', fontSize:12, fontFamily:'monospace', color:'var(--ink2)' }}>
+                {show ? key : masked}
+              </div>
+              <button type="button" className="btn" style={{ padding:'6px 8px' }} onClick={() => setShow(s => !s)}>
+                {show ? <PiEyeSlashBold size={14}/> : <PiEyeBold size={14}/>}
+              </button>
+              <button type="button" className="btn" style={{ padding:'6px 10px', fontSize:11 }} onClick={() => { setInput(key); setEditing(true) }}>
+                Trocar
+              </button>
+              <button type="button" className="btn btn-danger" style={{ padding:'6px 10px', fontSize:11 }} onClick={remove}>
+                Remover
+              </button>
+            </div>
+          ) : (
+            <div style={{ display:'flex', gap:6 }}>
+              <input
+                className="input"
+                type={show ? 'text' : 'password'}
+                placeholder="sk-ant-api03-..."
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                style={{ flex:1, fontFamily:'monospace', fontSize:12 }}
+              />
+              <button type="button" className="btn" style={{ padding:'6px 8px' }} onClick={() => setShow(s => !s)}>
+                {show ? <PiEyeSlashBold size={14}/> : <PiEyeBold size={14}/>}
+              </button>
+              <button type="button" className="btn btn-primary" style={{ padding:'6px 12px', fontSize:12 }} onClick={save}>
+                <PiCheckBold size={13}/> Salvar
+              </button>
+            </div>
+          )}
+
+          <div style={{ background:'#fffbf0', border:'1.5px solid var(--gold-dk)', borderRadius:4, padding:'8px 10px', display:'flex', flexDirection:'column', gap:4 }}>
+            <p style={{ fontSize:11, fontWeight:700, color:'var(--ink)', margin:0 }}>💡 Chave API é independente do plano Pro</p>
+            <p style={{ fontSize:10, color:'var(--ink2)', margin:0, lineHeight:1.5 }}>
+              Ter sua própria chave API da Anthropic é suficiente para usar o Mentor IA — <strong>sem precisar do plano Pro do Rootio</strong>. A chave é cobrada diretamente pela Anthropic conforme o uso (pay-as-you-go), e fica salva apenas no seu dispositivo.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════
+// PLANOS — Free vs Pro + checkout fictício
+// ══════════════════════════════════════
+const FREE_FEATURES = [
+  'Hábitos ilimitados',
+  'Histórico e gráficos',
+  'Diário de reflexão',
+  'Finanças pessoais',
+  'Projetos e carreira',
+  'Temas Light e Dark',
+  'Backup local (JSON)',
+]
+const PRO_FEATURES = [
+  ...FREE_FEATURES,
+  'Mentor IA sem precisar de chave própria',
+  'Resumo diário personalizado',
+  'Badge gerado por IA',
+  'Sugestão de hábitos por IA',
+  'Temas exclusivos desbloqueados',
+  'Backup e exportação em JSON',
+]
+
+function PlansCard() {
+  const [plan,        setPlan]        = useState(() => localStorage.getItem('nex_plan') || 'free')
+  const [showCheckout,setShowCheckout]= useState(false)
+  const [cardNum,     setCardNum]     = useState('')
+  const [cardExp,     setCardExp]     = useState('')
+  const [cardCvc,     setCardCvc]     = useState('')
+  const [processing,  setProcessing]  = useState(false)
+  const [open,        setOpen]        = useState(false)
+
+  const isPro = plan === 'pro'
+
+  function fmtCard(v) {
+    return v.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim()
+  }
+  function fmtExp(v) {
+    const d = v.replace(/\D/g,'').slice(0,4)
+    return d.length > 2 ? d.slice(0,2) + '/' + d.slice(2) : d
+  }
+
+  function handleCheckout(e) {
+    e.preventDefault()
+    setProcessing(true)
+    // Simulação de processamento (fictício)
+    setTimeout(() => {
+      localStorage.setItem('nex_plan', 'pro')
+      setPlan('pro')
+      setProcessing(false)
+      setShowCheckout(false)
+      toast('Plano Pro ativado! Bem-vindo.')
+    }, 2000)
+  }
+
+  function cancelPro() {
+    if (!window.confirm('Cancelar o plano Pro? Você voltará ao plano gratuito.')) return
+    localStorage.setItem('nex_plan', 'free')
+    setPlan('free')
+    toast('Plano cancelado. Você está no plano gratuito.')
+  }
+
+  return (
+    <div className={styles.shopWrapper}>
+      <div className={styles.shopTrigger} onClick={() => setOpen(o => !o)} role="button" tabIndex={0}
+        onKeyDown={e => e.key === 'Enter' && setOpen(o => !o)}>
+        <span className={styles.settingIcon}><PiCrownBold size={16} color={isPro ? '#f39c12' : undefined}/></span>
+        <div style={{ flex:1 }}>
+          <span className={styles.settingLabel}>Plano atual</span>
+          <p className={styles.settingDesc}>
+            {isPro ? 'Pro — todos os recursos desbloqueados' : 'Gratuito — upgrade para Pro'}
+          </p>
+        </div>
+        <span style={{ fontSize:10, fontWeight:700, color: isPro ? '#f39c12' : 'var(--ink3)', background: isPro ? '#f39c1222' : 'var(--surface)', border:`1px solid ${isPro ? '#f39c1244' : 'var(--border)'}`, borderRadius:4, padding:'2px 6px', marginRight:6 }}>
+          {isPro ? 'PRO' : 'FREE'}
+        </span>
+        <span className={`${styles.shopArrow} ${open ? styles.shopArrowOpen : ''}`}><PiCaretDownBold size={14}/></span>
+      </div>
+
+      <div className={`${styles.shopDrawer} ${open ? styles.shopDrawerOpen : ''}`}>
+        <div className={styles.shopDrawerInner} style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
+          {/* Tabela de comparação */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+            {/* Free */}
+            <div style={{ border:'2px solid var(--border)', borderRadius:6, padding:'10px 10px', background:'var(--surface)' }}>
+              <div style={{ fontSize:12, fontWeight:900, color:'var(--ink)', marginBottom:8, display:'flex', alignItems:'center', gap:5 }}>
+                Gratuito
+              </div>
+              <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', marginBottom:6 }}>R$ 0/mês</div>
+              {FREE_FEATURES.map(f => (
+                <div key={f} style={{ display:'flex', gap:5, alignItems:'flex-start', marginBottom:4 }}>
+                  <PiCheckBold size={11} color="#27ae60" style={{ marginTop:2, flexShrink:0 }}/>
+                  <span style={{ fontSize:10, color:'var(--ink2)', lineHeight:1.4 }}>{f}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Pro */}
+            <div style={{ border:`2px solid #f39c12`, borderRadius:6, padding:'10px 10px', background:'#f39c1208' }}>
+              <div style={{ fontSize:12, fontWeight:900, color:'#f39c12', marginBottom:8, display:'flex', alignItems:'center', gap:5 }}>
+                <PiCrownBold size={13}/> Pro
+              </div>
+              <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', marginBottom:6 }}>R$ 9,90/mês</div>
+              {PRO_FEATURES.map((f, i) => (
+                <div key={f} style={{ display:'flex', gap:5, alignItems:'flex-start', marginBottom:4 }}>
+                  <PiCheckBold size={11} color={i >= FREE_FEATURES.length ? '#f39c12' : '#27ae60'} style={{ marginTop:2, flexShrink:0 }}/>
+                  <span style={{ fontSize:10, color: i >= FREE_FEATURES.length ? '#f39c12' : 'var(--ink2)', fontWeight: i >= FREE_FEATURES.length ? 700 : 400, lineHeight:1.4 }}>{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA */}
+          {isPro ? (
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              <div style={{ background:'#27ae6011', border:'1.5px solid #27ae6044', borderRadius:4, padding:'8px 12px', fontSize:11, color:'#27ae60', fontWeight:700, textAlign:'center' }}>
+                Plano Pro ativo — obrigado pelo suporte!
+              </div>
+              <button type="button" className="btn" style={{ fontSize:11, justifyContent:'center', color:'var(--ink3)' }} onClick={cancelPro}>
+                Cancelar plano
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="btn btn-primary" style={{ justifyContent:'center', gap:6, fontSize:13 }}
+              onClick={() => setShowCheckout(true)}>
+              <PiCrownBold size={15}/> Ativar Pro — R$ 9,90/mês
+            </button>
+          )}
+
+          <p style={{ fontSize:10, color:'var(--ink3)', margin:0, textAlign:'center' }}>
+            Pagamento fictício — ambiente de testes. Nenhum valor real é cobrado.
+          </p>
+        </div>
+      </div>
+
+      {/* Modal de checkout */}
+      {showCheckout && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+          <div className="card" style={{ width:'100%', maxWidth:340, padding:20, position:'relative' }}>
+            <button type="button" style={{ position:'absolute', top:12, right:12, background:'none', border:'none', cursor:'pointer', color:'var(--ink3)' }} onClick={() => setShowCheckout(false)}>
+              <PiXBold size={16}/>
+            </button>
+
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
+              <PiCreditCardBold size={18} color="var(--gold-dk)"/>
+              <span style={{ fontSize:14, fontWeight:900, color:'var(--ink)' }}>Checkout Pro</span>
+            </div>
+
+            <div style={{ background:'#f39c1211', border:'1px solid #f39c1233', borderRadius:4, padding:'8px 10px', marginBottom:14, fontSize:11, color:'#f39c12', fontWeight:700 }}>
+              Ambiente de testes — use o cartão 4242 4242 4242 4242
+            </div>
+
+            <form onSubmit={handleCheckout} style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <div>
+                <label style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', display:'block', marginBottom:3 }}>Número do cartão</label>
+                <input className="input" placeholder="4242 4242 4242 4242" value={cardNum}
+                  onChange={e => setCardNum(fmtCard(e.target.value))} maxLength={19} required style={{ fontFamily:'monospace' }}/>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                <div>
+                  <label style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', display:'block', marginBottom:3 }}>Validade</label>
+                  <input className="input" placeholder="MM/AA" value={cardExp}
+                    onChange={e => setCardExp(fmtExp(e.target.value))} maxLength={5} required/>
+                </div>
+                <div>
+                  <label style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', display:'block', marginBottom:3 }}>CVC</label>
+                  <input className="input" placeholder="123" value={cardCvc}
+                    onChange={e => setCardCvc(e.target.value.replace(/\D/g,'').slice(0,3))} maxLength={3} required/>
+                </div>
+              </div>
+              <button type="submit" className="btn btn-primary" disabled={processing}
+                style={{ justifyContent:'center', marginTop:4, fontSize:13 }}>
+                {processing ? 'Processando...' : <><PiCrownBold size={14}/> Assinar Pro — R$ 9,90/mês</>}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -554,20 +857,21 @@ function DevCard() {
         },
       ]
 
-      // Corrige done: apenas hábitos ativos hoje podem estar done
-      const habitsForStorage = DEMO_HABITS.map(h => ({
-        ...h,
-        done: h.done && h.days.includes(todayDow),
-      }))
+      // Todos os hábitos começam como não feitos — o AppContext sempre reseta
+      // done:false no primeiro load, então não adianta marcar done:true aqui
+      const habitsForStorage = DEMO_HABITS.map(h => ({ ...h, done: false }))
 
       // ──────────────────────────────────────
-      // HISTÓRICO — 120 dias
+      // HISTÓRICO — 90 dias
       //
       // Padrão para testar os gráficos:
-      //   i=0       → hoje (calculado a partir dos hábitos)
       //   i=1..22   → streak garantido (done > 0)   → nível "Núcleo" (22d)
       //   i=23..70  → ~75% conclusão (ativo, bom)
-      //   i=71..119 → ~50% conclusão (começo do uso)
+      //   i=71..90  → ~50% conclusão (começo do uso)
+      //
+      // NÃO inclui hoje: o AppContext escreve o entry de hoje sozinho
+      // conforme o usuário faz hábitos. O cálculo de streak já trata o caso
+      // em que hoje tem done=0 (começa a contar a partir de ontem).
       // ──────────────────────────────────────
       const HABIT_DEFS = DEMO_HABITS.map(h => ({ id: h.id, days: h.days }))
 
@@ -577,18 +881,8 @@ function DevCard() {
 
       const history = {}
 
-      // Hoje — reflete os hábitos marcados acima
-      const todayDoneMap = {}
-      habitsForStorage.filter(h => h.done).forEach(h => { todayDoneMap[h.id] = true })
-      const todayTotal = HABIT_DEFS.filter(h => h.days.includes(todayDow)).length
-      history[today] = {
-        done:   Object.keys(todayDoneMap).length,
-        total:  todayTotal,
-        habits: todayDoneMap,
-      }
-
       // Dias passados
-      for (let i = 1; i <= 120; i++) {
+      for (let i = 1; i <= 90; i++) {
         const d = new Date(); d.setDate(d.getDate() - i)
         const k   = d.toISOString().slice(0, 10)
         const dow = d.getDay()
@@ -618,7 +912,99 @@ function DevCard() {
 
       localStorage.setItem('nex_habits',     JSON.stringify(habitsForStorage))
       localStorage.setItem('nex_history',    JSON.stringify(history))
-      localStorage.setItem('nex_last_reset', today)
+      // JSON.stringify obrigatório: AppContext lê via loadStorage (JSON.parse)
+      localStorage.setItem('nex_last_reset', JSON.stringify(today))
+
+      // ──────────────────────────────────────
+      // PLANO PRO + LOJA
+      // ──────────────────────────────────────
+      localStorage.setItem('nex_plan', 'pro')
+      localStorage.setItem('nex_shop_owned', JSON.stringify([
+        'util_calendar', 'util_mentor', 'util_progress',
+        'theme_sakura', 'theme_desert', 'theme_dracula', 'theme_nord',
+        'theme_midnight', 'theme_forest', 'theme_glass',
+      ]))
+      localStorage.setItem('nex_cal_visible', 'true')
+      localStorage.setItem('nex_sound', 'true')
+
+      // ──────────────────────────────────────
+      // FINANÇAS demo — 3 meses de dados
+      // ──────────────────────────────────────
+      function isoFin(daysAgo = 0) {
+        const d = new Date(); d.setDate(d.getDate() - daysAgo)
+        return d.toISOString().slice(0, 10)
+      }
+      function isoMonth(monthsAgo, day) {
+        const d = new Date(); d.setDate(day); d.setMonth(d.getMonth() - monthsAgo)
+        return d.toISOString().slice(0, 10)
+      }
+
+      const FIN_TXS = []
+      let txId = 3001
+
+      // Salário mensal (3 meses)
+      for (let m = 0; m < 3; m++) {
+        FIN_TXS.push({ id: txId++, type: 'income',  desc: 'Salário',  category: 'Salário',    amount: 6800, date: isoMonth(m, 5) })
+      }
+      // Freelance
+      FIN_TXS.push({ id: txId++, type: 'income',  desc: 'Freelance — landing page', category: 'Freelance', amount: 1200, date: isoFin(45) })
+      FIN_TXS.push({ id: txId++, type: 'income',  desc: 'Freelance — consultoria',  category: 'Freelance', amount:  800, date: isoFin(12) })
+
+      // Despesas recorrentes (3 meses)
+      const REC = [
+        { desc: 'Aluguel',           cat: 'Moradia',      amt: 1800 },
+        { desc: 'Supermercado',      cat: 'Alimentação',  amt:  620 },
+        { desc: 'Academia',          cat: 'Saúde',        amt:  110 },
+        { desc: 'Plano de saúde',    cat: 'Saúde',        amt:  290 },
+        { desc: 'Internet',          cat: 'Moradia',      amt:  120 },
+        { desc: 'Spotify + Netflix', cat: 'Lazer',        amt:   65 },
+      ]
+      for (let m = 0; m < 3; m++) {
+        REC.forEach((r, i) => {
+          FIN_TXS.push({ id: txId++, type: 'expense', desc: r.desc, category: r.cat, amount: r.amt, date: isoMonth(m, 8 + i) })
+        })
+      }
+      // Despesas avulsas
+      const AVULSAS = [
+        { desc: 'Restaurante',          cat: 'Alimentação', amt:  87, d:  3 },
+        { desc: 'Uber',                 cat: 'Transporte',  amt:  23, d:  5 },
+        { desc: 'Livros — Amazon',      cat: 'Educação',    amt: 134, d:  8 },
+        { desc: 'Farmácia',             cat: 'Saúde',       amt:  58, d: 10 },
+        { desc: 'Presente aniversário', cat: 'Outros',      amt: 150, d: 15 },
+        { desc: 'Curso online',         cat: 'Educação',    amt: 297, d: 20 },
+        { desc: 'Gasolina',             cat: 'Transporte',  amt: 180, d: 22 },
+        { desc: 'Jantar fora',          cat: 'Alimentação', amt: 145, d: 28 },
+        { desc: 'Roupas',               cat: 'Outros',      amt: 320, d: 35 },
+        { desc: 'Suplemento',           cat: 'Saúde',       amt: 189, d: 40 },
+        { desc: 'Cinema',               cat: 'Lazer',       amt:  60, d: 50 },
+        { desc: 'Dentista',             cat: 'Saúde',       amt: 250, d: 55 },
+      ]
+      AVULSAS.forEach(a => {
+        FIN_TXS.push({ id: txId++, type: 'expense', desc: a.desc, category: a.cat, amount: a.amt, date: isoFin(a.d) })
+      })
+      FIN_TXS.sort((a, b) => b.date.localeCompare(a.date))
+
+      localStorage.setItem('nex_fin_transactions', JSON.stringify(FIN_TXS))
+      localStorage.setItem('nex_fin_income',    JSON.stringify(6800))
+      localStorage.setItem('nex_fin_monthgoal', JSON.stringify({ target: 1500, enabled: true }))
+      localStorage.setItem('nex_fin_emergency', JSON.stringify({ current: 8400, target: 18030 }))
+      localStorage.setItem('nex_fin_goals', JSON.stringify([
+        { id: 4001, name: 'Viagem para Portugal', icon: '✈️', target: 12000, saved: 4200, deadline: isoFin(-180), color: '#3498db', createdAt: isoFin(60), aportes: [] },
+        { id: 4002, name: 'Notebook novo',         icon: '💻', target:  5500, saved: 3800, deadline: isoFin(-60),  color: '#8e44ad', createdAt: isoFin(45), aportes: [] },
+        { id: 4003, name: 'Reserva para MBA',      icon: '🎓', target: 30000, saved: 8500, deadline: isoFin(-365), color: '#27ae60', createdAt: isoFin(30), aportes: [] },
+      ]))
+      localStorage.setItem('nex_cats_income',  JSON.stringify(['Salário', 'Freelance', 'Investimentos', 'Outros']))
+      localStorage.setItem('nex_cats_expense', JSON.stringify(['Moradia', 'Alimentação', 'Transporte', 'Saúde', 'Educação', 'Lazer', 'Outros']))
+
+      // ──────────────────────────────────────
+      // DIÁRIO demo
+      // ──────────────────────────────────────
+      localStorage.setItem('nex_journal', JSON.stringify([
+        { id: 5001, prompt: 'O que aconteceu hoje que vale guardar?', text: 'Terminei o primeiro módulo do curso de product design. Finalmente clicou o conceito de hierarquia visual.', mood: '😊', tags: ['aprendizado','design'], date: isoFin(2),  createdAt: new Date(Date.now()-2*864e5).toISOString() },
+        { id: 5002, prompt: 'Qual obstáculo você superou hoje?',      text: 'Não queria ir malhar. Coloquei o tênis assim mesmo e fui. Às vezes aparecer já é o suficiente.',          mood: '💪', tags: ['exercício','disciplina'], date: isoFin(5),  createdAt: new Date(Date.now()-5*864e5).toISOString() },
+        { id: 5003, prompt: 'Que escolha de hoje seu eu de amanhã vai agradecer?', text: 'Dormi cedo. Acordei com energia de verdade pela primeira vez em semanas.',                     mood: '😴', tags: ['sono','autocuidado'],    date: isoFin(8),  createdAt: new Date(Date.now()-8*864e5).toISOString() },
+        { id: 5004, prompt: 'Quem fez você sorrir genuinamente hoje?', text: 'Ligação com minha mãe. Ela contou uma história ridícula do meu sobrinho e ri de verdade por uns 5 min.', mood: '😄', tags: ['família','gratidão'],     date: isoFin(12), createdAt: new Date(Date.now()-12*864e5).toISOString() },
+      ]))
 
       // ──────────────────────────────────────
       // CARREIRA demo
@@ -672,12 +1058,17 @@ function DevCard() {
          ],desc:'Fundo de liberdade para projetos próprios.',createdAt:'2024-10-20'},
       ]))
 
-      toast('120 dias carregados — recarregue a página!')
+      setTimeout(() => window.location.reload(), 300)
     } else {
-      ['nex_habits','nex_history','nex_last_reset',
-       'nex_career_readings','nex_career_goals','nex_career_projects','nex_projects']
-        .forEach(k => localStorage.removeItem(k))
-      toast('Modo dev desativado — recarregue.')
+      [
+        'nex_habits','nex_history','nex_last_reset',
+        'nex_plan','nex_shop_owned','nex_cal_visible',
+        'nex_fin_transactions','nex_fin_income','nex_fin_monthgoal',
+        'nex_fin_emergency','nex_fin_goals','nex_cats_income','nex_cats_expense',
+        'nex_journal',
+        'nex_career_readings','nex_career_goals','nex_career_projects','nex_projects',
+      ].forEach(k => localStorage.removeItem(k))
+      setTimeout(() => window.location.reload(), 300)
     }
   }
 
@@ -689,7 +1080,7 @@ function DevCard() {
         <div style={{ flex:1 }}>
           <span className={styles.settingLabel}>Dados de demonstração</span>
           <p className={styles.settingDesc}>
-            Preenche 120 dias de histórico com 7 hábitos completos (prioridades, reason, notas, tags, subtarefas)
+            Preenche 90 dias de histórico com 7 hábitos completos (prioridades, reason, notas, tags, subtarefas)
             e carreira, projetos para testar todos os gráficos, níveis e o calendário.
           </p>
         </div>
@@ -805,6 +1196,15 @@ export default function Profile({ onNavigate }) {
         </div>
 
         <div className={styles.settingRow}>
+          <span className={styles.settingIcon}><PiSparkleBold size={16}/></span>
+          <div style={{ flex:1 }}>
+            <span className={styles.settingLabel}>Mentor na navegação</span>
+            <p className={styles.settingDesc}>Exibe o Mentor IA e Diário na barra inferior.</p>
+          </div>
+          <Toggle on={ownedItems.has('util_mentor')} onToggle={() => toggleNavItem('util_mentor')} label="Mentor nav"/>
+        </div>
+
+        <div className={styles.settingRow}>
           <span className={styles.settingIcon}><PiBriefcaseBold size={16}/></span>
           <div style={{ flex:1 }}>
             <span className={styles.settingLabel}>Carreira na navegação</span>
@@ -825,28 +1225,58 @@ export default function Profile({ onNavigate }) {
       </div>
 
       {/* Dados — compacto com explicações */}
-      <div className="card">
-        <div className="card-title"><PiDownloadSimpleBold size={15}/> Seus Dados</div>
-        <p className={styles.dadosDesc}>
-          Exporte um backup completo (hábitos, histórico, perfil) em JSON ou restaure um backup anterior.
-        </p>
-        <div className={styles.dataRow}>
-          <button className="btn" onClick={exportData} style={{ flex:1, justifyContent:'center', fontSize:12 }}>
-            <PiDownloadSimpleBold size={13}/> Exportar backup
-          </button>
-          <label className={`btn ${styles.importLabel}`} style={{ fontSize:12 }}>
-            <PiUploadSimpleBold size={13}/> Restaurar backup
-            <input type="file" accept=".json" style={{ display:'none' }} onChange={importData}/>
-          </label>
-        </div>
-        <button className="btn btn-danger"
-          style={{ width:'100%', justifyContent:'center', marginTop:6, fontSize:11 }}
-          onClick={() => { if (window.confirm('Resetar todos os hábitos do dia?')) { resetDay(); toast('Dia resetado!') } }}>
-          <PiArrowCounterClockwiseBold size={13}/> Resetar dia atual
-        </button>
-      </div>
+      {(() => {
+        const isPro = (localStorage.getItem('nex_plan') || 'free') === 'pro'
+        return (
+          <div className="card">
+            <div className="card-title">
+              <PiDownloadSimpleBold size={15}/> Seus Dados
+              {!isPro && (
+                <span style={{ marginLeft:'auto', fontSize:10, fontWeight:700, color:'var(--ink3)', background:'var(--surface)', border:'1px solid var(--border)', borderRadius:4, padding:'2px 8px' }}>
+                  Plano Pro
+                </span>
+              )}
+            </div>
+            {!isPro ? (
+              <div style={{ display:'flex', flexDirection:'column', gap:8, padding:'8px 0' }}>
+                <p style={{ fontSize:12, color:'var(--ink3)', margin:0, lineHeight:1.5 }}>
+                  Exportação e restauração de backup estão disponíveis no plano Pro.
+                </p>
+                <p style={{ fontSize:11, color:'var(--ink3)', margin:0 }}>
+                  O resetar dia está disponível para todos os planos.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className={styles.dadosDesc}>
+                  Exporte um backup completo (hábitos, histórico, perfil) em JSON ou restaure um backup anterior.
+                </p>
+                <div className={styles.dataRow}>
+                  <button className="btn" onClick={exportData} style={{ flex:1, justifyContent:'center', fontSize:12 }}>
+                    <PiDownloadSimpleBold size={13}/> Exportar backup
+                  </button>
+                  <label className={`btn ${styles.importLabel}`} style={{ fontSize:12 }}>
+                    <PiUploadSimpleBold size={13}/> Restaurar backup
+                    <input type="file" accept=".json" style={{ display:'none' }} onChange={importData}/>
+                  </label>
+                </div>
+              </>
+            )}
+            <button className="btn btn-danger"
+              style={{ width:'100%', justifyContent:'center', marginTop:6, fontSize:11 }}
+              onClick={() => { if (window.confirm('Resetar todos os hábitos do dia?')) { resetDay(); toast('Dia resetado!') } }}>
+              <PiArrowCounterClockwiseBold size={13}/> Resetar dia atual
+            </button>
+          </div>
+        )
+      })()}
 
-      <AITeaser/>
+      {/* Plano + Chave API inline nas configs */}
+      <div className="card">
+        <div className="card-title"><PiCrownBold size={15}/> Plano &amp; IA</div>
+        <PlansCard/>
+        <ApiKeyCard/>
+      </div>
 
       <DevCard/>
 

@@ -1,0 +1,279 @@
+/* ══════════════════════════════════════
+   SIDEBAR NAV — SideNav
+   Visível apenas em tablet/desktop (≥ 768px)
+   - 768–1023px: 64px, apenas ícones
+   - 1024px+:   220px, ícones + rótulos
+══════════════════════════════════════ */
+
+/* ── Oculto no mobile ── */
+.side { display: none; }
+
+/* ── Tablet 768px+: sidebar compacta ── */
+@media (min-width: 768px) {
+  .side {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: 64px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow: hidden;
+    border-right: 2.5px solid var(--border);
+    background: var(--bg);
+    padding: 14px 0 12px;
+    z-index: 150;
+    /* Transição suave ao cruzar o breakpoint de 1024px */
+    transition:
+      width        0.38s cubic-bezier(0.4, 0, 0.2, 1),
+      background   0.3s,
+      border-color 0.3s;
+  }
+}
+
+/* ── Desktop 1024px+: sidebar expandida ── */
+@media (min-width: 1024px) {
+  .side { width: 220px; }
+}
+
+/* ══════════════════════════════════════
+   BRAND — logo + streak
+══════════════════════════════════════ */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px 14px;
+  border-bottom: 1.5px solid var(--border);
+  margin-bottom: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  min-height: 52px;
+  transition: border-color 0.3s;
+}
+
+/* Ícone centrado em modo compacto */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .brand {
+    justify-content: center;
+    padding: 0 0 14px;
+  }
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--ink);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 0.3s;
+}
+
+/* Streak pill — surge com transição em 1024px+ */
+.streak {
+  background: var(--gold);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #111;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  /* Oculto na sidebar compacta — aparece com fade + slide */
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: opacity 0.28s ease 0.22s, max-width 0.28s ease 0.12s;
+}
+
+@media (min-width: 1024px) {
+  .streak {
+    opacity: 1;
+    max-width: 80px;
+  }
+}
+
+/* ══════════════════════════════════════
+   NAV — lista de links
+══════════════════════════════════════ */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+  flex: 1;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .nav { padding: 0 6px; }
+}
+
+/* ── Link ── */
+.link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.14s, color 0.14s, transform 0.12s;
+  position: relative;
+}
+
+.link:hover {
+  background: var(--surface);
+}
+
+.link:active {
+  transform: scale(0.97);
+}
+
+/* Estado ativo — fundo âmbar */
+.link.active {
+  background: var(--gold);
+  color: #111;
+}
+
+/* Ícone centrado em modo compacto */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .link {
+    justify-content: center;
+    padding: 10px 0;
+  }
+}
+
+/* ── Ícone ── */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+/* ── Rótulo — oculto na sidebar compacta ── */
+.label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translateX(-8px);
+  /* Transição com pequeno delay — espera a largura abrir primeiro */
+  transition: opacity 0.20s ease 0.14s, transform 0.20s ease 0.14s;
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ══════════════════════════════════════
+   DIVISOR + ESPAÇADOR
+══════════════════════════════════════ */
+.divider {
+  height: 1.5px;
+  background: var(--border);
+  margin: 8px 4px;
+  flex-shrink: 0;
+  border-radius: 1px;
+  transition: background 0.3s;
+}
+
+/* Empurra Perfil para o fundo */
+.spacer { flex: 1; min-height: 8px; }
+
+/* ══════════════════════════════════════
+   ANIMAÇÕES DE DESBLOQUEIO
+   (mesma lógica do BottomNav)
+══════════════════════════════════════ */
+.unlockEnter {
+  animation: sidePopIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  overflow: visible;
+}
+.unlockLeave   { animation: sidePopOut 0.42s ease-in forwards; }
+.unlockVisible { opacity: 1; transform: scale(1) translateY(0); }
+
+@keyframes sidePopIn {
+  0%   { opacity: 0; transform: scale(0.2) translateY(-10px); }
+  55%  { opacity: 1; }
+  75%  { transform: scale(1.12) translateY(2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes sidePopOut {
+  0%   { opacity: 1; transform: scale(1); }
+  25%  { transform: scale(1.06); }
+  100% { opacity: 0; transform: scale(0.15) translateY(-8px); }
+}
+
+/* Ponto âmbar piscando ao surgir */
+.unlockEnter::after {
+  content: '✦';
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  font-size: 8px;
+  color: var(--gold-dk);
+  animation: dotFade 1.5s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+@keyframes dotFade {
+  0%   { opacity: 0; transform: scale(0.5); }
+  20%  { opacity: 1; transform: scale(1.2); }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Brilho no ícone ao entrar */
+.unlockEnter .icon {
+  animation: iconGlow 0.7s ease-out 0.25s;
+}
+
+@keyframes iconGlow {
+  0%, 100% { filter: none; }
+  50%       { filter: drop-shadow(0 0 5px var(--gold)); }
+}
+
+/* ══════════════════════════════════════
+   TEMA VIDRO (Glassmorphism)
+══════════════════════════════════════ */
+html[data-theme='glass'] .side {
+  background: rgba(255, 255, 255, 0.38);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border-right-color: rgba(255, 255, 255, 0.55);
+}
+
+html[data-theme='glass'] .link:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+html[data-theme='glass'] .link.active {
+  background: rgba(240, 192, 32, 0.78);
+  box-shadow: 0 2px 12px rgba(240, 192, 32, 0.25);
+}
+
+html[data-theme='glass'] .brand {
+  border-bottom-color: rgba(255, 255, 255, 0.45);
+}
+
+html[data-theme='glass'] .divider {
+  background: rgba(255, 255, 255, 0.45);
+}

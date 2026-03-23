@@ -9,6 +9,7 @@ import {
   PiMedalBold,          PiMedalFill,
   PiBriefcaseBold,
   PiRocketLaunchBold,
+  PiRobotBold,
 } from 'react-icons/pi'
 import styles from './BottomNav.module.css'
 
@@ -23,8 +24,9 @@ const BASE_NAV = [
 // Itens desbloqueáveis — aparecem/somem com animação
 const UNLOCKABLE = [
   { id: 'util_progress', to: '/progress', label: 'Experiência', Icon: PiChartBarBold,     IconA: PiChartBarFill,     insertAt: 3 },
-  { id: 'util_career',   to: '/career',   label: 'Carreira',  Icon: PiBriefcaseBold,    IconA: PiBriefcaseBold,    insertAt: 3 },
-  { id: 'util_projects', to: '/projects', label: 'Projetos',  Icon: PiRocketLaunchBold, IconA: PiRocketLaunchBold, insertAt: 3 },
+  { id: 'util_career',   to: '/career',   label: 'Carreira',   Icon: PiBriefcaseBold,    IconA: PiBriefcaseBold,    insertAt: 3 },
+  { id: 'util_projects', to: '/projects', label: 'Projetos',   Icon: PiRocketLaunchBold, IconA: PiRocketLaunchBold, insertAt: 3 },
+  { id: 'util_mentor',   to: '/mentor',   label: 'Mentor',     Icon: PiRobotBold,        IconA: PiRobotBold,        insertAt: 3 },
 ]
 
 function getOwned() {

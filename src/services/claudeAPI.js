@@ -9,7 +9,7 @@ const API_URL = 'https://api.anthropic.com/v1/messages'
 const MODEL   = 'claude-sonnet-4-6'
 
 function getKey() {
-  return import.meta.env.VITE_ANTHROPIC_KEY || ''
+  return localStorage.getItem('nex_apikey') || import.meta.env.VITE_ANTHROPIC_KEY || ''
 }
 
 // ── Streaming — retorna token a token ──

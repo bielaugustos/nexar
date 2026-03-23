@@ -1,3 +1,6 @@
+/* Oculta o Header quando a SideNav está visível (logo e streak ficam na sidebar) */
+@media (min-width: 768px) { .header { display: none; } }
+
 .header {
   flex-shrink: 0;
   position: sticky;

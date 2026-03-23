@@ -11,15 +11,18 @@ export function useStats(history) {
   const today = new Date().toISOString().slice(0, 10)
 
   const streak = useMemo(() => {
+    // Se hoje ainda não tem atividade, começa a contar a partir de ontem
+    // (evita quebrar a sequência quando o dia acabou de começar)
+    const hasTodayActivity = (history[today]?.done || 0) > 0
     let s = 0
-    for (let i = 0; i < 365; i++) {
+    for (let i = hasTodayActivity ? 0 : 1; i < 365; i++) {
       const d = new Date(); d.setDate(d.getDate() - i)
       const k = d.toISOString().slice(0, 10)
       if (history[k]?.done > 0) s++
       else break
     }
     return s
-  }, [history])
+  }, [history, today])
 
   const daysActive = useMemo(
     () => Object.keys(history).filter(k => history[k]?.done > 0).length,

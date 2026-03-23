@@ -12,6 +12,7 @@ import {
   PiPlantBold, PiHandFistBold,
 } from 'react-icons/pi'
 import { toast } from '../components/Toast'
+import { playSaveDirect, playErrorDirect } from '../hooks/useSound'
 import styles from './Finance.module.css'
 
 // ══════════════════════════════════════
@@ -54,6 +55,11 @@ const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov
 function todayISO() { return new Date().toISOString().slice(0, 10) }
 function fmt(n) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n || 0)
+}
+function fmtK(n) {
+  const abs = Math.abs(n || 0)
+  if (abs >= 1000) return `${(n / 1000).toFixed(1).replace('.', ',')}k`
+  return String(Math.round(n || 0))
 }
 function daysLeft(isoDate) {
   if (!isoDate) return null
@@ -292,10 +298,11 @@ function AddTransactionForm({ onAdd, onClose, defaultType = 'expense' }) {
 
   function submit() {
     const v = parseFloat(amount.replace(',', '.'))
-    if (isNaN(v) || v <= 0) { toast('Informe um valor válido'); return }
-    if (!desc.trim())        { toast('Informe uma descrição');   return }
-    if (!category)           { toast('Selecione a categoria');   return }
+    if (isNaN(v) || v <= 0) { playErrorDirect(); toast('Informe um valor válido'); return }
+    if (!desc.trim())        { playErrorDirect(); toast('Informe uma descrição');   return }
+    if (!category)           { playErrorDirect(); toast('Selecione a categoria');   return }
     navigator.vibrate?.(50)
+    playSaveDirect()
     onAdd({ type, amount: v, desc: desc.trim(), category, date })
     toast(type === 'income'
       ? `+ ${fmt(v)} adicionados`
@@ -424,7 +431,7 @@ function TransactionList({ transactions, onRemove, onEdit, onAdd }) {
         <p className={styles.txEmptyTip}>
           Registre tudo por 3 dias e veja padrões surgirem.
         </p>
-        <button type="button" className={`btn btn-primary ${styles.txEmptyBtn}`} onClick={onAdd}>
+        <button type="button" className={styles.comecarBtn} onClick={onAdd}>
           <PiPlusBold size={13}/> Registrar primeira transação
         </button>
       </div>
@@ -453,21 +460,27 @@ function TransactionList({ transactions, onRemove, onEdit, onAdd }) {
               {tx.type === 'income' ? <PiArrowUpRightBold size={14}/> : <PiArrowDownLeftBold size={14}/>}
             </div>
             <div className={styles.txInfo}>
-              <span className={styles.txDesc}>{tx.desc}</span>
-              <span className={styles.txMeta}>{tx.category} · {tx.date?.slice(5).replace('-','/')}</span>
+              <div className={styles.txTopLine}>
+                <span className={styles.txDesc}>{tx.desc}</span>
+                <span className={`${styles.txAmount} ${tx.type === 'income' ? styles.txAmountIn : styles.txAmountOut}`}>
+                  {tx.type === 'income' ? '+' : '-'}{fmt(tx.amount)}
+                </span>
+              </div>
+              <div className={styles.txBottomLine}>
+                <span className={styles.txMeta}>{tx.category} · {tx.date?.slice(5).replace('-','/')}</span>
+                <div className={styles.txActions}>
+                  <button type="button" className={styles.txEdit}
+                    onClick={() => setEditing(tx.id)} aria-label="Editar">
+                    <PiPencilSimpleBold size={12}/>
+                  </button>
+                  <button type="button" className={styles.txRemove}
+                    onClick={() => { if (window.confirm('Remover esta transação?')) { onRemove(tx.id); toast('Removida!') } }}
+                    aria-label="Remover">
+                    <PiTrashBold size={12}/>
+                  </button>
+                </div>
+              </div>
             </div>
-            <span className={`${styles.txAmount} ${tx.type === 'income' ? styles.txAmountIn : styles.txAmountOut}`}>
-              {tx.type === 'income' ? '+' : '-'}{fmt(tx.amount)}
-            </span>
-            <button type="button" className={styles.txEdit}
-              onClick={() => setEditing(tx.id)} aria-label="Editar">
-              <PiPencilSimpleBold size={12}/>
-            </button>
-            <button type="button" className={styles.txRemove}
-              onClick={() => { if (window.confirm('Remover esta transação?')) { onRemove(tx.id); toast('Removida!') } }}
-              aria-label="Remover">
-              <PiTrashBold size={12}/>
-            </button>
           </div>
         )
       ))}
@@ -581,8 +594,142 @@ function MonthGoalCard({ monthGoal, savings, onSave }) {
 }
 
 // ══════════════════════════════════════
-// BLOCO 5 — PREMIUM TEASER
+// BLOCO 5 — HISTÓRICO 6 MESES
 // ══════════════════════════════════════
+function SixMonthChart({ last6 }) {
+  const [hovered, setHovered] = useState(null)
+  const [pinned,  setPinned]  = useState(null)
+
+  const totalInc = last6.reduce((s, m) => s + m.inc, 0)
+  const totalExp = last6.reduce((s, m) => s + m.exp, 0)
+  const netTotal = totalInc - totalExp
+  const savRate  = totalInc > 0 ? Math.round((netTotal / totalInc) * 100) : 0
+  const maxVal   = Math.max(...last6.flatMap(m => [m.inc, m.exp]), 1)
+  const BAR_H    = 80
+
+  // Pinned tem prioridade; hover só aparece quando nada está fixado
+  const activeIdx = pinned !== null ? pinned : hovered
+  const tip       = activeIdx !== null ? last6[activeIdx] : null
+  const isPinned  = pinned !== null
+
+  return (
+    <div className="card">
+      {/* ── Cabeçalho ── */}
+      <div className={styles.sixHeader}>
+        <div className={styles.sixHeaderLeft}>
+          <PiTrendUpBold size={14} style={{ color: 'var(--gold-dk)' }}/>
+          <span className={styles.sixTitle}>Histórico</span>
+          <span className={styles.sixPeriodBadge}>6 meses</span>
+        </div>
+        <span className={`${styles.sixNetTotal} ${netTotal >= 0 ? styles.sixNetPos : styles.sixNetNeg}`}>
+          {netTotal >= 0 ? '+' : ''}{fmt(netTotal)}
+        </span>
+      </div>
+
+      {/* ── 3 chips resumo ── */}
+      <div className={styles.sixChips}>
+        <div className={styles.sixChip}>
+          <span className={styles.sixChipDot} style={{ background: '#27ae60' }}/>
+          <div>
+            <span className={styles.sixChipLabel}>Entradas</span>
+            <span className={styles.sixChipVal}>{fmtK(totalInc)}</span>
+          </div>
+        </div>
+        <div className={styles.sixChip}>
+          <span className={styles.sixChipDot} style={{ background: '#e74c3c' }}/>
+          <div>
+            <span className={styles.sixChipLabel}>Saídas</span>
+            <span className={styles.sixChipVal}>{fmtK(totalExp)}</span>
+          </div>
+        </div>
+        <div className={styles.sixChip}>
+          <span className={styles.sixChipDot} style={{ background: savRate >= 20 ? '#27ae60' : savRate >= 5 ? '#e67e22' : '#e74c3c' }}/>
+          <div>
+            <span className={styles.sixChipLabel}>Economia</span>
+            <span className={styles.sixChipVal}>{savRate}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Gráfico ── */}
+      <div className={styles.sixChart}>
+        {/* Y-axis labels — posicionados relativos à área de barras */}
+        <div className={styles.sixYAxis}>
+          {[100, 75, 50, 25].map(p => (
+            <span key={p} className={styles.sixYLabel} style={{ bottom: `${p}%` }}>
+              {fmtK(maxVal * p / 100)}
+            </span>
+          ))}
+        </div>
+
+        {/* Área de barras com grid */}
+        <div className={styles.sixBarsArea}>
+          {/* Grid lines — bottom: X% correto pois pai tem height fixo */}
+          {[25, 50, 75, 100].map(p => (
+            <div key={p} className={styles.sixGridLine} style={{ bottom: `${p}%` }} />
+          ))}
+
+          {/* Colunas de barras */}
+          {last6.map((m, i) => {
+            const incPct   = Math.max((m.inc / maxVal) * 100, 1)
+            const expPct   = Math.max((m.exp / maxVal) * 100, 1)
+            const isActive = activeIdx === i
+            return (
+              <div
+                key={i}
+                className={`${styles.sixBarCol} ${isActive ? styles.sixBarColActive : ''}`}
+                onMouseEnter={() => { if (pinned === null) setHovered(i) }}
+                onMouseLeave={() => setHovered(null)}
+                onClick={() => setPinned(p => p === i ? null : i)}
+              >
+                <div className={styles.sixBars}>
+                  <div className={styles.sixBarInc} style={{ height: `${incPct}%` }} />
+                  <div className={styles.sixBarExp} style={{ height: `${expPct}%` }} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Linha de labels: saldo + mês — separada das barras */}
+        <div className={styles.sixLabelsRow}>
+          {last6.map((m, i) => {
+            const isPos    = m.balance >= 0
+            const isActive = activeIdx === i
+            return (
+              <div key={i} className={`${styles.sixLabelCol} ${isActive ? styles.sixLabelColActive : ''}`}>
+                <span className={`${styles.sixBalance} ${isPos ? styles.sixBalancePos : styles.sixBalanceNeg}`}>
+                  {isPos ? '+' : ''}{fmtK(m.balance)}
+                </span>
+                <span className={styles.sixLabel}>{m.label}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ── Detalhe do mês ativo (hover desktop / tap mobile) ── */}
+      {tip && (
+        <div className={`${styles.sixTooltip} ${isPinned ? styles.sixTooltipPinned : ''}`}>
+          <span className={styles.sixTipLabel}>{tip.label}</span>
+          <span className={styles.sixTipRow}><span className={styles.sixTipInc}>↑</span> {fmt(tip.inc)}</span>
+          <span className={styles.sixTipRow}><span className={styles.sixTipExp}>↓</span> {fmt(tip.exp)}</span>
+          <span className={`${styles.sixTipRow} ${styles.sixTipBold} ${tip.balance >= 0 ? styles.sixBalancePos : styles.sixBalanceNeg}`}>
+            = {tip.balance >= 0 ? '+' : ''}{fmt(tip.balance)}
+          </span>
+          {isPinned && (
+            <button
+              className={styles.sixTipDismiss}
+              onClick={() => setPinned(null)}
+              aria-label="Fechar"
+            >✕</button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function PremiumTeaser() {
   return (
     <div className={styles.premiumCard}>
@@ -631,6 +778,7 @@ function EmergencyCard({ emergency, emergencyIdeal, avgMonthlyExpense, onSave })
     const v = parseFloat(depositAmt.replace(',', '.'))
     if (isNaN(v) || v <= 0) { toast('Valor inválido'); return }
     navigator.vibrate?.(50)
+    playSaveDirect()
     onSave({ current: current + v, target })
     toast(`+ ${fmt(v)} na reserva!`)
     setDepositAmt('')
@@ -792,6 +940,7 @@ function GoalsCard({ goals, onAdd, onAddSaved, onRemove, onUndoAporte }) {
     const t = parseFloat(target.replace(',', '.'))
     if (!name.trim())        { toast('Nome da meta obrigatório'); return }
     if (isNaN(t) || t <= 0) { toast('Valor da meta inválido');   return }
+    playSaveDirect()
     onAdd({ icon, name: name.trim(), target: t, deadline: deadline || null })
     toast(`Meta "${name.trim()}" criada!`)
     setIcon(ICON_OPTS[0].key); setName(''); setTarget(''); setDeadline('')
@@ -802,6 +951,7 @@ function GoalsCard({ goals, onAdd, onAddSaved, onRemove, onUndoAporte }) {
     const v = parseFloat(deposit.replace(',', '.'))
     if (isNaN(v) || v <= 0) { toast('Valor inválido'); return }
     navigator.vibrate?.(50)
+    playSaveDirect()
     onAddSaved(id, v)
     toast(`${fmt(v)} adicionados à meta!`)
     setDeposit('')
@@ -1158,8 +1308,11 @@ export default function Finance() {
             />
           )}
 
-          {/* BLOCO 5: Premium teaser */}
-          <PremiumTeaser/>
+          {/* BLOCO 5: Histórico 6 meses (Pro) ou teaser */}
+          {(localStorage.getItem('nex_plan') || 'free') === 'pro'
+            ? <SixMonthChart last6={fin.last6} />
+            : <PremiumTeaser />
+          }
         </>
       )}
 

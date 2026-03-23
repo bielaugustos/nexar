@@ -33,9 +33,11 @@
   padding-bottom: max(5px, env(safe-area-inset-bottom));
 }
 
-/* Ajusta max-width junto com o container do app */
-@media (min-width: 600px)  { .nav { max-width: 640px; } }
-@media (min-width: 1024px) { .nav { max-width: 860px; } }
+/* Ajusta max-width junto com o container do app (apenas no mobile) */
+@media (min-width: 600px) and (max-width: 767px) { .nav { max-width: 640px; } }
+
+/* Oculta a BottomNav quando a SideNav está visível */
+@media (min-width: 768px) { .nav { display: none; } }
 
 .btn {
   display: flex;

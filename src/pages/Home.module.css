@@ -5,6 +5,39 @@
   padding: 12px;
 }
 
+@media (min-width: 600px) { .page { padding: 16px; gap: 14px; } }
+
+/* ── Desktop: grid 2 colunas ── */
+@media (min-width: 1024px) {
+  .page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  /* AcaoPrincipalCard: destaque — largura total */
+  .page > :first-child { grid-column: 1 / -1; }
+}
+
+/* Animação de entrada dos cards (stagger) */
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .page > * {
+    animation: cardIn 0.32s ease both;
+  }
+  .page > :nth-child(1) { animation-delay: 0.00s; }
+  .page > :nth-child(2) { animation-delay: 0.05s; }
+  .page > :nth-child(3) { animation-delay: 0.10s; }
+  .page > :nth-child(4) { animation-delay: 0.15s; }
+  .page > :nth-child(5) { animation-delay: 0.20s; }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
 
 /* ══════════════════════════════════════
    BLOCO 0 — PONTOS & NÍVEL
@@ -299,9 +332,163 @@
 
 
 /* ══════════════════════════════════════
-   BLOCO IV — INSIGHTS (locked)
+   BLOCO IV — INSIGHTS
    ══════════════════════════════════════ */
 .insightsCard { opacity: .6; }
+.insightsCardPro { opacity: 1; }
+
+/* ── Período badge no título ── */
+.insightsPeriodBadge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  color: var(--ink3);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+
+/* ── Hero ── */
+.insightsHero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.insightsHeroLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.insightsHeroPct {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+  letter-spacing: -1px;
+}
+
+.insightsHeroUnit {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink2);
+}
+
+.insightsHeroLabel {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink3);
+  padding-bottom: 2px;
+}
+
+/* ── Trend pill ── */
+.insightsTrendPill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1.5px solid;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: .85;
+}
+
+.insightsTrendSub {
+  font-size: 9px;
+  font-weight: 500;
+  opacity: .7;
+  margin-left: 2px;
+}
+
+/* ── Trilha 14 dias ── */
+.insightsTrail {
+  display: flex;
+  gap: 4px;
+  margin-top: 14px;
+  align-items: flex-end;
+}
+
+.trailDot {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  transition: height .2s;
+}
+
+.trailDotEmpty  { background: var(--border); }
+.trailDotLow    { background: #f0a500; opacity: .4; height: 6px; }
+.trailDotMid    { background: #f0a500; opacity: .7; height: 8px; }
+.trailDotHigh   { background: #27ae60;             height: 10px; }
+
+.trailDotToday {
+  outline: 2px solid var(--ink3);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+/* ── Grid 3 chips ── */
+.insightsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.insightChip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 8px 8px 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.insightChipAccent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 10px 0 0 10px;
+}
+
+.insightChipBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.insightChipLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  color: var(--ink3);
+  text-transform: uppercase;
+}
+
+.insightChipValue {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insightChipSub {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--ink3);
+}
 
 .insightsMsg {
   font-size: 12px;

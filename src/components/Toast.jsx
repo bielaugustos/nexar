@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
+import { playNotifyDirect } from '../hooks/useSound'
 
 // Singleton: referência global para o toast
 let _show = null
 
 export function toast(msg) {
+  playNotifyDirect()
   if (_show) _show(msg)
 }
 

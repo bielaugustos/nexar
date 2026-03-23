@@ -119,6 +119,24 @@ export const THEMES = {
       '--shadow':  '#242933',
     },
   },
+
+  // Vidro — tema glassmorphism estilo Apple
+  glass: {
+    id: 'glass', name: 'Vidro', emoji: '🪟',
+    dark: false,
+    attr: 'glass',  // data-theme personalizado para CSS overrides
+    vars: {
+      '--bg':      'transparent',
+      '--surface': 'rgba(255,255,255,0.52)',
+      '--white':   'rgba(255,255,255,0.78)',
+      '--ink':     '#1c1c1e',
+      '--ink2':    '#3a3a3c',
+      '--ink3':    '#8a8a8e',
+      '--border':  'rgba(255,255,255,0.62)',
+      '--shadow':  'rgba(100,80,200,0.12)',
+      '--radius':  '16px',
+    },
+  },
 }
 
 // Aplica tema injetando CSS variables direto no <html>
@@ -128,7 +146,7 @@ export function applyTheme(themeId) {
 
   // Remove variáveis inline de temas anteriores
   // (para não acumular propriedades velhas)
-  const allVarNames = ['--bg','--surface','--white','--ink','--ink2','--ink3','--border','--shadow']
+  const allVarNames = ['--bg','--surface','--white','--ink','--ink2','--ink3','--border','--shadow','--radius']
   allVarNames.forEach(v => root.style.removeProperty(v))
 
   // Injeta as variáveis do tema escolhido
@@ -137,8 +155,8 @@ export function applyTheme(themeId) {
   })
 
   // data-theme controla as regras CSS que dependem de seletor
-  // (ex: [data-theme='dark'] .pri-alta)
-  root.setAttribute('data-theme', theme.dark ? 'dark' : 'light')
+  // (ex: [data-theme='dark'] .pri-alta, [data-theme='glass'] .card)
+  root.setAttribute('data-theme', theme.attr || (theme.dark ? 'dark' : 'light'))
 
   // color-scheme para o browser (scrollbars nativos, inputs de data)
   root.style.colorScheme = theme.dark ? 'dark' : 'light'

@@ -3,10 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="description" content="Ioversoroot — Evolução Pessoal com IA" />
-    <!-- Safari: desabilita cache agressivo em desenvolvimento -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
+    <meta name="description" content="Rootio — Evolução Pessoal com IA" />
 
     <!-- PWA manifest -->
     <link rel="manifest" href="/manifest.json" />
@@ -14,19 +11,20 @@
     <!-- iOS Safari — crítico para funcionar como app instalado -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Ioversoroot" />
+    <meta name="apple-mobile-web-app-title" content="Rootio" />
     <meta name="mobile-web-app-capable" content="yes" />
 
-    <!-- iOS ícones (Safari não usa manifest icons) -->
-    <link rel="apple-touch-icon" href="/icons/icon.svg" />
+    <!-- iOS: apple-touch-icon (Safari usa este, não o manifest) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
 
-    <!-- Ícone da aba do browser -->
-    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <!-- Favicon para aba do browser -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
 
     <!-- Cor da barra de status iOS -->
     <meta name="theme-color" content="#111111" />
 
-    <title>Ioversoroot</title>
+    <title>Rootio</title>
 
     <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,19 +44,17 @@
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')
             .then(reg => {
-              console.log('[Ioversoroot] SW registrado:', reg.scope)
-              // Notifica quando há atualização disponível
+              console.log('[Rootio] SW registrado:', reg.scope)
               reg.addEventListener('updatefound', () => {
                 const newSW = reg.installing
                 newSW.addEventListener('statechange', () => {
                   if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-                    // Nova versão disponível — pode notificar o usuário
-                    console.log('[Ioversoroot] Nova versão disponível')
+                    console.log('[Rootio] Nova versão disponível')
                   }
                 })
               })
             })
-            .catch(err => console.warn('[Ioversoroot] SW falhou:', err))
+            .catch(err => console.warn('[Rootio] SW falhou:', err))
         })
       }
     </script>

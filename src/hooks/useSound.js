@@ -6,6 +6,9 @@
 // ══════════════════════════════════════
 
 let audioCtx = null
+let _soundEnabled = true  // flag global — sincronizada via setSoundEnabled()
+
+export function setSoundEnabled(val) { _soundEnabled = val }
 
 function getCtx() {
   try {
@@ -45,6 +48,54 @@ function tone(ctx, freq, vol, startOffset, dur, type = 'sine') {
   } catch {}
 }
 
+// ══════════════════════════════════════
+// FUNÇÕES STANDALONE — não precisam do hook,
+// respeitam a flag _soundEnabled global.
+// Úteis em componentes que não têm acesso
+// fácil ao soundOn do contexto.
+// ══════════════════════════════════════
+function _direct(fn) {
+  if (!_soundEnabled) return
+  const ctx = getCtx(); if (!ctx) return
+  fn(ctx)
+}
+
+export function playClickDirect() {
+  _direct(ctx => tone(ctx, 1047, 0.035, 0, 0.07, 'sine'))
+}
+
+export function playSaveDirect() {
+  _direct(ctx => {
+    tone(ctx, 659, 0.07, 0.00, 0.14, 'sine')
+    tone(ctx, 880, 0.09, 0.10, 0.18, 'sine')
+  })
+}
+
+export function playErrorDirect() {
+  _direct(ctx => {
+    tone(ctx, 330, 0.07, 0.00, 0.13, 'sine')
+    tone(ctx, 220, 0.05, 0.11, 0.12, 'sine')
+  })
+}
+
+export function playPurchaseDirect() {
+  _direct(ctx => {
+    [[523,0.07,0.00],[659,0.09,0.07],[784,0.11,0.14],[1047,0.13,0.23]]
+      .forEach(([f,v,t]) => tone(ctx, f, v, t, 0.20, 'triangle'))
+  })
+}
+
+export function playPinKeyDirect() {
+  _direct(ctx => tone(ctx, 880, 0.04, 0, 0.06, 'sine'))
+}
+
+export function playNotifyDirect() {
+  _direct(ctx => tone(ctx, 880, 0.05, 0, 0.14, 'sine'))
+}
+
+// ══════════════════════════════════════
+// HOOK — para componentes com acesso ao soundOn
+// ══════════════════════════════════════
 export function useSound(enabled = true) {
   function playCheck() {
     if (!enabled) return
@@ -76,5 +127,38 @@ export function useSound(enabled = true) {
       .forEach(([f,v,t]) => tone(ctx, f, v, t, 0.22, 'sine'))
   }
 
-  return { playCheck, playUncheck, playBadge, playSuccess }
+  function playClick() {
+    if (!enabled) return
+    const ctx = getCtx(); if (!ctx) return
+    tone(ctx, 1047, 0.035, 0, 0.07, 'sine')
+  }
+
+  function playSave() {
+    if (!enabled) return
+    const ctx = getCtx(); if (!ctx) return
+    tone(ctx, 659, 0.07, 0.00, 0.14, 'sine')
+    tone(ctx, 880, 0.09, 0.10, 0.18, 'sine')
+  }
+
+  function playError() {
+    if (!enabled) return
+    const ctx = getCtx(); if (!ctx) return
+    tone(ctx, 330, 0.07, 0.00, 0.13, 'sine')
+    tone(ctx, 220, 0.05, 0.11, 0.12, 'sine')
+  }
+
+  function playPurchase() {
+    if (!enabled) return
+    const ctx = getCtx(); if (!ctx) return
+    [[523,0.07,0.00],[659,0.09,0.07],[784,0.11,0.14],[1047,0.13,0.23]]
+      .forEach(([f,v,t]) => tone(ctx, f, v, t, 0.20, 'triangle'))
+  }
+
+  function playPinKey() {
+    if (!enabled) return
+    const ctx = getCtx(); if (!ctx) return
+    tone(ctx, 880, 0.04, 0, 0.06, 'sine')
+  }
+
+  return { playCheck, playUncheck, playBadge, playSuccess, playClick, playSave, playError, playPurchase, playPinKey }
 }

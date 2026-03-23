@@ -11,6 +11,10 @@ applyTheme(savedTheme)
 // que já estão configuradas no BrowserRouter. Esses avisos são inofensivos
 // e serão eliminados automaticamente ao migrar para React Router v7.
 if (import.meta.env.DEV) {
+  import('./devSeed.js') // expõe window.seedDevMode() no console
+}
+
+if (import.meta.env.DEV) {
   const originalWarn = console.warn
   console.warn = (...args) => {
     const msg = typeof args[0] === 'string' ? args[0] : ''

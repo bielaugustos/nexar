@@ -10,12 +10,13 @@ import {
   PiNotePencilBold, PiClockBold, PiCalendarCheckBold,
   PiCheckBold, PiWarningBold,
   PiEyeBold, PiEyeSlashBold, PiCaretDownBold, PiTagBold, PiQuestionBold,
+  PiMagnifyingGlassBold, PiArchiveBold, PiArrowCounterClockwiseBold,
 } from 'react-icons/pi'
 import { loadStorage }   from '../services/storage'
 import { useApp }        from '../context/AppContext'
 import { useHabits, useHabitStats } from '../hooks/useHabits'
 import { calcLevel }     from '../services/levels'
-import { useSound }      from '../hooks/useSound'
+import { useSound, playClickDirect, playSaveDirect } from '../hooks/useSound'
 import { CheckBox }      from '../components/CheckBox'
 import { toast }         from '../components/Toast'
 import styles            from './Habits.module.css'
@@ -149,7 +150,7 @@ function Week7Bars({ habitId, history }) {
 }
 
 // Painel rápido — contexto, notas, motivo
-function QuickPanel({ habit, history, onEdit, onSave }) {
+function QuickPanel({ habit, history, onEdit, onSave, onDelete }) {
   const [ptsOpen, setPtsOpen] = useState(false)
   const subDone  = (habit.subtasks || []).filter(s => s.done).length
   const subTotal = (habit.subtasks || []).length
@@ -236,11 +237,19 @@ function QuickPanel({ habit, history, onEdit, onSave }) {
       <div className={styles.quickBtnRow}>
         <button type="button"
           className={[styles.ioChip, ptsOpen && styles.ioChipActive].filter(Boolean).join(' ')}
-          onClick={() => setPtsOpen(o => !o)}>
-          <PiStarBold size={10} /> Pontos
+          onClick={() => setPtsOpen(o => !o)}
+          aria-expanded={ptsOpen}
+          aria-label={ptsOpen ? 'Fechar painel de pontos' : 'Abrir painel de pontos'}>
+          <PiStarBold size={12} /> Pontos
         </button>
-        <button type="button" className={styles.quickEditBtn} onClick={onEdit}>
-          <PiPencilSimpleBold size={12} /> Editar hábito
+        <button type="button" className={styles.quickEditBtn} onClick={onEdit}
+          aria-label="Editar configurações do hábito">
+          <PiPencilSimpleBold size={14} /> Editar hábito
+        </button>
+        <button type="button" className={styles.quickDelBtn}
+          onClick={() => { if (window.confirm(`Excluir "${habit.name}" permanentemente?`)) onDelete?.() }}
+          aria-label={`Excluir hábito ${habit.name}`}>
+          <PiTrashBold size={15} />
         </button>
       </div>
     </div>
@@ -308,6 +317,7 @@ function SubtasksEditor({ subtasks, onChange }) {
   }
 
   function toggleDone(id) {
+    playClickDirect()
     onChange(subtasks.map(s => s.id === id ? { ...s, done: !s.done } : s))
   }
 
@@ -388,9 +398,16 @@ function SubtasksEditor({ subtasks, onChange }) {
 // (mesmo da tela de Perfil e Stats).
 // ══════════════════════════════════════
 function SeedPtsCard({ earnedIo, pts, onPtsChange }) {
-  const [tooltip, setTooltip] = useState(false)
+  const [tooltip,    setTooltip]    = useState(false)
+  const [pressedPts, setPressedPts] = useState(null)
   const level = calcLevel(earnedIo)
   const LevelIcon = level.Icon
+
+  function handlePtsClick(p) {
+    onPtsChange(p)
+    setPressedPts(p)
+    setTimeout(() => setPressedPts(null), 380)
+  }
 
   return (
     <div className={styles.ioPtsCard}>
@@ -410,10 +427,6 @@ function SeedPtsCard({ earnedIo, pts, onPtsChange }) {
               <span className={styles.ioLevelMax}>nível máximo</span>
             )}
           </div>
-          <div className={styles.ioSeedTrack}>
-            <div className={styles.ioSeedFill} style={{ width: `${level.prog}%`, background: level.color }}/>
-          </div>
-          <span className={styles.ioLevelMantra}>{level.prog}%</span>
         </div>
       </div>
 
@@ -424,23 +437,28 @@ function SeedPtsCard({ earnedIo, pts, onPtsChange }) {
         <div className={styles.ioPtsTop}>
           <button type="button" className={styles.ioTooltipTrigger}
             onClick={() => setTooltip(v => !v)}>
-            <span className={styles.ioPtsSectionLabel}>io por conclusão</span>
+            <span className={styles.ioPtsSectionLabel}>Pontos em desenvolvimento [io]</span>
             <PiQuestionBold size={11} color={tooltip ? 'var(--ink)' : 'var(--ink3)'} />
           </button>
-          <span className={styles.ioBadge}>{pts} io</span>
         </div>
 
         {tooltip && (
           <p className={styles.ioWhisper}>
-            Cada conclusão soma <strong>{pts} io</strong> a este hábito. O acumulado geral fica em Stats. io desbloqueiam temas, gráficos, IA e recompensas.
+            <strong>io</strong> são a moeda de evolução do Rootio. Cada vez que você conclui este hábito, ganha <strong>{pts} io</strong>. O total acumulado aparece em Stats e desbloqueia temas, o calendário, o Mentor IA e outras recompensas.
           </p>
         )}
 
-        <div className={styles.ptsRow}>
+        <div className={styles.ptsRow} role="group" aria-label="Selecionar pontos io por conclusão">
           {PTS_OPTS.map(p => (
             <button key={p} type="button"
-              className={[styles.ptsOpt, pts===p && styles.ptsSel].filter(Boolean).join(' ')}
-              onClick={() => onPtsChange(p)}>
+              className={[
+                styles.ptsOpt,
+                pts === p && styles.ptsSel,
+                pressedPts === p && styles.ptsPress,
+              ].filter(Boolean).join(' ')}
+              onClick={() => handlePtsClick(p)}
+              aria-pressed={pts === p}
+              aria-label={`${p} io por conclusão`}>
               {p}
             </button>
           ))}
@@ -525,6 +543,7 @@ function EditPanel({ habit, history, onSave, onDelete, onClose }) {
       setTab('simples')
       return
     }
+    playSaveDirect()
     onSave({
       ...habit,
       name: name.trim(), priority, pts, icon,
@@ -539,6 +558,11 @@ function EditPanel({ habit, history, onSave, onDelete, onClose }) {
   function handleDelete() {
     if (!window.confirm(`Excluir "${habit.name}" permanentemente?`)) return
     onDelete(habit.id)
+  }
+
+  function handleArchive() {
+    onSave({ ...habit, archived: true })
+    onClose?.()
   }
 
   const TABS = [
@@ -887,8 +911,8 @@ function EditPanel({ habit, history, onSave, onDelete, onClose }) {
         <button type="button" className={`btn btn-primary ${styles.actionBtn}`} onClick={handleSave}>
           <PiFloppyDiskBold size={14} /> Salvar
         </button>
-        <button type="button" className={`btn btn-danger ${styles.actionBtn}`} onClick={handleDelete}>
-          <PiTrashBold size={14} /> Excluir
+        <button type="button" className={`btn ${styles.actionBtn} ${styles.archiveBtn}`} onClick={handleArchive}>
+          <PiArchiveBold size={14} /> Arquivar
         </button>
       </div>
 
@@ -949,6 +973,7 @@ function TomorrowCard({ habit, history, onSave, onDelete }) {
           habit={habit} history={history}
           onEdit={() => setEditMode(true)}
           onSave={onSave}
+          onDelete={() => { onDelete(habit.id); setExpanded(false) }}
         />
       )}
 
@@ -980,10 +1005,20 @@ function HabitCard({ habit, history, onToggle, onSave, onDelete, selecting, sele
   const [ptsBounce,  setPtsBounce]  = useState(false)
   const [floatKey,   setFloatKey]   = useState(0)
   const [swipeDelta, setSwipeDelta] = useState(0)
+  const [ptsFlash,   setPtsFlash]   = useState(false)
+  const prevPts        = useRef(habit.pts)
   const longPressTimer = useRef(null)
   const swipeStartX    = useRef(null)
   const swipeStartY    = useRef(null)
   const isSwiping      = useRef(false)
+
+  useEffect(() => {
+    if (habit.pts !== prevPts.current) {
+      prevPts.current = habit.pts
+      setPtsFlash(true)
+      setTimeout(() => setPtsFlash(false), 400)
+    }
+  }, [habit.pts])
 
   const todayDow    = new Date().getDay()
   const activeToday = Array.isArray(habit.days) && habit.days.includes(todayDow)
@@ -1123,6 +1158,9 @@ function HabitCard({ habit, history, onToggle, onSave, onDelete, selecting, sele
             </div>
           </div>
 
+          <span className={[styles.habPts, ptsFlash && styles.habPtsFlash].filter(Boolean).join(' ')}>
+            +{habit.pts}
+          </span>
           <span className={[styles.expandArrow, expanded && styles.expandArrowOpen].filter(Boolean).join(' ')}>
             <PiCaretDownBold size={10} color={expanded ? 'var(--bg)' : 'var(--ink3)'} />
           </span>
@@ -1134,6 +1172,7 @@ function HabitCard({ habit, history, onToggle, onSave, onDelete, selecting, sele
             habit={habit} history={history}
             onEdit={() => setEditMode(true)}
             onSave={onSave}
+            onDelete={() => { onDelete(habit.id); setExpanded(false) }}
           />
         )}
 
@@ -1374,29 +1413,44 @@ export default function Habits() {
 
   const [calVisible, setCalVisible] = useState(() => loadStorage('nex_cal_visible', true))
   const [calOwned,   setCalOwned]   = useState(() => {
-    try { return JSON.parse(localStorage.getItem('nex_shop_owned') || '[]').includes('util_calendar') }
+    try {
+      const isPro  = (localStorage.getItem('nex_plan') || 'free') === 'pro'
+      const inShop = JSON.parse(localStorage.getItem('nex_shop_owned') || '[]').includes('util_calendar')
+      return isPro || inShop
+    }
     catch { return false }
   })
   useEffect(() => {
     const sync = () => {
       setCalVisible(loadStorage('nex_cal_visible', true))
-      try { setCalOwned(JSON.parse(localStorage.getItem('nex_shop_owned') || '[]').includes('util_calendar')) }
+      try {
+        const isPro  = (localStorage.getItem('nex_plan') || 'free') === 'pro'
+        const inShop = JSON.parse(localStorage.getItem('nex_shop_owned') || '[]').includes('util_calendar')
+        setCalOwned(isPro || inShop)
+      }
       catch { /* keep previous */ }
     }
     window.addEventListener('nex_shop_changed', sync)
-    return () => window.removeEventListener('nex_shop_changed', sync)
+    window.addEventListener('nex_plan_changed', sync)
+    return () => {
+      window.removeEventListener('nex_shop_changed', sync)
+      window.removeEventListener('nex_plan_changed', sync)
+    }
   }, [])
 
-  const [newName,   setNewName]   = useState('')
-  const [selecting, setSelecting] = useState(false)
-  const [selected,  setSelected]  = useState(new Set())
-  const [doneOpen,  setDoneOpen]  = useState(false)
+  const [newName,      setNewName]      = useState('')
+  const [selecting,    setSelecting]    = useState(false)
+  const [selected,     setSelected]     = useState(new Set())
+  const [doneOpen,     setDoneOpen]     = useState(false)
+  const [tomorrowOpen, setTomorrowOpen] = useState(true)
+  const [archivedOpen, setArchivedOpen] = useState(false)
+  const [search,       setSearch]       = useState('')
 
   const todayDow    = new Date().getDay()
   const tomorrowDow = (todayDow + 1) % 7
 
   const todayHabs = useMemo(
-    () => habits.filter(h => Array.isArray(h.days) && h.days.includes(todayDow)),
+    () => habits.filter(h => !h.archived && Array.isArray(h.days) && h.days.includes(todayDow)),
     [habits, todayDow]
   )
 
@@ -1405,11 +1459,17 @@ export default function Habits() {
   // — ativos hoje E amanhã (ex: diário): só aparecem se já foram concluídos hoje
   const tomorrowHabs = useMemo(
     () => habits.filter(h =>
+      !h.archived &&
       Array.isArray(h.days) &&
       h.days.includes(tomorrowDow) &&
       (!h.days.includes(todayDow) || h.done)
     ),
     [habits, tomorrowDow, todayDow]
+  )
+
+  const archivedHabs = useMemo(
+    () => habits.filter(h => h.archived),
+    [habits]
   )
 
   // ── Três blocos de ação ──
@@ -1432,6 +1492,18 @@ export default function Habits() {
   const doneCount = done.length
   const todayRate = total > 0 ? Math.round(doneCount / total * 100) : 0
 
+  const searchLower = search.toLowerCase()
+  const filteredPriorities = search ? priorities.filter(h => h.name.toLowerCase().includes(searchLower)) : priorities
+  const filteredNormal     = search ? normal.filter(h => h.name.toLowerCase().includes(searchLower)) : normal
+  const filteredDone       = search ? done.filter(h => h.name.toLowerCase().includes(searchLower)) : done
+  const filteredTomorrow   = search ? tomorrowHabs.filter(h => h.name.toLowerCase().includes(searchLower)) : tomorrowHabs
+  const filteredArchived   = search ? archivedHabs.filter(h => h.name.toLowerCase().includes(searchLower)) : archivedHabs
+
+  function unarchiveHabit(id) {
+    const hab = habits.find(h => h.id === id)
+    if (hab) saveHabit({ ...hab, archived: false })
+  }
+
   const handleToggle = useCallback((id) => {
     const hab = habits.find(h => h.id === id)
     if (!hab) return
@@ -1443,6 +1515,7 @@ export default function Habits() {
   function handleAdd() {
     const n = newName.trim()
     if (!n) return
+    playSaveDirect()
     addHabit({ name: n, done: false, pts: 20, icon: 'PiStarBold', priority: 'media',
       freq: 'diario', days: [0,1,2,3,4,5,6], subtasks: [], notes: '', estMins: null, deadline: null,
       createdAt: new Date().toISOString().slice(0, 10) })
@@ -1470,6 +1543,23 @@ export default function Habits() {
   return (
     <main className={styles.page}>
 
+      {/* ── Busca ── */}
+      <div className={styles.searchBar}>
+        <PiMagnifyingGlassBold size={14} color="var(--ink3)" />
+        <input
+          className={styles.searchInput}
+          placeholder="Buscar hábito..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          autoComplete="off"
+        />
+        {search && (
+          <button type="button" className={styles.searchClear} onClick={() => setSearch('')}>
+            <PiXBold size={12} />
+          </button>
+        )}
+      </div>
+
       {/* ── Steps progress ── */}
       <StepsProgress todayHabs={todayHabs} />
 
@@ -1496,15 +1586,15 @@ export default function Habits() {
       )}
 
       {/* ── BLOCO 1: PRIORIDADES ── */}
-      {priorities.length > 0 && (
+      {filteredPriorities.length > 0 && (
         <div className={`card ${styles.block}`}>
           <div className={styles.blockHeader}>
             <PiFlagBold size={11} />
             <span className={styles.blockTitle}>Prioridades</span>
-            <span className={styles.blockCount}>{priorities.length}</span>
+            <span className={styles.blockCount}>{filteredPriorities.length}</span>
           </div>
           <div className={styles.habitList}>
-            {priorities.map(hab => <HabitCard key={hab.id} {...cardProps(hab)} />)}
+            {filteredPriorities.map(hab => <HabitCard key={hab.id} {...cardProps(hab)} />)}
           </div>
         </div>
       )}
@@ -1514,11 +1604,11 @@ export default function Habits() {
         <div className={styles.blockHeader}>
           <PiListBold size={11} />
           <span className={styles.blockTitle}>Hábitos</span>
-          {normal.length > 0 && <span className={styles.blockCount}>{normal.length}</span>}
+          {filteredNormal.length > 0 && <span className={styles.blockCount}>{filteredNormal.length}</span>}
         </div>
-        {normal.length > 0 ? (
+        {filteredNormal.length > 0 ? (
           <div className={styles.habitList}>
-            {normal.map(hab => <HabitCard key={hab.id} {...cardProps(hab)} />)}
+            {filteredNormal.map(hab => <HabitCard key={hab.id} {...cardProps(hab)} />)}
           </div>
         ) : (
           <div className={styles.emptyState}>
@@ -1545,7 +1635,7 @@ export default function Habits() {
       </div>
 
       {/* Tudo concluído */}
-      {priorities.length === 0 && normal.length === 0 && doneCount > 0 && (
+      {filteredPriorities.length === 0 && filteredNormal.length === 0 && doneCount > 0 && !search && (
         <div className={`card ${styles.allDoneCard}`}>
           <PiCheckCircleFill size={18} color="#27ae60" />
           <span className={styles.allDoneText}>Dia completo — todos os hábitos concluídos!</span>
@@ -1553,7 +1643,7 @@ export default function Habits() {
       )}
 
       {/* ── BLOCO 3: CONCLUÍDOS ── */}
-      {done.length > 0 && (
+      {filteredDone.length > 0 && (
         <div className={`card ${styles.block}`}>
           <button
             type="button"
@@ -1562,34 +1652,78 @@ export default function Habits() {
           >
             <PiCheckCircleFill size={11} color="#27ae60" />
             <span className={styles.blockTitle}>Concluídos</span>
-            <span className={styles.blockCount}>{done.length}</span>
+            <span className={styles.blockCount}>{filteredDone.length}</span>
             <PiCaretDownBold size={10} color="var(--ink3)"
               style={{ marginLeft: 'auto', transform: doneOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
           </button>
           {doneOpen && (
             <div className={styles.habitList}>
-              {done.map(hab => <HabitCard key={hab.id} {...cardProps(hab)} />)}
+              {filteredDone.map(hab => <HabitCard key={hab.id} {...cardProps(hab)} />)}
             </div>
           )}
         </div>
       )}
 
-      {/* ── BLOCO: AMANHÃ — preview flat sem jogo de prioridades ── */}
-      {tomorrowHabs.length > 0 && (
+      {/* ── BLOCO: AMANHÃ ── */}
+      {filteredTomorrow.length > 0 && (
         <div className={`card ${styles.block} ${styles.tomorrowBlock}`}>
-          <div className={styles.blockHeader}>
+          <button
+            type="button"
+            className={`${styles.blockHeader} ${styles.blockHeaderBtn}`}
+            onClick={() => setTomorrowOpen(o => !o)}
+          >
             <PiMoonBold size={11} />
             <span className={styles.blockTitle}>Amanhã</span>
-            <span className={styles.blockCount}>{tomorrowHabs.length}</span>
-          </div>
-          <div className={styles.habitList}>
-            {tomorrowHabs.map(hab => (
-              <TomorrowCard
-                key={hab.id} habit={hab} history={history}
-                onSave={saveHabit} onDelete={deleteHabit}
-              />
-            ))}
-          </div>
+            <span className={styles.blockCount}>{filteredTomorrow.length}</span>
+            <PiCaretDownBold size={10} color="var(--ink3)"
+              style={{ marginLeft: 'auto', transform: tomorrowOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+          </button>
+          {tomorrowOpen && (
+            <div className={styles.habitList}>
+              {filteredTomorrow.map(hab => (
+                <TomorrowCard
+                  key={hab.id} habit={hab} history={history}
+                  onSave={saveHabit} onDelete={deleteHabit}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── BLOCO: ARQUIVADOS ── */}
+      {filteredArchived.length > 0 && (
+        <div className={`card ${styles.block}`}>
+          <button
+            type="button"
+            className={`${styles.blockHeader} ${styles.blockHeaderBtn}`}
+            onClick={() => setArchivedOpen(o => !o)}
+          >
+            <PiArchiveBold size={11} />
+            <span className={styles.blockTitle}>Arquivados</span>
+            <span className={styles.blockCount}>{filteredArchived.length}</span>
+            <PiCaretDownBold size={10} color="var(--ink3)"
+              style={{ marginLeft: 'auto', transform: archivedOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+          </button>
+          {archivedOpen && (
+            <div className={styles.habitList}>
+              {filteredArchived.map(hab => (
+                <div key={hab.id} className={styles.archivedCard}>
+                  <HabIcon name={hab.icon} size={13} color="var(--ink3)" />
+                  <span className={styles.archivedName}>{hab.name}</span>
+                  <button type="button" className={styles.unarchiveBtn}
+                    onClick={() => unarchiveHabit(hab.id)} title="Restaurar hábito">
+                    <PiArrowCounterClockwiseBold size={13} />
+                  </button>
+                  <button type="button" className={styles.archiveDelBtn}
+                    onClick={() => { if (window.confirm(`Excluir "${hab.name}" permanentemente?`)) deleteHabit(hab.id) }}
+                    title="Excluir permanentemente">
+                    <PiTrashBold size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

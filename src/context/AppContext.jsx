@@ -51,6 +51,9 @@ function migrateHabit(h) {
 
     // Horário preferido (HH:MM) — quando fazer o hábito
     habitTime: h.habitTime ?? null,
+
+    // Arquivado — oculta da lista principal
+    archived: h.archived ?? false,
   }
 }
 

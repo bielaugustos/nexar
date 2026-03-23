@@ -38,6 +38,106 @@
 }
 
 /* ══════════════════════════════════════
+   TEMA VIDRO (Glassmorphism — Apple)
+══════════════════════════════════════ */
+html[data-theme='glass'] body {
+  background:
+    radial-gradient(ellipse at 15% 15%, rgba(180,120,255,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(80,180,255,0.40) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 110%, rgba(120,240,180,0.30) 0%, transparent 50%),
+    #ece8f8;
+  min-height: 100vh;
+}
+
+html[data-theme='glass'] .nex-app {
+  background: transparent;
+  border-color: rgba(255,255,255,0.40);
+}
+
+html[data-theme='glass'] .card {
+  background: rgba(255,255,255,0.52);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.62);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 32px rgba(100,80,200,0.12),
+    0 1px 0 rgba(255,255,255,0.90) inset;
+}
+
+html[data-theme='glass'] .card-title {
+  border-bottom-color: rgba(255,255,255,0.50);
+}
+
+html[data-theme='glass'] .btn {
+  background: rgba(255,255,255,0.60);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.72);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(100,80,200,0.10), 0 1px 0 rgba(255,255,255,0.85) inset;
+  color: #1c1c1e;
+}
+
+html[data-theme='glass'] .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(100,80,200,0.16), 0 1px 0 rgba(255,255,255,0.90) inset;
+}
+
+html[data-theme='glass'] .btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(100,80,200,0.08);
+}
+
+html[data-theme='glass'] .btn-primary {
+  background: rgba(240,192,32,0.80);
+  border-color: rgba(176,128,0,0.60);
+  box-shadow: 0 4px 14px rgba(240,192,32,0.25), 0 1px 0 rgba(255,255,255,0.70) inset;
+}
+
+html[data-theme='glass'] .btn-primary:hover {
+  box-shadow: 0 8px 20px rgba(240,192,32,0.35), 0 1px 0 rgba(255,255,255,0.80) inset;
+}
+
+html[data-theme='glass'] .input {
+  background: rgba(255,255,255,0.58);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.68);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(100,80,200,0.08), 0 1px 0 rgba(255,255,255,0.85) inset;
+}
+
+html[data-theme='glass'] .input:focus {
+  border-color: rgba(160,120,255,0.60);
+  box-shadow: 0 0 0 3px rgba(160,120,255,0.15), 0 2px 10px rgba(100,80,200,0.10);
+}
+
+html[data-theme='glass'] .hcheck {
+  background: rgba(255,255,255,0.58);
+  border: 1.5px solid rgba(255,255,255,0.78);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(100,80,200,0.08);
+}
+
+html[data-theme='glass'] .pbar-wrap {
+  background: rgba(255,255,255,0.45);
+  border: 1px solid rgba(255,255,255,0.60);
+  border-radius: 10px;
+}
+
+html[data-theme='glass'] .toast {
+  background: rgba(28,28,30,0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.20);
+}
+
+/* ══════════════════════════════════════
    RESET
 ══════════════════════════════════════ */
 *, *::before, *::after {
@@ -46,10 +146,20 @@
   padding: 0;
 }
 
+/* Transição suave global de cor/fundo na troca de tema.
+   Só afeta elementos sem regra 'transition' própria (* tem especificidade 0). */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.35s;
+  transition-timing-function: ease;
+}
+
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color-scheme: light;
+  background: var(--bg);
+  transition: background 0.35s ease;
 }
 
 [data-theme='dark'] html,
@@ -59,7 +169,8 @@ html[data-theme='dark'] {
 
 body {
   font-family: var(--font-body);
-  background: #e8e2d8;
+  background: var(--bg);
+  transition: background 0.35s ease;
 }
 
 button {
@@ -91,13 +202,10 @@ input, select, textarea {
 */
 .nex-app {
   background: var(--bg);
-  max-width: 430px;
-  margin: 0 auto;
+  width: 100%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  border-left:  2px solid var(--border);
-  border-right: 2px solid var(--border);
   transition: background 0.3s, border-color 0.3s;
   position: relative;
 
@@ -109,8 +217,67 @@ input, select, textarea {
   padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
 }
 
-@media (min-width: 600px)  { .nex-app { max-width: 640px; } }
-@media (min-width: 1024px) { .nex-app { max-width: 860px; } }
+/*
+  Em telas de 600–767px: centraliza com bordas laterais como moldura.
+  A partir de 768px o layout muda para sidebar lateral (flex-row).
+*/
+@media (min-width: 600px) and (max-width: 767px) {
+  .nex-app {
+    max-width: 640px;
+    margin: 0 auto;
+    border-left:  2px solid var(--border);
+    border-right: 2px solid var(--border);
+  }
+}
+
+/* ══════════════════════════════════════
+   LAYOUT TABLET / DESKTOP (≥ 768px)
+   Sidebar lateral + coluna de conteúdo
+══════════════════════════════════════ */
+@media (min-width: 768px) {
+  .nex-app {
+    flex-direction: row;
+    max-width: 100%;
+    margin: 0;
+    padding-bottom: 0;          /* sem BottomNav */
+    height: 100dvh;
+    height: 100vh;              /* fallback */
+    overflow: hidden;
+  }
+}
+
+/* Coluna de conteúdo (Header + main) — ocupa o espaço restante */
+.nex-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+@media (min-width: 768px) {
+  .nex-content {
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* main passa a ser a área rolável dentro da coluna */
+  .nex-content > main {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Em telas muito largas: limita a largura total e centraliza */
+@media (min-width: 1440px) {
+  .nex-app {
+    max-width: 1440px;
+    margin: 0 auto;
+    box-shadow: 0 0 0 1px var(--border);
+  }
+}
 
 /* ══════════════════════════════════════
    UTILITÁRIOS
@@ -121,7 +288,7 @@ input, select, textarea {
   border-radius: var(--radius);
   padding: 12px 14px;
   box-shadow: 3px 3px 0 var(--shadow);
-  transition: background 0.3s;
+  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, color 0.35s ease;
 }
 
 .card-title {

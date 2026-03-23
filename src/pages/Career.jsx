@@ -8,6 +8,7 @@ import {
   PiCaretDownBold, PiCaretUpBold,
 } from 'react-icons/pi'
 import { toast } from '../components/Toast'
+import { playSaveDirect } from '../hooks/useSound'
 import styles from './Career.module.css'
 
 // ══════════════════════════════════════
@@ -84,6 +85,7 @@ function AddReadingForm({ onSave, onClose }) {
 
   function submit() {
     if (!title.trim()) { toast('Informe o título'); return }
+    playSaveDirect()
     onSave({ id: Date.now(), title: title.trim(), author: author.trim(), type, status, notes: notes.trim(), link: link.trim(), createdAt: todayISO(), rating: null })
     toast(`"${title.trim()}" adicionado!`)
   }
@@ -147,6 +149,7 @@ function ReadingCard({ item, onUpdate, onDelete }) {
   }
 
   function saveNotes() {
+    playSaveDirect()
     onUpdate({ ...item, notes, rating })
     setEditing(false)
     toast('Notas salvas!')
@@ -399,6 +402,7 @@ function AddGoalForm({ onSave, onClose }) {
 
   function submit() {
     if (!title.trim()) { toast('Informe o título da meta'); return }
+    playSaveDirect()
     onSave({ id: Date.now(), title: title.trim(), area, deadline: deadline || null, notes: notes.trim(), milestones: [], createdAt: todayISO() })
     toast(`Meta "${title.trim()}" criada!`)
   }
@@ -593,6 +597,7 @@ function AddProjectForm({ onSave, onClose }) {
 
   function submit() {
     if (!name.trim()) { toast('Informe o nome do projeto'); return }
+    playSaveDirect()
     onSave({
       id: Date.now(), name: name.trim(), status: 'planejando',
       notes: notes.trim(), deadline: deadline||null,
