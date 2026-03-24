@@ -1,20 +1,20 @@
 /* ══════════════════════════════════════
    SIDEBAR NAV — SideNav
-   Visível apenas em tablet/desktop (≥ 768px)
-   - 768–1023px: 64px, apenas ícones
-   - 1024px+:   220px, ícones + rótulos
+   Oculto no mobile.
+   768px+: 220px com ícones + rótulos.
+   Colapsado: 64px com apenas ícones.
 ══════════════════════════════════════ */
 
 /* ── Oculto no mobile ── */
 .side { display: none; }
 
-/* ── Tablet 768px+: sidebar compacta ── */
+/* ── Tablet e desktop (768px+): sidebar expandida ── */
 @media (min-width: 768px) {
   .side {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    width: 64px;
+    width: 220px;
     height: 100vh;
     position: sticky;
     top: 0;
@@ -23,21 +23,16 @@
     background: var(--bg);
     padding: 14px 0 12px;
     z-index: 150;
-    /* Transição suave ao cruzar o breakpoint de 1024px */
     transition:
-      width        0.38s cubic-bezier(0.4, 0, 0.2, 1),
+      width        0.28s cubic-bezier(0.4, 0, 0.2, 1),
       background   0.3s,
       border-color 0.3s;
   }
 }
 
-/* ── Desktop 1024px+: sidebar expandida ── */
-@media (min-width: 1024px) {
-  .side { width: 220px; }
-}
-
 /* ══════════════════════════════════════
-   BRAND — logo + streak
+   BRAND — logo + botão colapsar
+   Streak omitido: já aparece no Header.
 ══════════════════════════════════════ */
 .brand {
   display: flex;
@@ -49,15 +44,7 @@
   overflow: hidden;
   flex-shrink: 0;
   min-height: 52px;
-  transition: border-color 0.3s;
-}
-
-/* Ícone centrado em modo compacto */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .brand {
-    justify-content: center;
-    padding: 0 0 14px;
-  }
+  transition: border-color 0.3s, padding 0.28s;
 }
 
 .logo {
@@ -68,10 +55,11 @@
   color: var(--ink);
   white-space: nowrap;
   flex-shrink: 0;
-  transition: color 0.3s;
+  transition: color 0.3s, opacity 0.2s;
 }
 
-/* Streak pill — surge com transição em 1024px+ */
+/* Logo oculta no sidebar — streak visível */
+.logo   { display: none; }
 .streak {
   background: var(--gold);
   border: 1.5px solid var(--border);
@@ -84,18 +72,14 @@
   align-items: center;
   gap: 3px;
   white-space: nowrap;
-  /* Oculto na sidebar compacta — aparece com fade + slide */
-  opacity: 0;
-  max-width: 0;
-  overflow: hidden;
-  transition: opacity 0.28s ease 0.22s, max-width 0.28s ease 0.12s;
+  animation: streakPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-@media (min-width: 1024px) {
-  .streak {
-    opacity: 1;
-    max-width: 80px;
-  }
+@keyframes streakPopIn {
+  0%   { opacity: 0; transform: scale(0.4) translateY(-6px); }
+  60%  { opacity: 1; }
+  80%  { transform: scale(1.12) translateY(1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 /* ══════════════════════════════════════
@@ -107,11 +91,8 @@
   gap: 2px;
   padding: 0 8px;
   flex: 1;
-  overflow: hidden;
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-  .nav { padding: 0 6px; }
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* ── Link ── */
@@ -119,8 +100,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 10px;
-  border-radius: 10px;
+  padding: 9px 10px;
+  margin: 0 4px;
+  border-radius: 8px;
   text-decoration: none;
   color: var(--ink);
   font-size: 13px;
@@ -132,26 +114,91 @@
   position: relative;
 }
 
-.link:hover {
-  background: var(--surface);
+.link:hover  { background: var(--surface); }
+.link:active { transform: scale(0.97); }
+
+/* Resets para <button> no Safari/Apple */
+button.link {
+  text-align: left;
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.link:active {
-  transform: scale(0.97);
-}
-
-/* Estado ativo — fundo âmbar */
 .link.active {
   background: var(--gold);
   color: #111;
 }
 
-/* Ícone centrado em modo compacto */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .link {
-    justify-content: center;
-    padding: 10px 0;
-  }
+/* ── Ícone hamburguer → ../ ── */
+.collapseIcon {
+  position: relative;
+  display: block;
+  width: 16px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.collapseIcon::before,
+.collapseIcon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  height: 2px;
+  width: 16px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: width .32s ease, height .32s ease, top .32s ease,
+              left .32s ease, border-radius .32s ease, transform .32s ease;
+}
+.collapseIcon > span {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 5px;
+  height: 2px;
+  width: 11px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: width .32s ease, height .32s ease, top .32s ease,
+              left .32s ease, border-radius .32s ease;
+}
+.collapseIcon::before { top: 0; }
+.collapseIcon::after  { top: 10px; }
+
+/* Estado colapsado → ../ */
+.collapseIconExpand::before {
+  /* primeiro ponto . */
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  top: 4px;
+  left: 0;
+}
+.collapseIconExpand > span {
+  /* segundo ponto . */
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  top: 4px;
+  left: 4px;
+}
+.collapseIconExpand::after {
+  /* barra / */
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+  top: 4px;
+  left: 6px;
+  transform: rotate(-53deg);
 }
 
 /* ── Ícone ── */
@@ -164,27 +211,17 @@
   height: 24px;
 }
 
-/* ── Rótulo — oculto na sidebar compacta ── */
+/* ── Rótulo ── */
 .label {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
-  opacity: 0;
-  transform: translateX(-8px);
-  /* Transição com pequeno delay — espera a largura abrir primeiro */
-  transition: opacity 0.20s ease 0.14s, transform 0.20s ease 0.14s;
   pointer-events: none;
-}
-
-@media (min-width: 1024px) {
-  .label {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  transition: opacity 0.20s ease 0.10s;
 }
 
 /* ══════════════════════════════════════
-   DIVISOR + ESPAÇADOR
+   DIVISOR + PERFIL
 ══════════════════════════════════════ */
 .divider {
   height: 1.5px;
@@ -195,12 +232,31 @@
   transition: background 0.3s;
 }
 
-/* Empurra Perfil para o fundo */
-.spacer { flex: 1; min-height: 8px; }
+.profileBottom { margin-top: auto !important; }
+
+
+
+/* ══════════════════════════════════════
+   ESTADO COLAPSADO (768px+)
+══════════════════════════════════════ */
+@media (min-width: 768px) {
+  .collapsed { width: 64px; }
+
+  .collapsed .label  { opacity: 0; width: 0; flex: none; overflow: hidden; }
+  .collapsed .brand  { justify-content: center; padding: 0 0 14px; }
+
+  .collapsed .link {
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    margin: 0 auto;
+    gap: 0;
+  }
+}
 
 /* ══════════════════════════════════════
    ANIMAÇÕES DE DESBLOQUEIO
-   (mesma lógica do BottomNav)
 ══════════════════════════════════════ */
 .unlockEnter {
   animation: sidePopIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
@@ -222,7 +278,6 @@
   100% { opacity: 0; transform: scale(0.15) translateY(-8px); }
 }
 
-/* Ponto âmbar piscando ao surgir */
 .unlockEnter::after {
   content: '✦';
   position: absolute;
@@ -241,7 +296,6 @@
   100% { opacity: 0; }
 }
 
-/* Brilho no ícone ao entrar */
 .unlockEnter .icon {
   animation: iconGlow 0.7s ease-out 0.25s;
 }
@@ -261,19 +315,10 @@ html[data-theme='glass'] .side {
   border-right-color: rgba(255, 255, 255, 0.55);
 }
 
-html[data-theme='glass'] .link:hover {
-  background: rgba(255, 255, 255, 0.45);
-}
-
+html[data-theme='glass'] .link:hover  { background: rgba(255, 255, 255, 0.45); }
 html[data-theme='glass'] .link.active {
   background: rgba(240, 192, 32, 0.78);
   box-shadow: 0 2px 12px rgba(240, 192, 32, 0.25);
 }
-
-html[data-theme='glass'] .brand {
-  border-bottom-color: rgba(255, 255, 255, 0.45);
-}
-
-html[data-theme='glass'] .divider {
-  background: rgba(255, 255, 255, 0.45);
-}
+html[data-theme='glass'] .brand   { border-bottom-color: rgba(255, 255, 255, 0.45); }
+html[data-theme='glass'] .divider { background: rgba(255, 255, 255, 0.45); }

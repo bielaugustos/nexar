@@ -28,14 +28,12 @@ export function Header() {
       {/* Logo — aria-label nomeia o app para leitores de tela */}
       <span className={styles.logo} aria-label="Rootio">../</span>
 
-      {/* Streak — só renderiza se o usuário tiver sequência ativa */}
       {streak > 0 && (
         <div
           className={styles.streakPill}
           aria-label={`Sequência de ${streak} ${streak === 1 ? 'dia' : 'dias'}`}
           title={`${streak} dias consecutivos`}
         >
-          {/* Ícone puramente decorativo */}
           <PiFlameFill size={11} color="var(--gold-dk)" aria-hidden="true" />
           <span aria-hidden="true">{streak}d</span>
         </div>

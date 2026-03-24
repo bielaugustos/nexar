@@ -1,11 +1,15 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { usePlan } from '../hooks/usePlan'
+import { PlanLimitModal } from '../components/PlanLimitModal'
 import {
   PiBriefcaseBold, PiBookOpenTextBold, PiTargetBold,
   PiPlusBold, PiXBold, PiCheckBold, PiTrashBold,
   PiPencilSimpleBold, PiFloppyDiskBold, PiCalendarBold,
   PiStarBold, PiArrowRightBold,
   PiCheckCircleBold, PiClockBold, PiLinkBold,
-  PiCaretDownBold, PiCaretUpBold,
+  PiCaretDownBold, PiCaretUpBold, PiLockSimpleBold, PiCrownBold,
+  PiQuestionBold,
 } from 'react-icons/pi'
 import { toast } from '../components/Toast'
 import { playSaveDirect } from '../hooks/useSound'
@@ -85,9 +89,7 @@ function AddReadingForm({ onSave, onClose }) {
 
   function submit() {
     if (!title.trim()) { toast('Informe o título'); return }
-    playSaveDirect()
     onSave({ id: Date.now(), title: title.trim(), author: author.trim(), type, status, notes: notes.trim(), link: link.trim(), createdAt: todayISO(), rating: null })
-    toast(`"${title.trim()}" adicionado!`)
   }
 
   return (
@@ -233,11 +235,36 @@ function ReadingCard({ item, onUpdate, onDelete }) {
   )
 }
 
-function ReadingsSection({ readings, onUpdate }) {
-  const [showForm, setShowForm] = useState(false)
-  const [filter,   setFilter]   = useState('todos')
+const FREE_READINGS_LIMIT = 10
+const FREE_GOALS_LIMIT    = 1
 
-  function add(item) { onUpdate([item, ...readings]); setShowForm(false) }
+const CAREER_FREE_ITEMS = ['Até 10 leituras/cursos', '1 meta de crescimento', 'Avaliação por estrelas']
+const CAREER_PRO_ITEMS  = ['Leituras ilimitadas', 'Metas ilimitadas', 'Projetos profissionais', 'Tags e links por item']
+
+function ReadingsSection({ readings, onUpdate }) {
+  const [showForm,       setShowForm]       = useState(false)
+  const [filter,         setFilter]         = useState('todos')
+  const [showModal,      setShowModal]      = useState(false)
+  const [limitDecided,   setLimitDecided]   = useState(() => localStorage.getItem('nex_career_readings_decided') === 'true')
+  const { isPro } = usePlan()
+  const navigate  = useNavigate()
+
+  const atLimit = !isPro && readings.length >= FREE_READINGS_LIMIT
+
+  function add(item) {
+    if (atLimit) { setShowModal(true); return }
+    playSaveDirect()
+    onUpdate([item, ...readings]); setShowForm(false)
+    toast(`"${item.title}" adicionado!`)
+  }
+
+  function handleOpenForm() {
+    if (atLimit) { setShowModal(true); return }
+    setShowForm(s => !s)
+  }
+
+  function handleUpgrade() { setShowModal(false); navigate('/profile') }
+  function handleStay()    { localStorage.setItem('nex_career_readings_decided', 'true'); setLimitDecided(true); setShowModal(false) }
   function upd(item) { onUpdate(readings.map(r => r.id === item.id ? item : r)) }
   function del(id)   { onUpdate(readings.filter(r => r.id !== id)); toast('Removido.') }
 
@@ -253,13 +280,29 @@ function ReadingsSection({ readings, onUpdate }) {
     <div className="card">
       <div className="card-title">
         <PiBookOpenTextBold size={15}/> Leituras & Estudos
-        <button type="button" className={`btn btn-primary ${styles.addBtn}`}
-          onClick={() => setShowForm(s => !s)}>
-          <PiPlusBold size={11}/> Adicionar
-        </button>
+        {atLimit && limitDecided ? (
+          <button type="button" className={`btn ${styles.addBtn}`} style={{ opacity: 0.7, gap: 4 }} onClick={() => setShowModal(true)}>
+            <PiLockSimpleBold size={11}/> Limite
+          </button>
+        ) : (
+          <button type="button" className={`btn btn-primary ${styles.addBtn}`} onClick={handleOpenForm}>
+            <PiPlusBold size={11}/> Adicionar
+          </button>
+        )}
       </div>
 
       {showForm && <AddReadingForm onSave={add} onClose={() => setShowForm(false)}/>}
+
+      {showModal && (
+        <PlanLimitModal
+          description={`Você atingiu o limite de ${FREE_READINGS_LIMIT} leituras e cursos do plano gratuito.`}
+          freeItems={CAREER_FREE_ITEMS}
+          proItems={CAREER_PRO_ITEMS}
+          stayFreeLabel="Continuar com 10 leituras"
+          onUpgrade={handleUpgrade}
+          onClose={handleStay}
+        />
+      )}
 
       {readings.length > 0 && (
         <div className={styles.filterRow}>
@@ -402,9 +445,7 @@ function AddGoalForm({ onSave, onClose }) {
 
   function submit() {
     if (!title.trim()) { toast('Informe o título da meta'); return }
-    playSaveDirect()
     onSave({ id: Date.now(), title: title.trim(), area, deadline: deadline || null, notes: notes.trim(), milestones: [], createdAt: todayISO() })
-    toast(`Meta "${title.trim()}" criada!`)
   }
 
   return (
@@ -438,9 +479,28 @@ function AddGoalForm({ onSave, onClose }) {
 }
 
 function GoalsSection({ goals, onUpdate }) {
-  const [showForm, setShowForm] = useState(false)
+  const [showForm,     setShowForm]     = useState(false)
+  const [showModal,    setShowModal]    = useState(false)
+  const [limitDecided, setLimitDecided] = useState(() => localStorage.getItem('nex_career_goals_decided') === 'true')
+  const { isPro } = usePlan()
+  const navigate  = useNavigate()
 
-  function add(g) { onUpdate([...goals, g]); setShowForm(false) }
+  const atLimit = !isPro && goals.length >= FREE_GOALS_LIMIT
+
+  function add(g) {
+    if (atLimit) { setShowModal(true); return }
+    playSaveDirect()
+    onUpdate([...goals, g]); setShowForm(false)
+    toast(`Meta "${g.title}" criada!`)
+  }
+
+  function handleOpenForm() {
+    if (atLimit) { setShowModal(true); return }
+    setShowForm(s => !s)
+  }
+
+  function handleUpgrade() { setShowModal(false); navigate('/profile') }
+  function handleStay()    { localStorage.setItem('nex_career_goals_decided', 'true'); setLimitDecided(true); setShowModal(false) }
   function upd(g) { onUpdate(goals.map(x => x.id === g.id ? g : x)) }
   function del(id) { onUpdate(goals.filter(g => g.id !== id)); toast('Meta removida.') }
 
@@ -451,13 +511,29 @@ function GoalsSection({ goals, onUpdate }) {
     <div className="card">
       <div className="card-title">
         <PiTargetBold size={15}/> Metas de Crescimento
-        <button type="button" className={`btn btn-primary ${styles.addBtn}`}
-          onClick={() => setShowForm(s => !s)}>
-          <PiPlusBold size={11}/> Nova
-        </button>
+        {atLimit && limitDecided ? (
+          <button type="button" className={`btn ${styles.addBtn}`} style={{ opacity: 0.7, gap: 4 }} onClick={() => setShowModal(true)}>
+            <PiLockSimpleBold size={11}/> Limite
+          </button>
+        ) : (
+          <button type="button" className={`btn btn-primary ${styles.addBtn}`} onClick={handleOpenForm}>
+            <PiPlusBold size={11}/> Nova
+          </button>
+        )}
       </div>
 
       {showForm && <AddGoalForm onSave={add} onClose={() => setShowForm(false)}/>}
+
+      {showModal && (
+        <PlanLimitModal
+          description="O plano gratuito permite apenas 1 meta de crescimento ativa."
+          freeItems={CAREER_FREE_ITEMS}
+          proItems={CAREER_PRO_ITEMS}
+          stayFreeLabel="Continuar com 1 meta"
+          onUpgrade={handleUpgrade}
+          onClose={handleStay}
+        />
+      )}
 
       {goals.length === 0 && !showForm ? (
         <div className="empty-state" style={{ padding:'16px 0' }}>
@@ -635,12 +711,32 @@ function AddProjectForm({ onSave, onClose }) {
 function ProjectsSection({ projects, onUpdate }) {
   const [showForm, setShowForm] = useState(false)
   const [statusFilter, setStatusFilter] = useState('todos')
+  const { isPro } = usePlan()
+  const navigate  = useNavigate()
 
   function add(p) { onUpdate([...projects, p]); setShowForm(false) }
   function upd(p) { onUpdate(projects.map(x => x.id===p.id ? p : x)) }
   function del(id) { onUpdate(projects.filter(p=>p.id!==id)); toast('Projeto removido.') }
 
   const shown = statusFilter==='todos' ? projects : projects.filter(p=>p.status===statusFilter)
+
+  if (!isPro) {
+    return (
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center', padding: '24px 20px', textAlign: 'center' }}>
+        <PiLockSimpleBold size={28} color="var(--ink3)"/>
+        <div>
+          <p style={{ fontWeight: 800, fontSize: 14, color: 'var(--ink)', marginBottom: 4 }}>Projetos Profissionais</p>
+          <p style={{ fontSize: 12, color: 'var(--ink3)', lineHeight: 1.6 }}>
+            Organize projetos de trabalho com tarefas, prazos e progresso.<br/>
+            Disponível no plano Pro.
+          </p>
+        </div>
+        <button type="button" className="btn btn-primary" style={{ gap: 6 }} onClick={() => navigate('/profile')}>
+          <PiCrownBold size={13}/> Ver plano Pro
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="card">
@@ -725,7 +821,10 @@ function CareerSummary({ readings, goals, projects }) {
 // ══════════════════════════════════════
 export default function Career() {
   const { readings, goals, projects, updReadings, updGoals, updProjects } = useCareer()
-  const [tab, setTab] = useState('leituras')
+  const [tab, setTab]         = useState('leituras')
+  const [showHelp, setShowHelp] = useState(false)
+
+  const isEmpty = readings.length + goals.length + projects.length === 0
 
   const TABS = [
     { id: 'leituras',  label: 'Estudos',   Icon: PiBookOpenTextBold },
@@ -736,29 +835,57 @@ export default function Career() {
   return (
     <main className={styles.page}>
 
-      {/* Intro — explica o propósito da tela */}
-      {readings.length + goals.length + projects.length === 0 && (
-        <div className="card" style={{borderLeft:'4px solid var(--gold-dk)',paddingLeft:12}}>
-          <p style={{fontSize:13,fontWeight:700,color:'var(--ink)',marginBottom:4}}>Carreira & Estudos</p>
-          <p style={{fontSize:12,color:'var(--ink3)',lineHeight:1.6}}>
-            Este é o seu espaço de crescimento profissional — para quem quer conquistar o trabalho dos sonhos
-            ou construir um negócio. Registre livros e cursos que moldam sua visão, defina metas de habilidades
-            e acompanhe projetos profissionais. Tudo isso alimentará futuras análises de IA sobre sua evolução de carreira.
+      {/* Intro — aparece automático quando vazio, ou via botão ? */}
+      {(isEmpty || showHelp) && (
+        <div className="card" style={{ borderLeft: '4px solid var(--gold-dk)', paddingLeft: 12, position: 'relative' }}>
+          {showHelp && !isEmpty && (
+            <button type="button" className="btn" style={{ position: 'absolute', top: 8, right: 8, padding: '3px 6px' }}
+              onClick={() => setShowHelp(false)}>
+              <PiXBold size={12}/>
+            </button>
+          )}
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>Carreira & Estudos</p>
+          <p style={{ fontSize: 12, color: 'var(--ink3)', lineHeight: 1.6, marginBottom: 8 }}>
+            Seu espaço de crescimento profissional. Registre livros e cursos que moldam sua visão,
+            defina metas de habilidades e acompanhe projetos profissionais.
           </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {[
+              { n: 1, text: 'Aba Estudos — adicione livros, cursos, podcasts e acompanhe seu progresso' },
+              { n: 2, text: 'Aba Metas — defina uma habilidade que quer desenvolver com marcos e prazo' },
+              { n: 3, text: 'Aba Projetos — (Pro) organize projetos profissionais com tarefas e status' },
+            ].map(s => (
+              <div key={s.n} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: 10, fontWeight: 800, background: 'var(--ink)', color: 'var(--bg)', borderRadius: 3, padding: '1px 5px', flexShrink: 0, marginTop: 1 }}>{s.n}</span>
+                <span style={{ fontSize: 11, color: 'var(--ink3)', lineHeight: 1.5 }}>{s.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       <CareerSummary readings={readings} goals={goals} projects={projects}/>
 
-      {/* Tabs de navegação interna */}
-      <div className={styles.navTabs}>
-        {TABS.map(t => (
-          <button key={t.id} type="button"
-            className={`${styles.navTab} ${tab===t.id ? styles.navTabActive : ''}`}
-            onClick={() => setTab(t.id)}>
-            <t.Icon size={14}/> {t.label}
+      {/* Tabs de navegação interna + botão ? */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className={styles.navTabs} style={{ flex: 1 }}>
+          {TABS.map(t => (
+            <button key={t.id} type="button"
+              className={`${styles.navTab} ${tab===t.id ? styles.navTabActive : ''}`}
+              onClick={() => setTab(t.id)}>
+              <t.Icon size={14}/> {t.label}
+            </button>
+          ))}
+        </div>
+        {!isEmpty && (
+          <button type="button"
+            className={`btn ${showHelp ? 'btn-primary' : ''}`}
+            style={{ padding: '7px 10px', flexShrink: 0, borderRadius: 4 }}
+            onClick={() => setShowHelp(h => !h)}
+            title="Como usar esta tela">
+            <PiQuestionBold size={14}/>
           </button>
-        ))}
+        )}
       </div>
 
       {tab === 'leituras'  && <ReadingsSection readings={readings} onUpdate={updReadings}/>}

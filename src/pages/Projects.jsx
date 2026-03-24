@@ -1,10 +1,14 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { usePlan } from '../hooks/usePlan'
+import { PlanLimitModal } from '../components/PlanLimitModal'
 import {
   PiRocketLaunchBold, PiTargetBold, PiPlusBold, PiXBold,
   PiCheckBold, PiTrashBold, PiPencilSimpleBold, PiFloppyDiskBold,
   PiCalendarBold, PiCalendarCheckBold, PiCaretDownBold, PiCaretUpBold,
   PiFlagBold, PiArrowUpBold, PiArrowRightBold, PiArrowDownBold,
   PiCircleDashedBold, PiSpinnerBold, PiCheckCircleBold, PiPauseBold,
+  PiLockSimpleBold, PiCrownBold, PiQuestionBold,
 } from 'react-icons/pi'
 import { toast } from '../components/Toast'
 import styles from './Projects.module.css'
@@ -432,14 +436,38 @@ function ActivityLog({ project }) {
 }
 
 
+const FREE_PROJECTS_LIMIT = 3
+const PROJ_FREE_ITEMS = [`Até ${FREE_PROJECTS_LIMIT} projetos ativos`, 'Marcos com progresso', 'Status e log de atividade']
+const PROJ_PRO_ITEMS  = ['Projetos ilimitados', 'Prazo, prioridade, categorias', 'Filtros e ordenação completos']
+
 export default function Projects() {
-  const [projects, setProjects] = useState(() => load('nex_projects', []))
-  const [showForm, setShowForm] = useState(false)
-  const [filter,   setFilter]   = useState('todos')
-  const [sortBy,   setSortBy]   = useState('prioridade') // prioridade | prazo | criacao
+  const [projects,     setProjects]     = useState(() => load('nex_projects', []))
+  const [showForm,     setShowForm]     = useState(false)
+  const [filter,       setFilter]       = useState('todos')
+  const [sortBy,       setSortBy]       = useState('prioridade')
+  const [showModal,    setShowModal]    = useState(false)
+  const [limitDecided, setLimitDecided] = useState(() => localStorage.getItem('nex_proj_limit_decided') === 'true')
+  const [showHelp,     setShowHelp]     = useState(false)
+  const { isPro } = usePlan()
+  const navigate  = useNavigate()
+
+  const activeCount = projects.filter(x => x.status === 'andamento' || x.status === 'planejando').length
+  const atLimit     = !isPro && activeCount >= FREE_PROJECTS_LIMIT
 
   function upd(list) { setProjects(list); save('nex_projects', list) }
-  function add(p) { upd([p, ...projects]); setShowForm(false); toast(`"${p.title}" criado!`) }
+
+  function add(p) {
+    if (atLimit) { setShowModal(true); return }
+    upd([p, ...projects]); setShowForm(false); toast(`"${p.title}" criado!`)
+  }
+
+  function handleOpenForm() {
+    if (atLimit) { setShowModal(true); return }
+    setShowForm(s => !s)
+  }
+
+  function handleUpgrade() { setShowModal(false); navigate('/profile') }
+  function handleStay()    { localStorage.setItem('nex_proj_limit_decided', 'true'); setLimitDecided(true); setShowModal(false) }
   function update(p) { upd(projects.map(x => x.id === p.id ? p : x)) }
   function del(id) { upd(projects.filter(p => p.id !== id)); toast('Projeto removido.') }
 
@@ -479,16 +507,32 @@ export default function Projects() {
   return (
     <main className={styles.page}>
 
-      {/* Intro — explica o propósito */}
-      {projects.length === 0 && (
-        <div className="card" style={{borderLeft:'4px solid var(--gold-dk)',paddingLeft:12}}>
-          <p style={{fontSize:13,fontWeight:700,color:'var(--ink)',marginBottom:4}}>Projetos & Metas de Vida</p>
-          <p style={{fontSize:12,color:'var(--ink3)',lineHeight:1.6}}>
-            Aqui vivem seus projetos pessoais de médio e longo prazo — aprender um idioma, escrever um livro,
-            construir um negócio, completar uma maratona. Diferente de Carreira (foco profissional),
-            Projetos é sobre quem você quer se tornar como pessoa. Defina marcos, acompanhe o progresso
-            e veja sua vida avançar concretamente.
+      {/* Intro — aparece automático quando vazio, ou via botão ? */}
+      {(projects.length === 0 || showHelp) && (
+        <div className="card" style={{ borderLeft: '4px solid var(--gold-dk)', paddingLeft: 12, position: 'relative' }}>
+          {showHelp && projects.length > 0 && (
+            <button type="button" className="btn" style={{ position: 'absolute', top: 8, right: 8, padding: '3px 6px' }}
+              onClick={() => setShowHelp(false)}>
+              <PiXBold size={12}/>
+            </button>
+          )}
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>Projetos & Metas de Vida</p>
+          <p style={{ fontSize: 12, color: 'var(--ink3)', lineHeight: 1.6, marginBottom: 8 }}>
+            Seus projetos pessoais de médio e longo prazo — aprender um idioma, escrever um livro,
+            completar uma maratona. Diferente de Carreira, aqui é sobre quem você quer se tornar como pessoa.
           </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {[
+              { n: 1, text: 'Crie um projeto com título, prazo e prioridade' },
+              { n: 2, text: 'Adicione marcos para dividir o objetivo em etapas' },
+              { n: 3, text: 'Atualize o status conforme avança (Planejando → Em andamento → Concluído)' },
+            ].map(s => (
+              <div key={s.n} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: 10, fontWeight: 800, background: 'var(--ink)', color: 'var(--bg)', borderRadius: 3, padding: '1px 5px', flexShrink: 0, marginTop: 1 }}>{s.n}</span>
+                <span style={{ fontSize: 11, color: 'var(--ink3)', lineHeight: 1.5 }}>{s.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -498,13 +542,38 @@ export default function Projects() {
       <div className="card">
         <div className="card-title">
           <PiRocketLaunchBold size={15}/> Meus Projetos
-          <button type="button" className={`btn btn-primary ${styles.addBtn}`}
-            onClick={() => setShowForm(s => !s)}>
-            <PiPlusBold size={11}/> Novo
-          </button>
+          {projects.length > 0 && (
+            <button type="button"
+              className={`btn ${showHelp ? 'btn-primary' : ''}`}
+              style={{ padding: '3px 7px', marginLeft: 4 }}
+              onClick={() => setShowHelp(h => !h)}
+              title="Como usar esta tela">
+              <PiQuestionBold size={12}/>
+            </button>
+          )}
+          {atLimit && limitDecided ? (
+            <button type="button" className={`btn ${styles.addBtn}`} style={{ opacity: 0.7, gap: 4 }} onClick={() => setShowModal(true)}>
+              <PiLockSimpleBold size={11}/> <PiCrownBold size={11} color="var(--gold-dk)"/>
+            </button>
+          ) : (
+            <button type="button" className={`btn btn-primary ${styles.addBtn}`} onClick={handleOpenForm}>
+              <PiPlusBold size={11}/> Novo
+            </button>
+          )}
         </div>
 
         {showForm && <ProjectForm onSave={add} onClose={() => setShowForm(false)}/>}
+
+        {showModal && (
+          <PlanLimitModal
+            description={`Você atingiu o limite de ${FREE_PROJECTS_LIMIT} projetos ativos do plano gratuito.`}
+            freeItems={PROJ_FREE_ITEMS}
+            proItems={PROJ_PRO_ITEMS}
+            stayFreeLabel={`Continuar com ${FREE_PROJECTS_LIMIT} projetos`}
+            onUpgrade={handleUpgrade}
+            onClose={handleStay}
+          />
+        )}
 
         {/* Filtros + ordenação */}
         {projects.length > 0 && (

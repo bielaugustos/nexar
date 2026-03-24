@@ -25,6 +25,8 @@ import {
 } from 'react'
 import { loadStorage, saveStorage } from '../services/storage'
 import { applyTheme, initTheme }    from '../services/themes'
+import { useAuth }                  from './AuthContext'
+import { upsertRows, fetchRows, deleteRow } from '../services/supabase'
 
 // ══════════════════════════════════════
 // UTILITÁRIOS DE DATA
@@ -151,6 +153,10 @@ export function AppProvider({ children }) {
   const [soundOn,   setSoundOnSt]  = useState(() => loadStorage('nex_sound', true))
   const [plan,      setPlanState]  = useState(() => loadStorage('nex_plan', 'free'))
 
+  // ── Auth (passthrough offline-first — sync em background quando logado) ──
+  const { isLoggedIn, user, profile } = useAuth()
+  const userId = user?.id ?? null
+
   // ── Efeitos de persistência e sincronização ──
 
   // Aplica o tema no <html> sempre que mudar
@@ -164,6 +170,61 @@ export function AppProvider({ children }) {
     saveStorage('nex_plan', plan)
     window.dispatchEvent(new Event('nex_plan_changed'))
   }, [plan])
+
+  // Sincroniza plano com o perfil Supabase quando o profile carrega
+  useEffect(() => {
+    if (profile?.plan) {
+      setPlanState(profile.plan)
+      saveStorage('nex_plan', profile.plan)
+    }
+  }, [profile?.plan]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Carrega hábitos e histórico do Supabase quando o usuário loga
+  useEffect(() => {
+    if (!isLoggedIn || !userId) return
+
+    async function loadFromDB() {
+      const { data: habitsData } = await fetchRows('habits', userId)
+      if (habitsData?.length > 0) {
+        const migrated = migrateHabits(habitsData)
+        setHabits(migrated)
+        saveStorage('nex_habits', migrated)
+      }
+
+      const { data: histRows } = await fetchRows('habit_history', userId)
+      if (histRows?.length > 0) {
+        const histObj = Object.fromEntries(
+          histRows.map(r => [r.date, {
+            done:   r.done,
+            total:  r.total,
+            habits: r.habits ?? {},
+          }])
+        )
+        setHistory(histObj)
+        saveStorage('nex_history', histObj)
+      }
+    }
+
+    loadFromDB()
+  }, [isLoggedIn, userId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sincroniza histórico com Supabase em background sempre que mudar
+  useEffect(() => {
+    if (!isLoggedIn || !userId) return
+    const entries = Object.entries(history)
+    if (entries.length === 0) return
+
+    const rows = entries.map(([date, val]) => ({
+      user_id: userId,
+      date,
+      done:   val.done   ?? 0,
+      total:  val.total  ?? 0,
+      habits: val.habits ?? {},
+    }))
+
+    upsertRows('habit_history', rows, { onConflict: 'user_id,date' })
+      .catch(e => console.warn('[Sync] history:', e))
+  }, [history, isLoggedIn, userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persiste hábitos e registra o dia atual no histórico
   useEffect(() => {
@@ -217,29 +278,58 @@ export function AppProvider({ children }) {
 
   // Alterna o estado done de um hábito pelo id
   const toggleHabit = useCallback((id) => {
-    setHabits(prev => prev.map(h => h.id === id ? { ...h, done: !h.done } : h))
-  }, [])
+    setHabits(prev => {
+      const updated = prev.map(h => h.id === id ? { ...h, done: !h.done } : h)
+      if (isLoggedIn && userId) {
+        const habit = updated.find(h => h.id === id)
+        if (habit) {
+          upsertRows('habits', [{ ...habit, user_id: userId }])
+            .catch(e => console.warn('[Sync] toggleHabit:', e))
+        }
+      }
+      return updated
+    })
+  }, [isLoggedIn, userId])
 
   // Cria ou atualiza um hábito (upsert por id)
   const saveHabit = useCallback((updated) => {
-    const safe = migrateHabit(updated) // garante campos novos ao salvar da tela de edição
-    setHabits(prev =>
-      prev.some(h => h.id === safe.id)
+    const safe = migrateHabits([updated])[0]
+    setHabits(prev => {
+      const list = prev.some(h => h.id === safe.id)
         ? prev.map(h => h.id === safe.id ? safe : h)
         : [...prev, safe]
-    )
-  }, [])
+      if (isLoggedIn && userId) {
+        upsertRows('habits', [{ ...safe, user_id: userId }])
+          .catch(e => console.warn('[Sync] saveHabit:', e))
+      }
+      return list
+    })
+  }, [isLoggedIn, userId])
 
   // Adiciona um novo hábito (gera id por timestamp)
   const addHabit = useCallback((habit) => {
-    const safe = migrateHabit({ ...habit, id: Date.now() })
-    setHabits(prev => [...prev, safe])
-  }, [])
+    const safe = migrateHabits([habit])[0]
+    setHabits(prev => {
+      const updated = [...prev, safe]
+      if (isLoggedIn && userId) {
+        upsertRows('habits', [{ ...safe, user_id: userId }])
+          .catch(e => console.warn('[Sync] addHabit:', e))
+      }
+      return updated
+    })
+  }, [isLoggedIn, userId])
 
   // Remove permanentemente um hábito pelo id
   const deleteHabit = useCallback((id) => {
-    setHabits(prev => prev.filter(h => h.id !== id))
-  }, [])
+    setHabits(prev => {
+      const updated = prev.filter(h => h.id !== id)
+      if (isLoggedIn && userId) {
+        deleteRow('habits', id, userId)
+          .catch(e => console.warn('[Sync] deleteHabit:', e))
+      }
+      return updated
+    })
+  }, [isLoggedIn, userId])
 
   // Reseta manualmente o dia (sem esperar meia-noite)
   const resetDay = useCallback(() => {

@@ -1,6 +1,3 @@
-/* Oculta o Header quando a SideNav está visível (logo e streak ficam na sidebar) */
-@media (min-width: 768px) { .header { display: none; } }
-
 .header {
   flex-shrink: 0;
   position: sticky;
@@ -38,4 +35,15 @@
   align-items: center;
   gap: 4px;
   box-shadow: 2px 2px 0 var(--shadow);
+  animation: streakPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
+
+@keyframes streakPopIn {
+  0%   { opacity: 0; transform: scale(0.4) translateY(-6px); }
+  60%  { opacity: 1; }
+  80%  { transform: scale(1.12) translateY(1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Oculta o Header quando a SideNav está visível (logo e streak ficam na sidebar) */
+@media (min-width: 768px) { .header { display: none; } }

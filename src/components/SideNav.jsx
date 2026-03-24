@@ -165,15 +165,24 @@ function UnlockableItem({ item }) {
 export function SideNav() {
   const { history } = useApp()
   const { streak }  = useStats(history)
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem('nex_sidenav_collapsed') === 'true'
+  )
+
+  function toggleCollapse() {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem('nex_sidenav_collapsed', String(next))
+  }
+
+  const sideClass = [styles.side, collapsed ? styles.collapsed : ''].filter(Boolean).join(' ')
 
   return (
-    <aside className={styles.side} aria-label="Navegação principal">
+    <aside className={sideClass} aria-label="Navegação principal">
 
-      {/* ── Marca e streak ── */}
+      {/* ── Marca ── */}
       <div className={styles.brand}>
-        {/* aria-label nomeia o app para leitores de tela */}
         <span className={styles.logo} aria-label="Rootio">../</span>
-
         {streak > 0 && (
           <span
             className={styles.streak}
@@ -186,22 +195,34 @@ export function SideNav() {
       </div>
 
       {/* ── Links de navegação ── */}
-      <nav>
-        {/* Itens base sempre visíveis */}
+      <nav className={styles.nav}>
+
+        {/* Botão colapsar — alinhado com os itens de nav */}
+        <button
+          type="button"
+          className={styles.link}
+          onClick={toggleCollapse}
+          aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
+        >
+          <span className={styles.icon} aria-hidden="true">
+            <span className={`${styles.collapseIcon} ${collapsed ? styles.collapseIconExpand : ''}`}>
+              <span />
+            </span>
+          </span>
+          <span className={styles.label}>Recolher</span>
+        </button>
+
+        <div className={styles.divider} aria-hidden="true" />
+
         {BASE_NAV.map(({ to, label, Icon, IconA }) => (
           <SideLink key={to} to={to} label={label} Icon={Icon} IconA={IconA} />
         ))}
 
-        {/* Separador visual — aria-hidden: não tem significado semântico */}
         <div className={styles.divider} aria-hidden="true" />
 
-        {/* Itens desbloqueáveis */}
         {UNLOCKABLE.map(item => (
           <UnlockableItem key={item.id} item={item} />
         ))}
-
-        {/* Espaço flexível empurra Perfil para o rodapé */}
-        <div className={styles.spacer} aria-hidden="true" />
 
         {/* Perfil — fixado ao fundo */}
         <SideLink
@@ -209,6 +230,7 @@ export function SideNav() {
           label={PROFILE_ITEM.label}
           Icon={PROFILE_ITEM.Icon}
           IconA={PROFILE_ITEM.IconA}
+          extraClass={styles.profileBottom}
         />
       </nav>
     </aside>

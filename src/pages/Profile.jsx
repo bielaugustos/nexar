@@ -1,4 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { signOut } from '../services/supabase'
+import { MigrationModal } from '../components/MigrationModal'
+import { hasLocalData, clearLocalData } from '../services/syncService'
 import {
   PiDownloadSimpleBold, PiUploadSimpleBold,
   PiArrowCounterClockwiseBold, PiCodeBold,
@@ -11,7 +14,11 @@ import {
   PiCalendarBold, PiLockSimpleBold,
   PiKeyBold, PiEyeBold, PiEyeSlashBold,
   PiCrownBold, PiCreditCardBold, PiXBold, PiSparkleBold,
+  PiEnvelopeBold, PiMapPinBold, PiPhoneBold,
+  PiInstagramLogoFill, PiLinkedinLogoFill, PiYoutubeLogoFill, PiWhatsappLogoFill,
+  PiUserCircleBold,
 } from 'react-icons/pi'
+import { useAuth }     from '../context/AuthContext'
 import { useApp }      from '../context/AppContext'
 import { useHabits }   from '../hooks/useHabits'
 import { useStats }    from '../hooks/useStats'
@@ -594,34 +601,36 @@ function ApiKeyCard() {
 // PLANOS — Free vs Pro + checkout fictício
 // ══════════════════════════════════════
 const FREE_FEATURES = [
-  'Hábitos ilimitados',
-  'Histórico e gráficos',
+  'Até 10 hábitos',
   'Diário de reflexão',
   'Finanças pessoais',
-  'Projetos e carreira',
+  'Até 10 leituras (carreira)',
+  '1 meta de carreira ativa',
   'Temas Light e Dark',
+  'Mentor IA (chave própria)',
   'Backup local (JSON)',
 ]
-const PRO_FEATURES = [
-  ...FREE_FEATURES,
-  'Mentor IA sem precisar de chave própria',
-  'Resumo diário personalizado',
-  'Badge gerado por IA',
-  'Sugestão de hábitos por IA',
-  'Temas exclusivos desbloqueados',
-  'Backup e exportação em JSON',
+
+const PRO_EXTRAS = [
+  'Hábitos ilimitados',
+  'Leituras e metas ilimitadas',
+  'Projetos profissionais',
+  'Histórico de 6 meses',
+  'Mentor IA integrado (sem chave)',
+  'Resumo diário por IA',
+  'Sugestões de hábitos por IA',
+  'Badge personalizado por IA',
+  'Temas exclusivos',
 ]
 
 function PlansCard() {
-  // plan/setPlan vêm do contexto central — único source of truth
-  // Supabase: usePlan() passará a ler de user.user_metadata
-  const { plan, isPro, setPlan } = usePlan()
-  const [showCheckout,setShowCheckout]= useState(false)
-  const [cardNum,     setCardNum]     = useState('')
-  const [cardExp,     setCardExp]     = useState('')
-  const [cardCvc,     setCardCvc]     = useState('')
-  const [processing,  setProcessing]  = useState(false)
-  const [open,        setOpen]        = useState(false)
+  const { isPro, setPlan } = usePlan()
+  const [showCheckout, setShowCheckout] = useState(false)
+  const [cardNum,      setCardNum]      = useState('')
+  const [cardExp,      setCardExp]      = useState('')
+  const [cardCvc,      setCardCvc]      = useState('')
+  const [processing]                     = useState(false)
+  const [open,         setOpen]         = useState(false)
 
   function fmtCard(v) {
     return v.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim()
@@ -633,15 +642,8 @@ function PlansCard() {
 
   function handleCheckout(e) {
     e.preventDefault()
-    setProcessing(true)
-    // Simulação de processamento (fictício)
-    // Supabase: trocar por chamada à API de pagamento + updateUser()
-    setTimeout(() => {
-      setPlan('pro')
-      setProcessing(false)
-      setShowCheckout(false)
-      toast('Plano Pro ativado! Bem-vindo.')
-    }, 2000)
+    toast('Pagamentos em breve! Acompanhe as novidades.')
+    setShowCheckout(false)
   }
 
   function cancelPro() {
@@ -655,70 +657,92 @@ function PlansCard() {
       <div className={styles.shopTrigger} onClick={() => setOpen(o => !o)} role="button" tabIndex={0}
         onKeyDown={e => e.key === 'Enter' && setOpen(o => !o)}>
         <span className={styles.settingIcon}><PiCrownBold size={16} color={isPro ? '#f39c12' : undefined}/></span>
-        <div style={{ flex:1 }}>
+        <div style={{ flex: 1 }}>
           <span className={styles.settingLabel}>Plano atual</span>
           <p className={styles.settingDesc}>
             {isPro ? 'Pro — todos os recursos desbloqueados' : 'Gratuito — upgrade para Pro'}
           </p>
         </div>
-        <span style={{ fontSize:10, fontWeight:700, color: isPro ? '#f39c12' : 'var(--ink3)', background: isPro ? '#f39c1222' : 'var(--surface)', border:`1px solid ${isPro ? '#f39c1244' : 'var(--border)'}`, borderRadius:4, padding:'2px 6px', marginRight:6 }}>
-          {isPro ? 'PRO' : 'FREE'}
+        <span className={isPro ? styles.planBadgePro : styles.planBadge} style={{ marginRight: 6 }}>
+          {isPro ? <><PiCrownBold size={9}/> PRO</> : 'FREE'}
         </span>
         <span className={`${styles.shopArrow} ${open ? styles.shopArrowOpen : ''}`}><PiCaretDownBold size={14}/></span>
       </div>
 
       <div className={`${styles.shopDrawer} ${open ? styles.shopDrawerOpen : ''}`}>
-        <div className={styles.shopDrawerInner} style={{ display:'flex', flexDirection:'column', gap:12 }}>
+        <div className={styles.shopDrawerInner}>
 
-          {/* Tabela de comparação */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-            {/* Free */}
-            <div style={{ border:'2px solid var(--border)', borderRadius:6, padding:'10px 10px', background:'var(--surface)' }}>
-              <div style={{ fontSize:12, fontWeight:900, color:'var(--ink)', marginBottom:8, display:'flex', alignItems:'center', gap:5 }}>
-                Gratuito
-              </div>
-              <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', marginBottom:6 }}>R$ 0/mês</div>
-              {FREE_FEATURES.map(f => (
-                <div key={f} style={{ display:'flex', gap:5, alignItems:'flex-start', marginBottom:4 }}>
-                  <PiCheckBold size={11} color="#27ae60" style={{ marginTop:2, flexShrink:0 }}/>
-                  <span style={{ fontSize:10, color:'var(--ink2)', lineHeight:1.4 }}>{f}</span>
+          {/* Grade de planos */}
+          <div className={styles.plansGrid}>
+            {/* Gratuito */}
+            <div className={styles.planCard}>
+              <div className={styles.planTop}>
+                <div className={isPro ? styles.planBadge : `${styles.planBadge} ${styles.planBadgeActive}`}>
+                  {!isPro && <PiCheckBold size={8}/>} {isPro ? 'GRATUITO' : 'ATUAL'}
                 </div>
-              ))}
+                <div className={styles.planName}>Gratuito</div>
+                <div>
+                  <span className={styles.planPrice}>R$ 0</span>
+                  <span className={styles.planPriceUnit}>/mês</span>
+                </div>
+              </div>
+              <div className={styles.planFeatures}>
+                {FREE_FEATURES.map(f => (
+                  <div key={f} className={styles.planFeature}>
+                    <PiCheckBold size={10} color="#27ae60" style={{ marginTop: 2, flexShrink: 0 }}/>
+                    <span className={styles.planFeatureText}>{f}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Pro */}
-            <div style={{ border:`2px solid #f39c12`, borderRadius:6, padding:'10px 10px', background:'#f39c1208' }}>
-              <div style={{ fontSize:12, fontWeight:900, color:'#f39c12', marginBottom:8, display:'flex', alignItems:'center', gap:5 }}>
-                <PiCrownBold size={13}/> Pro
-              </div>
-              <div style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', marginBottom:6 }}>R$ 9,90/mês</div>
-              {PRO_FEATURES.map((f, i) => (
-                <div key={f} style={{ display:'flex', gap:5, alignItems:'flex-start', marginBottom:4 }}>
-                  <PiCheckBold size={11} color={i >= FREE_FEATURES.length ? '#f39c12' : '#27ae60'} style={{ marginTop:2, flexShrink:0 }}/>
-                  <span style={{ fontSize:10, color: i >= FREE_FEATURES.length ? '#f39c12' : 'var(--ink2)', fontWeight: i >= FREE_FEATURES.length ? 700 : 400, lineHeight:1.4 }}>{f}</span>
+            <div className={`${styles.planCard} ${styles.planCardPro}`}>
+              <div className={styles.planTop}>
+                <div className={isPro ? `${styles.planBadge} ${styles.planBadgeActive}` : `${styles.planBadge} ${styles.planBadgePro}`}>
+                  {isPro ? <><PiCheckBold size={8}/> ATUAL</> : <><PiCrownBold size={8}/> PRO</>}
                 </div>
-              ))}
+                <div className={`${styles.planName} ${styles.planNamePro}`}>
+                  <PiCrownBold size={13}/> Pro
+                </div>
+                <div>
+                  <span className={styles.planPrice} style={{ color: '#f39c12' }}>R$ 9,90</span>
+                  <span className={styles.planPriceUnit}>/mês</span>
+                </div>
+              </div>
+              <div className={styles.planFeatures}>
+                <div className={styles.planSectionLabel}>Tudo do Gratuito, mais:</div>
+                {PRO_EXTRAS.map(f => (
+                  <div key={f} className={styles.planFeature}>
+                    <PiCheckBold size={10} color="#f39c12" style={{ marginTop: 2, flexShrink: 0 }}/>
+                    <span className={styles.planFeatureHighlight}>{f}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* CTA */}
           {isPro ? (
-            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-              <div style={{ background:'#27ae6011', border:'1.5px solid #27ae6044', borderRadius:4, padding:'8px 12px', fontSize:11, color:'#27ae60', fontWeight:700, textAlign:'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div className={styles.planProActive}>
                 Plano Pro ativo — obrigado pelo suporte!
               </div>
-              <button type="button" className="btn" style={{ fontSize:11, justifyContent:'center', color:'var(--ink3)' }} onClick={cancelPro}>
+              <button type="button" className="btn"
+                style={{ fontSize: 11, justifyContent: 'center', color: 'var(--ink3)' }}
+                onClick={cancelPro}>
                 Cancelar plano
               </button>
             </div>
           ) : (
-            <button type="button" className="btn btn-primary" style={{ justifyContent:'center', gap:6, fontSize:13 }}
+            <button type="button" className="btn btn-primary"
+              style={{ justifyContent: 'center', gap: 6, fontSize: 13 }}
               onClick={() => setShowCheckout(true)}>
               <PiCrownBold size={15}/> Ativar Pro — R$ 9,90/mês
             </button>
           )}
 
-          <p style={{ fontSize:10, color:'var(--ink3)', margin:0, textAlign:'center' }}>
+          <p className={styles.plansNote}>
             Pagamento fictício — ambiente de testes. Nenhum valor real é cobrado.
           </p>
         </div>
@@ -726,41 +750,41 @@ function PlansCard() {
 
       {/* Modal de checkout */}
       {showCheckout && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
-          <div className="card" style={{ width:'100%', maxWidth:340, padding:20, position:'relative' }}>
-            <button type="button" style={{ position:'absolute', top:12, right:12, background:'none', border:'none', cursor:'pointer', color:'var(--ink3)' }} onClick={() => setShowCheckout(false)}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div className="card" style={{ width: '100%', maxWidth: 340, padding: 20, position: 'relative' }}>
+            <button type="button" style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink3)' }} onClick={() => setShowCheckout(false)}>
               <PiXBold size={16}/>
             </button>
 
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <PiCreditCardBold size={18} color="var(--gold-dk)"/>
-              <span style={{ fontSize:14, fontWeight:900, color:'var(--ink)' }}>Checkout Pro</span>
+              <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--ink)' }}>Checkout Pro</span>
             </div>
 
-            <div style={{ background:'#f39c1211', border:'1px solid #f39c1233', borderRadius:4, padding:'8px 10px', marginBottom:14, fontSize:11, color:'#f39c12', fontWeight:700 }}>
-              Ambiente de testes — use o cartão 4242 4242 4242 4242
+            <div style={{ background: '#f39c1211', border: '1px solid #f39c1233', borderRadius: 4, padding: '8px 10px', marginBottom: 14, fontSize: 11, color: '#f39c12', fontWeight: 700 }}>
+              Pagamentos ainda não disponíveis — em breve!
             </div>
 
-            <form onSubmit={handleCheckout} style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            <form onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div>
-                <label style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', display:'block', marginBottom:3 }}>Número do cartão</label>
+                <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink3)', display: 'block', marginBottom: 3 }}>Número do cartão</label>
                 <input className="input" placeholder="4242 4242 4242 4242" value={cardNum}
-                  onChange={e => setCardNum(fmtCard(e.target.value))} maxLength={19} required style={{ fontFamily:'monospace' }}/>
+                  onChange={e => setCardNum(fmtCard(e.target.value))} maxLength={19} required style={{ fontFamily: 'monospace' }}/>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <div>
-                  <label style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', display:'block', marginBottom:3 }}>Validade</label>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink3)', display: 'block', marginBottom: 3 }}>Validade</label>
                   <input className="input" placeholder="MM/AA" value={cardExp}
                     onChange={e => setCardExp(fmtExp(e.target.value))} maxLength={5} required/>
                 </div>
                 <div>
-                  <label style={{ fontSize:10, fontWeight:700, color:'var(--ink3)', display:'block', marginBottom:3 }}>CVC</label>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink3)', display: 'block', marginBottom: 3 }}>CVC</label>
                   <input className="input" placeholder="123" value={cardCvc}
                     onChange={e => setCardCvc(e.target.value.replace(/\D/g,'').slice(0,3))} maxLength={3} required/>
                 </div>
               </div>
               <button type="submit" className="btn btn-primary" disabled={processing}
-                style={{ justifyContent:'center', marginTop:4, fontSize:13 }}>
+                style={{ justifyContent: 'center', marginTop: 4, fontSize: 13 }}>
                 {processing ? 'Processando...' : <><PiCrownBold size={14}/> Assinar Pro — R$ 9,90/mês</>}
               </button>
             </form>
@@ -1099,7 +1123,11 @@ export default function Profile({ onNavigate }) {
   const { streak, daysActive } = useStats(history)
   const { can }                = usePlan()
 
-  const [shopOpen, setShopOpen] = useState(false)
+  const { isLoggedIn, user } = useAuth()
+  const [shopOpen,          setShopOpen]          = useState(false)
+  const [showLogoutModal,      setShowLogoutModal]      = useState(false)
+  const [showGuestExitModal,   setShowGuestExitModal]   = useState(false)
+  const [showMigrationModal,setShowMigrationModal] = useState(false)
   const legal = useLegal()
 
   const [ownedItems, setOwnedItems] = useState(() => {
@@ -1279,13 +1307,46 @@ export default function Profile({ onNavigate }) {
         <ApiKeyCard/>
       </div>
 
-      <DevCard/>
+      {/* DEV MODE — oculto em produção */}
+      {/* <DevCard/> */}
 
       {/* Footer */}
       <div className={styles.footer}>
-        <p className={styles.footerVersion}>Ioversoroot v0.1.0</p>
-        
 
+        {/* Marca */}
+        <div className={styles.footerBrand}>
+          <span className={styles.footerLogo}>../</span>
+          <span className={styles.footerAppName}>Rootio</span>
+        </div>
+        <p className={styles.footerTagline}>Evolua com consistência, um dia de cada vez.</p>
+
+        {/* Contato */}
+        <div className={styles.footerContact}>
+          <a href="mailto:contato@rootio.app" className={styles.footerContactItem}>
+            <PiEnvelopeBold size={13}/> contato@rootio.app
+          </a>
+          <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className={styles.footerContactItem}>
+            <PiWhatsappLogoFill size={13}/> (11) 99999-9999
+          </a>
+          <span className={styles.footerContactItem}>
+            <PiMapPinBold size={13}/> São Paulo, SP — Brasil
+          </span>
+        </div>
+
+        {/* Redes sociais */}
+        <div className={styles.footerSocial}>
+          <a href="https://instagram.com/rootio.app" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Instagram">
+            <PiInstagramLogoFill size={18}/>
+          </a>
+          <a href="https://linkedin.com/company/rootio" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="LinkedIn">
+            <PiLinkedinLogoFill size={18}/>
+          </a>
+          <a href="https://youtube.com/@rootio" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="YouTube">
+            <PiYoutubeLogoFill size={18}/>
+          </a>
+        </div>
+
+        {/* Legal */}
         <div className={styles.footerLinks}>
           <button type="button" className={styles.footerLink} onClick={legal.openTermos}>Termos de Uso</button>
           <span className={styles.footerDot}>·</span>
@@ -1293,15 +1354,106 @@ export default function Profile({ onNavigate }) {
           <span className={styles.footerDot}>·</span>
           <button type="button" className={styles.footerLink} onClick={legal.openCookies}>Cookies</button>
         </div>
-           <p className={styles.footerCopy}>© 2026 Ioversodevlab · Todos os direitos reservados</p>
+        <p className={styles.footerCopy}>© 2026 Rootio · Todos os direitos reservados</p>
+        <p className={styles.footerVersion}>v0.1.0</p>
       </div>
-      
-        <button type="button" className={styles.logoutBtn}
-          onClick={() => { if (window.confirm('Sair da conta? (função completa disponível com autenticação)')) toast('Logout em breve com autenticação.') }}>
-          Sair da conta
-        </button>
+
+      {/* Login / Logout */}
+      {isLoggedIn ? (
+        <>
+          {hasLocalData() && (
+            <button type="button"
+              className={`${styles.logoutBtn} ${styles.migrateDataBtn}`}
+              onClick={() => setShowMigrationModal(true)}>
+              <PiUploadSimpleBold size={14}/> Migrar dados locais
+            </button>
+          )}
+          <button type="button" className={styles.logoutBtn} onClick={() => setShowLogoutModal(true)}>
+            Sair da conta
+          </button>
+        </>
+      ) : (
+        <>
+          <button type="button" className={`${styles.logoutBtn} ${styles.loginBtn}`}
+            onClick={() => {
+              localStorage.removeItem('ior_auth_skipped')
+              window.location.reload()
+            }}>
+            <PiUserCircleBold size={15}/> Entrar na conta
+          </button>
+          <button type="button" className={styles.logoutBtn}
+            onClick={() => setShowGuestExitModal(true)}>
+            Sair da conta
+          </button>
+        </>
+      )}
+
+      {showMigrationModal && (
+        <MigrationModal
+          userId={user?.id}
+          onDone={() => setShowMigrationModal(false)}
+        />
+      )}
+
+        {showLogoutModal && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 1200,
+            background: 'rgba(0,0,0,0.55)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+          }}>
+            <div className="card" style={{ width: '100%', maxWidth: 320, padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <p style={{ fontSize: 15, fontWeight: 900, color: 'var(--ink)', margin: 0 }}>Sair da conta?</p>
+              <p style={{ fontSize: 13, color: 'var(--ink2)', margin: 0, lineHeight: 1.5 }}>
+                Seus dados locais permanecem salvos no dispositivo. Você precisará entrar novamente para sincronizar.
+              </p>
+              <button type="button" className="btn btn-primary" style={{ justifyContent: 'center', fontSize: 13, background: '#e74c3c', borderColor: '#c0392b' }}
+                onClick={async () => {
+                  setShowLogoutModal(false)
+                  await signOut()
+                  localStorage.removeItem('ior_auth_skipped')
+                  window.location.reload()
+                }}>
+                Sim, sair
+              </button>
+              <button type="button" className="btn" style={{ justifyContent: 'center', fontSize: 13, border: '1.5px solid var(--border)', color: 'var(--ink3)' }}
+                onClick={() => setShowLogoutModal(false)}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
         
        
+
+      {showGuestExitModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1200,
+          background: 'rgba(0,0,0,0.55)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+        }}>
+          <div className="card" style={{ width: '100%', maxWidth: 320, padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ fontSize: 15, fontWeight: 900, color: 'var(--ink)', margin: 0 }}>Sair da conta?</p>
+            <p style={{ fontSize: 13, color: 'var(--ink2)', margin: 0, lineHeight: 1.5 }}>
+              Todos os dados salvos neste dispositivo serão apagados. Esta ação não pode ser desfeita.
+            </p>
+            <button type="button" className="btn btn-primary"
+              style={{ justifyContent: 'center', fontSize: 13, background: '#e74c3c', borderColor: '#c0392b' }}
+              onClick={() => {
+                setShowGuestExitModal(false)
+                clearLocalData()
+                localStorage.removeItem('ior_auth_skipped')
+                window.location.reload()
+              }}>
+              Sim, sair e apagar dados
+            </button>
+            <button type="button" className="btn"
+              style={{ justifyContent: 'center', fontSize: 13, border: '1.5px solid var(--border)', color: 'var(--ink3)' }}
+              onClick={() => setShowGuestExitModal(false)}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
 
       {legal.openDoc && <LegalModal doc={legal.openDoc} onClose={legal.close}/>}
     </div>

@@ -5,15 +5,17 @@ import {
   PiXBold, PiCheckBold, PiArrowUpRightBold, PiArrowDownLeftBold,
   PiCalendarBold, PiLightbulbBold,
   PiFloppyDiskBold, PiPencilSimpleBold,
-  PiLockSimpleBold, PiCaretLeftBold, PiCaretRightBold,
+  PiCrownBold, PiLockSimpleBold, PiCaretLeftBold, PiCaretRightBold,
   PiTrophyBold, PiAirplaneBold, PiLaptopBold, PiHouseBold,
   PiCarBold, PiGraduationCapBold, PiDiamondBold, PiBarbellBold,
   PiMusicNotesBold, PiDeviceMobileBold, PiGlobeBold, PiShoppingCartBold,
   PiPlantBold, PiHandFistBold,
 } from 'react-icons/pi'
+import { useNavigate } from 'react-router-dom'
 import { toast } from '../components/Toast'
 import { playSaveDirect, playErrorDirect } from '../hooks/useSound'
 import { usePlan } from '../hooks/usePlan'
+import { PlanLimitModal } from '../components/PlanLimitModal'
 import styles from './Finance.module.css'
 
 // ══════════════════════════════════════
@@ -193,7 +195,7 @@ function useFinance() {
 // ══════════════════════════════════════
 // BLOCO 1 — AÇÃO PRINCIPAL
 // ══════════════════════════════════════
-function ActionBlock({ balance, totalIn, totalOut, transactions, onAddIncome, onAddExpense }) {
+function ActionBlock({ balance, totalIn, totalOut, transactions, onAddIncome, onAddExpense, atLimit, onAtLimit }) {
   const prevBal  = useRef(balance)
   const [pulse, setPulse] = useState(null) // 'up' | 'down' | null
 
@@ -218,14 +220,22 @@ function ActionBlock({ balance, totalIn, totalOut, transactions, onAddIncome, on
       </div>
 
       {/* CTAs */}
-      <div className={styles.actionBtns}>
-        <button type="button" className={`${styles.actionBtn} ${styles.actionBtnIn}`} onClick={onAddIncome}>
-          <PiArrowUpRightBold size={16}/> + Entrada
+      {atLimit ? (
+        <button type="button" className={styles.actionBtns} style={{ background: 'var(--surface)', border: '1.5px dashed var(--border)', borderRadius: 8, padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, width: '100%' }} onClick={onAtLimit}>
+          <PiLockSimpleBold size={14} color="var(--ink3)" />
+          <span style={{ fontSize: 12, color: 'var(--ink3)', flex: 1 }}>Limite de 50 transações/mês atingido</span>
+          <PiCrownBold size={13} color="var(--gold-dk)" />
         </button>
-        <button type="button" className={`${styles.actionBtn} ${styles.actionBtnOut}`} onClick={onAddExpense}>
-          <PiArrowDownLeftBold size={16}/> + Saída
-        </button>
-      </div>
+      ) : (
+        <div className={styles.actionBtns}>
+          <button type="button" className={`${styles.actionBtn} ${styles.actionBtnIn}`} onClick={onAddIncome}>
+            <PiArrowUpRightBold size={16}/> + Entrada
+          </button>
+          <button type="button" className={`${styles.actionBtn} ${styles.actionBtnOut}`} onClick={onAddExpense}>
+            <PiArrowDownLeftBold size={16}/> + Saída
+          </button>
+        </div>
+      )}
 
       {/* Insight */}
       {insight && (
@@ -731,18 +741,18 @@ function SixMonthChart({ last6 }) {
   )
 }
 
-function PremiumTeaser() {
+function ProTeaser() {
   return (
-    <div className={styles.premiumCard}>
-      <div className={styles.premiumContent}>
+    <div className={styles.proTeaserCard}>
+      <div className={styles.proTeaserContent}>
         <PiTrendUpBold size={22} color="var(--gold-dk)"/>
-        <div className={styles.premiumText}>
-          <span className={styles.premiumTitle}>Histórico 6 meses</span>
-          <span className={styles.premiumDesc}>Desbloqueie análises completas</span>
+        <div className={styles.proTeaserText}>
+          <span className={styles.proTeaserTitle}>Histórico 6 meses</span>
+          <span className={styles.proTeaserDesc}>Desbloqueie análises completas</span>
         </div>
       </div>
-      <div className={styles.premiumBadge}>
-        <PiLockSimpleBold size={10}/> Premium
+      <div className={styles.proTeaserBadge}>
+        <PiLockSimpleBold size={10}/> Pro
       </div>
     </div>
   )
@@ -928,7 +938,7 @@ function EmergencyCard({ emergency, emergencyIdeal, avgMonthlyExpense, onSave })
 // ══════════════════════════════════════
 // COMPONENTE: Metas financeiras
 // ══════════════════════════════════════
-function GoalsCard({ goals, onAdd, onAddSaved, onRemove, onUndoAporte }) {
+function GoalsCard({ goals, onAdd, onAddSaved, onRemove, onUndoAporte, atLimit, onAtLimit }) {
   const [showForm,  setShowForm]  = useState(false)
   const [icon,      setIcon]      = useState(ICON_OPTS[0].key)
   const [name,      setName]      = useState('')
@@ -966,10 +976,16 @@ function GoalsCard({ goals, onAdd, onAddSaved, onRemove, onUndoAporte }) {
     <div className="card">
       <div className="card-title">
         <PiTargetBold size={15}/> Metas Financeiras
-        <button type="button" className={`btn btn-primary ${styles.miniBtn}`}
-          onClick={() => setShowForm(f => !f)}>
-          {showForm ? <PiXBold size={11}/> : <><PiPlusBold size={11}/> Nova meta</>}
-        </button>
+        {atLimit ? (
+          <button type="button" className={`btn ${styles.miniBtn}`} style={{ opacity: 0.7, gap: 4 }} onClick={onAtLimit}>
+            <PiLockSimpleBold size={11}/> <PiCrownBold size={11} color="var(--gold-dk)"/>
+          </button>
+        ) : (
+          <button type="button" className={`btn btn-primary ${styles.miniBtn}`}
+            onClick={() => setShowForm(f => !f)}>
+            {showForm ? <PiXBold size={11}/> : <><PiPlusBold size={11}/> Nova meta</>}
+          </button>
+        )}
       </div>
 
       {/* Formulário inline */}
@@ -1208,12 +1224,23 @@ function MonthTabBar({ monthOffset, onChange }) {
 // ══════════════════════════════════════
 // FINANCE — PÁGINA PRINCIPAL
 // ══════════════════════════════════════
+const FREE_TX_LIMIT    = 50
+const FREE_GOALS_LIMIT = 1
+
+const FIN_FREE_ITEMS = ['Até 50 transações/mês', '1 meta financeira', 'Visão mensal', 'Reserva de emergência']
+const FIN_PRO_ITEMS  = ['Transações ilimitadas', 'Metas ilimitadas', 'Histórico completo', 'Categorias customizáveis']
+
 export default function Finance() {
-  const fin         = useFinance()
-  const { can }     = usePlan()
-  const [formType,  setFormType]  = useState(null)     // 'income' | 'expense' | null
-  const [quickMode, setQuickMode] = useState(null)     // null | 'reserve' | 'meta'
-  const [monthOffset, setMonthOffset] = useState(0)
+  const fin            = useFinance()
+  const { can, isPro } = usePlan()
+  const navigate       = useNavigate()
+  const [formType,     setFormType]     = useState(null)   // 'income' | 'expense' | null
+  const [quickMode,    setQuickMode]    = useState(null)   // null | 'reserve' | 'meta'
+  const [monthOffset,  setMonthOffset]  = useState(0)
+  const [showTxModal,  setShowTxModal]  = useState(false)
+  const [showGoalModal,setShowGoalModal]= useState(false)
+  const [txDecided,    setTxDecided]    = useState(() => localStorage.getItem('nex_fin_tx_decided') === 'true')
+  const [goalDecided,  setGoalDecided]  = useState(() => localStorage.getItem('nex_fin_goal_decided') === 'true')
 
   const viewDate = useMemo(() => {
     const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + monthOffset); return d
@@ -1221,6 +1248,34 @@ export default function Finance() {
   const viewMonth      = `${viewDate.getFullYear()}-${String(viewDate.getMonth()+1).padStart(2,'0')}`
   const viewLabel      = viewDate.toLocaleDateString('pt-BR', { month:'long', year:'numeric' })
   const isCurrentMonth = monthOffset === 0
+
+  // Contagem do mês atual para validar limite free
+  const now         = new Date()
+  const thisMonth   = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`
+  const curMonthTxCount = fin.transactions.filter(t => t.date?.startsWith(thisMonth)).length
+
+  const atTxLimit   = !isPro && curMonthTxCount >= FREE_TX_LIMIT
+  const atGoalLimit = !isPro && fin.goals.length >= FREE_GOALS_LIMIT
+
+  function handleOpenAddForm(type) {
+    if (atTxLimit) { setShowTxModal(true); return }
+    setFormType(type)
+  }
+
+  function handleAddTransaction(tx) {
+    if (atTxLimit) { setShowTxModal(true); return }
+    fin.addTransaction(tx)
+  }
+
+  function handleAddGoal(g) {
+    if (atGoalLimit) { setShowGoalModal(true); return }
+    fin.addGoal(g)
+  }
+
+  function handleUpgradeTx()   { setShowTxModal(false);   navigate('/profile') }
+  function handleUpgradeGoal() { setShowGoalModal(false);  navigate('/profile') }
+  function handleStayTx()      { localStorage.setItem('nex_fin_tx_decided', 'true');   setTxDecided(true);   setShowTxModal(false) }
+  function handleStayGoal()    { localStorage.setItem('nex_fin_goal_decided', 'true'); setGoalDecided(true); setShowGoalModal(false) }
 
   const monthTxView  = useMemo(
     () => fin.transactions.filter(t => t.date?.startsWith(viewMonth)),
@@ -1268,8 +1323,10 @@ export default function Finance() {
             totalIn={totalInView}
             totalOut={totalOutView}
             transactions={monthTxView}
-            onAddIncome={() => setFormType('income')}
-            onAddExpense={() => setFormType('expense')}
+            onAddIncome={() => handleOpenAddForm('income')}
+            onAddExpense={() => handleOpenAddForm('expense')}
+            atLimit={atTxLimit && txDecided}
+            onAtLimit={() => setShowTxModal(true)}
           />
 
           {/* BLOCO 2: Resumo */}
@@ -1289,7 +1346,7 @@ export default function Finance() {
               <AddTransactionForm
                 key={formType}
                 defaultType={formType}
-                onAdd={fin.addTransaction}
+                onAdd={handleAddTransaction}
                 onClose={() => setFormType(null)}
               />
             )}
@@ -1297,7 +1354,7 @@ export default function Finance() {
               transactions={monthTxView}
               onRemove={fin.removeTransaction}
               onEdit={fin.editTransaction}
-              onAdd={() => setFormType('expense')}
+              onAdd={() => handleOpenAddForm('expense')}
             />
           </div>
 
@@ -1313,7 +1370,7 @@ export default function Finance() {
           {/* BLOCO 5: Histórico 6 meses (Pro) ou teaser */}
           {can('finance_sixmonth')
             ? <SixMonthChart last6={fin.last6} />
-            : <PremiumTeaser />
+            : <ProTeaser />
           }
         </>
       )}
@@ -1332,13 +1389,36 @@ export default function Finance() {
       {view === 'meta' && (
         <GoalsCard
           goals={fin.goals}
-          onAdd={fin.addGoal}
+          onAdd={handleAddGoal}
           onAddSaved={fin.updateGoalSaved}
           onRemove={fin.removeGoal}
           onUndoAporte={fin.undoLastAporte}
+          atLimit={atGoalLimit && goalDecided}
+          onAtLimit={() => setShowGoalModal(true)}
         />
       )}
 
+      {showTxModal && (
+        <PlanLimitModal
+          description={`Você atingiu o limite de ${FREE_TX_LIMIT} transações por mês do plano gratuito.`}
+          freeItems={FIN_FREE_ITEMS}
+          proItems={FIN_PRO_ITEMS}
+          stayFreeLabel="Continuar com 50 transações/mês"
+          onUpgrade={handleUpgradeTx}
+          onClose={handleStayTx}
+        />
+      )}
+
+      {showGoalModal && (
+        <PlanLimitModal
+          description="O plano gratuito permite apenas 1 meta financeira ativa."
+          freeItems={['1 meta financeira ativa', ...FIN_FREE_ITEMS.slice(0, 2)]}
+          proItems={FIN_PRO_ITEMS}
+          stayFreeLabel="Continuar com 1 meta"
+          onUpgrade={handleUpgradeGoal}
+          onClose={handleStayGoal}
+        />
+      )}
 
     </main>
   )

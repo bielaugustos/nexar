@@ -12,7 +12,7 @@
   .page {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    align-items: start;
+    align-items: stretch;
     gap: 16px;
     padding: 20px;
   }

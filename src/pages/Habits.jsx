@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, useId, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
+  PiCrownBold, PiCheckCircleBold,
   PiCheckSquareBold, PiPlusBold, PiPencilSimpleBold, PiXBold,
   PiTrashBold, PiFloppyDiskBold, PiStarBold, PiBrainBold,
   PiBarbell, PiBookOpenText, PiDropBold, PiCodeBold,
@@ -1407,11 +1409,89 @@ function StepsProgress({ todayHabs }) {
   )
 }
 
+// ══════════════════════════════════════
+// MODAL: Limite de hábitos (free → pro)
+// ══════════════════════════════════════
+const FREE_ITEMS = [
+  'Até 10 hábitos',
+  'Histórico e gráficos básicos',
+  'Finanças pessoais',
+  'Conquistas e recompensas',
+]
+const PRO_ITEMS = [
+  'Hábitos ilimitados',
+  'Mentor IA (sem chave própria)',
+  'Resumo diário personalizado',
+  'Sugestão de hábitos por IA',
+  'Temas exclusivos',
+  'Backup e exportação JSON',
+]
+
+function HabitLimitModal({ onUpgrade, onStayFree }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1200,
+      background: 'rgba(0,0,0,0.55)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: 360, padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <PiCrownBold size={18} color="var(--gold-dk)" />
+          <span style={{ fontSize: 15, fontWeight: 900, color: 'var(--ink)' }}>Limite atingido</span>
+        </div>
+
+        <p style={{ fontSize: 12, color: 'var(--ink2)', margin: 0, lineHeight: 1.5 }}>
+          Você chegou ao limite de <strong>10 hábitos</strong> do plano gratuito.
+          Faça upgrade para criar quantos quiser.
+        </p>
+
+        {/* Comparação */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {/* Free */}
+          <div style={{ background: 'var(--surface)', border: '2px solid var(--border)', borderRadius: 6, padding: '10px 12px' }}>
+            <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink3)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Gratuito</p>
+            {FREE_ITEMS.map(f => (
+              <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 5 }}>
+                <PiCheckCircleBold size={12} color="var(--ink3)" style={{ flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontSize: 11, color: 'var(--ink2)', lineHeight: 1.4 }}>{f}</span>
+              </div>
+            ))}
+          </div>
+          {/* Pro */}
+          <div style={{ background: 'var(--ink)', border: '2px solid var(--ink)', borderRadius: 6, padding: '10px 12px' }}>
+            <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--gold)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 1 }}>Pro</p>
+            {PRO_ITEMS.map(f => (
+              <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 5 }}>
+                <PiCheckCircleBold size={12} color="var(--gold)" style={{ flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontSize: 11, color: 'var(--bg)', lineHeight: 1.4 }}>{f}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CTAs */}
+        <button type="button" className="btn btn-primary" style={{ justifyContent: 'center', gap: 6, fontSize: 13 }} onClick={onUpgrade}>
+          <PiCrownBold size={14} /> Ver plano Pro
+        </button>
+        <button type="button" className="btn" style={{ justifyContent: 'center', fontSize: 12, color: 'var(--ink3)', border: '1.5px solid var(--border)' }} onClick={onStayFree}>
+          Continuar com 10 hábitos
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function Habits() {
   const { habits, history, toggleHabit, saveHabit, addHabit, deleteHabit, soundOn } = useApp()
   const { allPoints } = useHabits()
   const { playCheck, playUncheck } = useSound(soundOn)
-  const { can } = usePlan()
+  const { can, isPro } = usePlan()
+  const navigate = useNavigate()
+  const [showLimitModal, setShowLimitModal] = useState(false)
+  const [limitDecided,   setLimitDecided]   = useState(
+    () => localStorage.getItem('nex_habit_limit_decided') === 'true'
+  )
 
   // calOwned: reativo via usePlan (sincroniza eventos nex_plan_changed + nex_shop_changed)
   const calOwned = can('habits_calendar')
@@ -1497,15 +1577,33 @@ export default function Habits() {
     toggleHabit(id)
   }, [habits, playCheck, playUncheck, toggleHabit])
 
+  const FREE_HABIT_LIMIT = 10
+  const atLimit = !isPro && habits.length >= FREE_HABIT_LIMIT
+
   function handleAdd() {
     const n = newName.trim()
     if (!n) return
+    if (atLimit) {
+      if (!limitDecided) setShowLimitModal(true)
+      return
+    }
     playSaveDirect()
     addHabit({ name: n, done: false, pts: 20, icon: 'PiStarBold', priority: 'media',
       freq: 'diario', days: [0,1,2,3,4,5,6], subtasks: [], notes: '', estMins: null, deadline: null,
       createdAt: new Date().toISOString().slice(0, 10) })
     setNewName('')
     toast(`"${n}" adicionado!`)
+  }
+
+  function handleUpgrade() {
+    setShowLimitModal(false)
+    navigate('/profile')
+  }
+
+  function handleStayFree() {
+    localStorage.setItem('nex_habit_limit_decided', 'true')
+    setLimitDecided(true)
+    setShowLimitModal(false)
   }
 
   function cardProps(hab) {
@@ -1601,23 +1699,36 @@ export default function Habits() {
             <span className={styles.emptyStateHint}>Use o campo abaixo para criar o primeiro.</span>
           </div>
         )}
-        <div className={styles.addRow}>
-          <PiPlusBold size={14} color="var(--ink3)" style={{ flexShrink: 0 }} />
-          <input
-            className={styles.addInput}
-            placeholder="Novo hábito..."
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAdd()}
-            autoComplete="off"
-          />
-          {newName.trim() && (
-            <button type="button" className={styles.addBtn} onClick={handleAdd}>
-              <PiCheckBold size={13} />
-            </button>
-          )}
-        </div>
+        {atLimit && limitDecided ? (
+          <div className={styles.addRow} style={{ opacity: 0.5, cursor: 'not-allowed', userSelect: 'none' }}>
+            <PiCrownBold size={14} color="var(--gold-dk)" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: 'var(--ink3)', flex: 1 }}>
+              Limite de 10 hábitos atingido — <button type="button" onClick={() => navigate('/profile')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 12, color: 'var(--ink2)', fontWeight: 700, textDecoration: 'underline' }}>ver plano Pro</button>
+            </span>
+          </div>
+        ) : (
+          <div className={styles.addRow}>
+            <PiPlusBold size={14} color="var(--ink3)" style={{ flexShrink: 0 }} />
+            <input
+              className={styles.addInput}
+              placeholder="Novo hábito..."
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAdd()}
+              autoComplete="off"
+            />
+            {newName.trim() && (
+              <button type="button" className={styles.addBtn} onClick={handleAdd}>
+                <PiCheckBold size={13} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
+
+      {showLimitModal && (
+        <HabitLimitModal onUpgrade={handleUpgrade} onStayFree={handleStayFree} />
+      )}
 
       {/* Tudo concluído */}
       {filteredPriorities.length === 0 && filteredNormal.length === 0 && doneCount > 0 && !search && (

@@ -174,18 +174,17 @@
 .goalMetaOf    { font-size: 11px; color: var(--ink3); }
 .goalMetaTarget{ font-size: 14px; font-weight: 700; color: var(--ink3); }
 
-/* ══ BLOCO 5: PREMIUM ══ */
-.premiumCard {
+/* ══ BLOCO 5: PRO TEASER ══ */
+.proTeaserCard {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 14px; background: var(--white); border: 1.5px dashed var(--border);
   border-radius: 4px; opacity: .7;
 }
-.premiumContent { display: flex; align-items: center; gap: 10px; }
-.premiumEmoji   { font-size: 22px; }
-.premiumText    { display: flex; flex-direction: column; gap: 2px; }
-.premiumTitle   { font-size: 13px; font-weight: 700; color: var(--ink); }
-.premiumDesc    { font-size: 11px; color: var(--ink3); }
-.premiumBadge   {
+.proTeaserContent { display: flex; align-items: center; gap: 10px; }
+.proTeaserText    { display: flex; flex-direction: column; gap: 2px; }
+.proTeaserTitle   { font-size: 13px; font-weight: 700; color: var(--ink); }
+.proTeaserDesc    { font-size: 11px; color: var(--ink3); }
+.proTeaserBadge   {
   display: flex; align-items: center; gap: 4px;
   font-size: 10px; font-weight: 700; padding: 3px 9px;
   border: 1.5px solid var(--border); border-radius: 10px;

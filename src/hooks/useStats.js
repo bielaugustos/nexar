@@ -36,7 +36,11 @@ export function useStats(history) {
     for (let i = temAtividadeHoje ? 0 : 1; i < 365; i++) {
       const d = new Date()
       d.setDate(d.getDate() - i)
-      const chave = d.toISOString().slice(0, 10)
+      const chave = [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0'),
+      ].join('-')
 
       if (history[chave]?.done > 0) s++
       else break
@@ -68,7 +72,11 @@ export function useStats(history) {
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date()
       d.setDate(d.getDate() - 6 + i)
-      const chave   = d.toISOString().slice(0, 10)
+      const chave   = [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0'),
+      ].join('-')
       const reg     = history[chave]
       const done    = reg?.done  || 0
       const total   = reg?.total || 5   // fallback quando não há histórico
@@ -140,7 +148,11 @@ export function useStats(history) {
       const semana = []
 
       for (let diaDaSemana = 0; diaDaSemana < 7; diaDaSemana++) {
-        const chave    = atual.toISOString().slice(0, 10)
+        const chave    = [
+          atual.getFullYear(),
+          String(atual.getMonth() + 1).padStart(2, '0'),
+          String(atual.getDate()).padStart(2, '0'),
+        ].join('-')
         const reg      = history[chave]
         const taxa     = reg?.total > 0 ? Math.round(reg.done / reg.total * 100) : 0
         const futuro   = atual > hoje
