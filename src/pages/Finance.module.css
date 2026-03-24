@@ -336,6 +336,7 @@
   border-radius: 3px 3px 0 0;
   background: #27ae60;
   transition: height .3s cubic-bezier(.4,0,.2,1);
+  animation: barHeightIn .5s cubic-bezier(.4,0,.2,1);
   min-height: 2px;
 }
 .sixBarExp {
@@ -344,8 +345,10 @@
   background: #e74c3c;
   opacity: .75;
   transition: height .3s cubic-bezier(.4,0,.2,1);
+  animation: barHeightIn .5s cubic-bezier(.4,0,.2,1);
   min-height: 2px;
 }
+@keyframes barHeightIn { from { height: 0 !important; } }
 .sixBarColActive .sixBarInc { opacity: 1; }
 .sixBarColActive .sixBarExp { opacity: 1; }
 
@@ -585,7 +588,8 @@
 .goalOf { font-size: 11px; color: var(--ink3); }
 .goalTarget { font-size: 13px; font-weight: 700; color: var(--ink3); }
 .goalBar { height: 8px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 2px; overflow: hidden; }
-.goalBarFill { height: 100%; transition: width .6s; }
+.goalBarFill { height: 100%; transition: width .6s ease; animation: barWidthIn .6s ease; }
+@keyframes barWidthIn { from { width: 0 !important; } }
 .goalTip { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gold-dk); font-weight: 700; background: #fff9e0; border: 1px solid var(--gold-dk); border-radius: 3px; padding: 5px 8px; }
 [data-theme='dark'] .goalTip { background: #2a2000; }
 .depositRow { display: flex; gap: 6px; align-items: center; }

@@ -46,8 +46,25 @@ export async function signIn({ email, password }) {
 }
 
 export async function signOut() {
-  const { error } = await supabase.auth.signOut()
-  return { error }
+  const APP_KEYS = [
+    'nex_habits', 'nex_history', 'nex_last_reset',
+    'nex_fin_transactions', 'nex_fin_goals', 'nex_fin_emergency',
+    'nex_fin_income', 'nex_fin_monthgoal',
+    'nex_career_readings', 'nex_career_goals', 'nex_career_projects',
+    'nex_projects', 'nex_journal',
+    'nex_cats_income', 'nex_cats_expense',
+    'nex_fin_tx_decided', 'nex_fin_goal_decided',
+    'nex_plan', 'nex_theme', 'nex_sound',
+    'nex_username', 'nex_avatar',
+    'ior_auth_skipped', 'ior_migration_done',
+  ]
+  APP_KEYS.forEach(key => localStorage.removeItem(key))
+
+  await supabase.auth.signOut()
+
+  // Reload completo — destrói todo estado React em memória
+  // Garante que o próximo usuário começa com estado limpo
+  window.location.href = '/'
 }
 
 export async function getSession() {

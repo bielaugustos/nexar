@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { upsertRows, fetchRows, deleteRow, supabase } from '../services/supabase'
 import {
   PiWalletBold, PiPlusBold, PiTrendUpBold, PiTrendDownBold,
   PiTargetBold, PiShieldBold, PiTrashBold,
@@ -112,48 +114,185 @@ function useFinance() {
   const [emergency,    setEmergency]    = useState(() => load(KEYS.emergency,    { target: 0, current: 0 }))
   const [monthGoal,    setMonthGoalSt]  = useState(() => load(KEYS.monthGoal,    { target: 0, enabled: false }))
 
+  const { isLoggedIn, user } = useAuth()
+  const userId = user?.id ?? null
+
+  // Carrega dados financeiros do Supabase quando o usuário loga
+  useEffect(() => {
+    if (!isLoggedIn || !userId) return
+
+    async function loadFromDB() {
+      // Transações
+      const { data: txData } = await fetchRows('transactions', userId)
+      if (txData?.length > 0) {
+        const mapped = txData.map(t => ({
+          id: t.id, type: t.type, amount: t.amount,
+          desc: t.description, category: t.category, date: t.date,
+        }))
+        setTransactions(mapped)
+        save(KEYS.transactions, mapped)
+      }
+
+      // Metas financeiras
+      const { data: goalsData } = await fetchRows('financial_goals', userId)
+      if (goalsData?.length > 0) {
+        setGoals(goalsData)
+        save(KEYS.goals, goalsData)
+      }
+
+      // Reserva de emergência
+      const { data: emData } = await supabase
+        .from('emergency_fund')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+      if (emData) {
+        const em = { target: emData.target, current: emData.current }
+        setEmergency(em)
+        save(KEYS.emergency, em)
+      }
+
+      // Renda mensal e meta mensal
+      const { data: cfgData } = await supabase
+        .from('finance_config')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+      if (cfgData) {
+        if (cfgData.income) { setMonthIncome(cfgData.income); save(KEYS.income, cfgData.income) }
+        if (cfgData.month_goal) {
+          const mg = { target: cfgData.month_goal, enabled: true, label: cfgData.month_goal_label }
+          setMonthGoalSt(mg)
+          save(KEYS.monthGoal, mg)
+        }
+      }
+    }
+
+    loadFromDB()
+  }, [isLoggedIn, userId]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function addTransaction(tx) {
-    const updated = [{ ...tx, id: Date.now() }, ...transactions]
-    setTransactions(updated); save(KEYS.transactions, updated)
+    const newTx = { ...tx, id: Date.now() }
+    const updated = [newTx, ...transactions]
+    setTransactions(updated)
+    save(KEYS.transactions, updated)
+    if (isLoggedIn && userId) {
+      upsertRows('transactions', [{
+        id: newTx.id, user_id: userId, type: newTx.type,
+        amount: newTx.amount, description: newTx.desc,
+        category: newTx.category, date: newTx.date,
+      }]).catch(e => console.warn('[Sync] addTransaction:', e))
+    }
   }
-  function removeTransaction(id) {
+  function editTransaction(tx) {
+    const updated = transactions.map(t => t.id === tx.id ? tx : t)
+    setTransactions(updated)
+    save(KEYS.transactions, updated)
+    if (isLoggedIn && userId) {
+      upsertRows('transactions', [{
+        id: tx.id, user_id: userId, type: tx.type,
+        amount: tx.amount, description: tx.desc,
+        category: tx.category, date: tx.date,
+      }]).catch(e => console.warn('[Sync] editTransaction:', e))
+    }
+  }
+  function deleteTransaction(id) {
     const updated = transactions.filter(t => t.id !== id)
-    setTransactions(updated); save(KEYS.transactions, updated)
-  }
-  function editTransaction(id, changes) {
-    const updated = transactions.map(t => t.id === id ? { ...t, ...changes } : t)
-    setTransactions(updated); save(KEYS.transactions, updated)
+    setTransactions(updated)
+    save(KEYS.transactions, updated)
+    if (isLoggedIn && userId) {
+      deleteRow('transactions', id, userId)
+        .catch(e => console.warn('[Sync] deleteTransaction:', e))
+    }
   }
   function addGoal(g) {
-    const updated = [...goals, { ...g, id: Date.now(), saved: 0, aportes: [] }]
-    setGoals(updated); save(KEYS.goals, updated)
+    const newGoal = { ...g, id: Date.now(), saved: 0, aportes: [] }
+    const updated = [...goals, newGoal]
+    setGoals(updated)
+    save(KEYS.goals, updated)
+    if (isLoggedIn && userId) {
+      upsertRows('financial_goals', [{ ...newGoal, user_id: userId }])
+        .catch(e => console.warn('[Sync] addGoal:', e))
+    }
   }
-  function updateGoalSaved(id, amount) {
+  function aportarGoal(id, amount) {
+    const aporte = { id: Date.now(), amount, date: todayISO() }
     const updated = goals.map(g => {
       if (g.id !== id) return g
-      const aporte = { id: Date.now(), amount, date: new Date().toISOString().slice(0, 10) }
-      return { ...g, saved: Math.min((g.saved || 0) + amount, g.target), aportes: [...(g.aportes || []), aporte] }
+      return {
+        ...g,
+        saved: Math.min((g.saved || 0) + amount, g.target),
+        aportes: [...(g.aportes || []), aporte],
+      }
     })
-    setGoals(updated); save(KEYS.goals, updated)
+    setGoals(updated)
+    save(KEYS.goals, updated)
+    if (isLoggedIn && userId) {
+      const goal = updated.find(g => g.id === id)
+      if (goal) {
+        upsertRows('financial_goals', [{ ...goal, user_id: userId }])
+          .catch(e => console.warn('[Sync] aportarGoal:', e))
+      }
+    }
   }
-  function undoLastAporte(id) {
+  function desfazerAporte(id) {
     const updated = goals.map(g => {
       if (g.id !== id) return g
       const aportes = g.aportes || []
-      if (!aportes.length) return g
       const last = aportes[aportes.length - 1]
-      return { ...g, saved: Math.max(0, (g.saved || 0) - last.amount), aportes: aportes.slice(0, -1) }
+      if (!last) return g
+      return {
+        ...g,
+        saved: Math.max(0, (g.saved || 0) - last.amount),
+        aportes: aportes.slice(0, -1),
+      }
     })
-    setGoals(updated); save(KEYS.goals, updated)
-    toast('Último aporte desfeito.')
+    setGoals(updated)
+    save(KEYS.goals, updated)
+    if (isLoggedIn && userId) {
+      const goal = updated.find(g => g.id === id)
+      if (goal) {
+        upsertRows('financial_goals', [{ ...goal, user_id: userId }])
+          .catch(e => console.warn('[Sync] desfazerAporte:', e))
+      }
+    }
   }
-  function removeGoal(id) {
+  function deleteGoal(id) {
     const updated = goals.filter(g => g.id !== id)
-    setGoals(updated); save(KEYS.goals, updated)
+    setGoals(updated)
+    save(KEYS.goals, updated)
+    if (isLoggedIn && userId) {
+      deleteRow('financial_goals', id, userId)
+        .catch(e => console.warn('[Sync] deleteGoal:', e))
+    }
   }
-  function saveMonthIncome(v) { setMonthIncome(v); save(KEYS.income, v) }
-  function saveEmergency(e)   { setEmergency(e);   save(KEYS.emergency, e) }
-  function saveMonthGoal(g)   { setMonthGoalSt(g); save(KEYS.monthGoal, g) }
+  function saveEmergency(e) {
+    setEmergency(e)
+    save(KEYS.emergency, e)
+    if (isLoggedIn && userId) {
+      upsertRows('emergency_fund', [{ user_id: userId, target: e.target, current: e.current }])
+        .catch(e => console.warn('[Sync] saveEmergency:', e))
+    }
+  }
+  function saveMonthIncome(v) {
+    setMonthIncome(v)
+    save(KEYS.income, v)
+    if (isLoggedIn && userId) {
+      upsertRows('finance_config', [{ user_id: userId, income: v }])
+        .catch(e => console.warn('[Sync] saveMonthIncome:', e))
+    }
+  }
+  function saveMonthGoal(g) {
+    setMonthGoalSt(g)
+    save(KEYS.monthGoal, g)
+    if (isLoggedIn && userId) {
+      upsertRows('finance_config', [{
+        user_id: userId,
+        month_goal: g.target,
+        month_goal_label: g.label ?? '',
+      }]).catch(e => console.warn('[Sync] saveMonthGoal:', e))
+    }
+  }
 
   const now       = new Date()
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -185,8 +324,8 @@ function useFinance() {
 
   return {
     transactions, goals, monthIncome, emergency, monthGoal,
-    addTransaction, removeTransaction, editTransaction,
-    addGoal, updateGoalSaved, removeGoal, undoLastAporte,
+    addTransaction, editTransaction, deleteTransaction,
+    addGoal, aportarGoal, desfazerAporte, deleteGoal,
     saveMonthIncome, saveEmergency, saveMonthGoal,
     totalIn, totalOut, balance, last6, avgMonthlyExpense, emergencyIdeal,
   }
@@ -1352,7 +1491,7 @@ export default function Finance() {
             )}
             <TransactionList
               transactions={monthTxView}
-              onRemove={fin.removeTransaction}
+              onRemove={fin.deleteTransaction}
               onEdit={fin.editTransaction}
               onAdd={() => handleOpenAddForm('expense')}
             />
@@ -1390,9 +1529,9 @@ export default function Finance() {
         <GoalsCard
           goals={fin.goals}
           onAdd={handleAddGoal}
-          onAddSaved={fin.updateGoalSaved}
-          onRemove={fin.removeGoal}
-          onUndoAporte={fin.undoLastAporte}
+          onAddSaved={fin.aportarGoal}
+          onRemove={fin.deleteGoal}
+          onUndoAporte={fin.desfazerAporte}
           atLimit={atGoalLimit && goalDecided}
           onAtLimit={() => setShowGoalModal(true)}
         />

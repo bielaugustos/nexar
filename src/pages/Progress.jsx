@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import {
-  PiChartBarBold, PiTrendUpBold, PiCalendarBold,
+  PiChartBarBold, PiTrendUpBold, PiTrendDownBold, PiCalendarBold,
   PiTargetBold, PiFireBold, PiTrophyBold,
   PiStarBold, PiLightningBold, PiMedalBold,
   PiCheckCircleFill, PiArrowUpBold, PiQuestionBold,
   PiPlantBold, PiHammerBold, PiCoinsBold,
   PiLightbulbBold, PiSunBold, PiArrowClockwiseBold, PiFlagBold,
+  PiChartLineUpBold, PiMinusBold,
 } from 'react-icons/pi'
 import { loadStorage }  from '../services/storage'
 import { useApp }       from '../context/AppContext'
@@ -660,6 +661,108 @@ function StatsOverview({ history, streak, daysActive, allPoints }) {
 // ─────────────────────────────────────────
 // PÁGINA PRINCIPAL — PROGRESSO
 // ─────────────────────────────────────────
+function MonthlyChart({ history }) {
+  const data = useMemo(() =>
+    Array.from({ length: 30 }, (_, i) => {
+      const d = new Date(); d.setDate(d.getDate() - 29 + i)
+      const k = d.toISOString().slice(0, 10)
+      const rec = history[k]
+      return {
+        date:    k,
+        rate:    rec?.total > 0 ? Math.round(rec.done / rec.total * 100) : null,
+        isToday: i === 29,
+        label:   d.toLocaleDateString('pt-BR', { day:'numeric', month:'short' }),
+        x:       i,
+      }
+    })
+  , [history])
+
+  const pts = data.filter(d => d.rate !== null)
+
+  const { trendLabel, trendColor, TrendIcon } = useMemo(() => {
+    if (pts.length < 4) return { trendLabel:'Poucos dados', trendColor:'var(--ink3)', TrendIcon:PiMinusBold }
+    const half   = Math.floor(pts.length / 2)
+    const first  = pts.slice(0, half).reduce((a,d) => a+d.rate, 0) / half
+    const second = pts.slice(half).reduce((a,d) => a+d.rate, 0) / (pts.length - half)
+    const diff   = Math.round(second - first)
+    if (diff >  8) return { trendLabel:`+${diff}% vs início`, trendColor:'#27ae60',     TrendIcon:PiTrendUpBold   }
+    if (diff < -8) return { trendLabel:`${diff}% vs início`,  trendColor:'#e74c3c',     TrendIcon:PiTrendDownBold }
+    return               { trendLabel:'Estável',              trendColor:'var(--ink3)', TrendIcon:PiMinusBold     }
+  }, [pts])
+
+  const W=320, H=80, P=8
+  const toX = i => P + (i/29)*(W-P*2)
+  const toY = r => H - P - (r/100)*(H-P*2)
+  const path = pts.length > 1
+    ? pts.map((p,i) => `${i===0?'M':'L'} ${toX(p.x).toFixed(1)} ${toY(p.rate).toFixed(1)}`).join(' ')
+    : null
+
+  const weekLabels = data.filter((_,i) => i % 7 === 0)
+  const avg = pts.length > 0 ? Math.round(pts.reduce((a,d)=>a+d.rate,0)/pts.length) : 0
+
+  return (
+    <div className="card">
+      <div className="card-title">
+        <PiChartLineUpBold size={15}/> Evolução — 30 Dias
+        <span className={styles.monthlyTrendBadge} style={{ color: trendColor }}>
+          <TrendIcon size={11}/> {trendLabel}
+        </span>
+      </div>
+
+      {pts.length < 2 ? (
+        <div className="empty-state" style={{ padding:'16px 0' }}>
+          <PiChartLineUpBold size={26} color="var(--ink3)"/>
+          <p>Complete hábitos por alguns dias para ver o gráfico.</p>
+        </div>
+      ) : (
+        <>
+          <div className={styles.monthlyChartWrap}>
+            <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="none">
+              {[0,50,100].map(v => (
+                <line key={v} x1={P} y1={toY(v)} x2={W-P} y2={toY(v)}
+                  stroke="var(--border)" strokeOpacity=".15" strokeWidth="1"/>
+              ))}
+              {path && (
+                <path
+                  d={`${path} L ${toX(pts[pts.length-1].x).toFixed(1)} ${H-P} L ${toX(pts[0].x).toFixed(1)} ${H-P} Z`}
+                  fill="var(--gold)" fillOpacity=".15"
+                />
+              )}
+              {path && (
+                <path d={path} fill="none" stroke="var(--gold-dk)"
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              )}
+              {pts.map(p => (
+                <circle key={p.date} cx={toX(p.x)} cy={toY(p.rate)}
+                  r={p.isToday?4:2.5}
+                  fill={p.isToday?'var(--ink)':'var(--gold-dk)'}
+                  stroke="var(--bg)" strokeWidth="1.5"/>
+              ))}
+            </svg>
+          </div>
+
+          <div className={styles.monthlyWeekLabels}>
+            {weekLabels.map(d => <span key={d.date} className={styles.monthlyWeekLbl}>{d.label}</span>)}
+          </div>
+
+          <div className={styles.monthlyChartLegend}>
+            {[
+              { label:'Média 30d', val:`${avg}%` },
+              { label:'Hoje',      val: data[29].rate !== null ? `${data[29].rate}%` : '—' },
+              { label:'Melhor',    val:`${Math.max(...pts.map(d=>d.rate))}%` },
+            ].map(({ label, val }) => (
+              <div key={label} className={styles.monthlyLegendItem}>
+                <span className={styles.monthlyLegendLbl}>{label}</span>
+                <span className={styles.monthlyLegendVal}>{val}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function Progress() {
   const { habits, history }            = useApp()
   const { allPoints }                  = useHabits()
@@ -796,6 +899,7 @@ export default function Progress() {
             daysActive={daysActive} allPoints={allPoints}
           />
 
+          <MonthlyChart history={history} />
           <TrendChart history={history} />
           <WeekdayChart history={history} />
           <StreaksChart habits={habits} history={history} />

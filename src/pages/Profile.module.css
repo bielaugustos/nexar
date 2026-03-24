@@ -48,16 +48,6 @@
 .xpLabel { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink3); font-weight: 700; margin-bottom: 5px; }
 .xpVal { font-weight: 700; color: var(--ink3); }
 
-/* Gráfico evolução */
-.trendBadge { margin-left: auto; font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 3px; }
-.chartWrap { margin: 4px 0 6px; }
-.weekLabels { display: flex; justify-content: space-between; margin-bottom: 8px; }
-.weekLbl { font-size: 9px; color: var(--ink3); font-weight: 700; }
-.chartLegend { display: flex; justify-content: space-around; padding: 8px 0 0; border-top: 1px solid var(--border); }
-.legendItem { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.legendLbl { font-size: 9px; color: var(--ink3); font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
-.legendVal { font-size: 14px; font-weight: 700; color: var(--ink); }
-
 /* Análise IA */
 .analysisBox { background: var(--ink); border-radius: 4px; padding: 12px 14px; margin-bottom: 10px; }
 .analysisMeta { font-size: 11px; font-weight: 700; color: var(--gold); opacity: .7; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { signOut } from '../services/supabase'
+import { signOut, updateProfile } from '../services/supabase'
 import { MigrationModal } from '../components/MigrationModal'
 import { hasLocalData, clearLocalData } from '../services/syncService'
 import {
@@ -7,7 +7,6 @@ import {
   PiArrowCounterClockwiseBold, PiCodeBold,
   PiSpeakerHighBold, PiSpeakerSlashBold,
   PiPencilSimpleBold, PiCheckBold,
-  PiChartLineUpBold, PiTrendUpBold, PiTrendDownBold, PiMinusBold,
   PiStorefrontBold, PiInfoBold, PiPaletteBold,
   PiChartBarBold, PiMedalBold, PiBriefcaseBold, PiCaretDownBold, PiRocketLaunchBold,
   PiStarBold, PiCheckCircleBold,
@@ -70,6 +69,7 @@ function getAvailableAvatars() {
 // ══════════════════════════════════════
 function HeroCard({ allPoints, streak, daysActive }) {
   const level = calcLevel(allPoints)
+  const { user, profile, reloadProfile } = useAuth()
   const [userName,   setUserName]   = useState(() => loadStorage('nex_username', 'Usuário ../root'))
   const [userAvatar, setUserAvatar] = useState(() => loadStorage('nex_avatar', '🧑'))
   const [editing,    setEditing]    = useState(false)
@@ -77,22 +77,44 @@ function HeroCard({ allPoints, streak, daysActive }) {
   const [showPicker, setShowPicker] = useState(false)
   const [avatarList, setAvatarList] = useState(getAvailableAvatars)
 
+  // Sincroniza nome e avatar do Supabase ao carregar o perfil
+  useEffect(() => {
+    if (profile?.username) {
+      setUserName(profile.username)
+      setTempName(profile.username)
+      saveStorage('nex_username', profile.username)
+    }
+    if (profile?.avatar_emoji) {
+      setUserAvatar(profile.avatar_emoji)
+      saveStorage('nex_avatar', profile.avatar_emoji)
+    }
+  }, [profile?.username, profile?.avatar_emoji]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const refresh = () => setAvatarList(getAvailableAvatars())
     window.addEventListener('nex_shop_changed', refresh)
     return () => window.removeEventListener('nex_shop_changed', refresh)
   }, [])
 
-  function handleSave() {
+  async function handleSave() {
     const name = tempName.trim() || 'Usuário Ioversoroot'
     setUserName(name); saveStorage('nex_username', name)
     setEditing(false); setShowPicker(false)
+    if (user?.id) {
+      await updateProfile(user.id, { username: name })
+      reloadProfile()
+    }
     toast('Perfil atualizado!')
   }
 
-  function pickAvatar(emoji) {
+  async function pickAvatar(emoji) {
     setUserAvatar(emoji); saveStorage('nex_avatar', emoji)
-    setShowPicker(false); toast('Avatar atualizado!')
+    setShowPicker(false)
+    if (user?.id) {
+      await updateProfile(user.id, { avatar_emoji: emoji })
+      reloadProfile()
+    }
+    toast('Avatar atualizado!')
   }
 
   return (
@@ -163,111 +185,6 @@ function HeroCard({ allPoints, streak, daysActive }) {
             <div className="pbar-fill" style={{ width:`${level.prog}%`, background:level.color, height:'100%' }} />
           </div>
         </div>
-      )}
-    </div>
-  )
-}
-
-// ══════════════════════════════════════
-// GRÁFICO MENSAL
-// ══════════════════════════════════════
-function MonthlyChart({ history }) {
-  const data = useMemo(() =>
-    Array.from({ length: 30 }, (_, i) => {
-      const d = new Date(); d.setDate(d.getDate() - 29 + i)
-      const k = d.toISOString().slice(0, 10)
-      const rec = history[k]
-      return {
-        date:    k,
-        rate:    rec?.total > 0 ? Math.round(rec.done / rec.total * 100) : null,
-        isToday: i === 29,
-        label:   d.toLocaleDateString('pt-BR', { day:'numeric', month:'short' }),
-        x:       i,
-      }
-    })
-  , [history])
-
-  const pts = data.filter(d => d.rate !== null)
-
-  const { trendLabel, trendColor, TrendIcon } = useMemo(() => {
-    if (pts.length < 4) return { trendLabel:'Poucos dados', trendColor:'var(--ink3)', TrendIcon:PiMinusBold }
-    const half   = Math.floor(pts.length / 2)
-    const first  = pts.slice(0, half).reduce((a,d) => a+d.rate, 0) / half
-    const second = pts.slice(half).reduce((a,d) => a+d.rate, 0) / (pts.length - half)
-    const diff   = Math.round(second - first)
-    if (diff >  8) return { trendLabel:`+${diff}% vs início`, trendColor:'#27ae60',     TrendIcon:PiTrendUpBold   }
-    if (diff < -8) return { trendLabel:`${diff}% vs início`,  trendColor:'#e74c3c',     TrendIcon:PiTrendDownBold }
-    return               { trendLabel:'Estável',              trendColor:'var(--ink3)', TrendIcon:PiMinusBold     }
-  }, [pts])
-
-  const W=320, H=80, P=8
-  const toX = i => P + (i/29)*(W-P*2)
-  const toY = r => H - P - (r/100)*(H-P*2)
-  const path = pts.length > 1
-    ? pts.map((p,i) => `${i===0?'M':'L'} ${toX(p.x).toFixed(1)} ${toY(p.rate).toFixed(1)}`).join(' ')
-    : null
-
-  const weekLabels = data.filter((_,i) => i % 7 === 0)
-  const avg = pts.length > 0 ? Math.round(pts.reduce((a,d)=>a+d.rate,0)/pts.length) : 0
-
-  return (
-    <div className="card">
-      <div className="card-title">
-        <PiChartLineUpBold size={15}/> Evolução — 30 Dias
-        <span className={styles.trendBadge} style={{ color: trendColor }}>
-          <TrendIcon size={11}/> {trendLabel}
-        </span>
-      </div>
-
-      {pts.length < 2 ? (
-        <div className="empty-state" style={{ padding:'16px 0' }}>
-          <PiChartLineUpBold size={26} color="var(--ink3)"/>
-          <p>Complete hábitos por alguns dias para ver o gráfico.</p>
-        </div>
-      ) : (
-        <>
-          <div className={styles.chartWrap}>
-            <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="none">
-              {[0,50,100].map(v => (
-                <line key={v} x1={P} y1={toY(v)} x2={W-P} y2={toY(v)}
-                  stroke="var(--border)" strokeOpacity=".15" strokeWidth="1"/>
-              ))}
-              {path && (
-                <path
-                  d={`${path} L ${toX(pts[pts.length-1].x).toFixed(1)} ${H-P} L ${toX(pts[0].x).toFixed(1)} ${H-P} Z`}
-                  fill="var(--gold)" fillOpacity=".15"
-                />
-              )}
-              {path && (
-                <path d={path} fill="none" stroke="var(--gold-dk)"
-                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              )}
-              {pts.map(p => (
-                <circle key={p.date} cx={toX(p.x)} cy={toY(p.rate)}
-                  r={p.isToday?4:2.5}
-                  fill={p.isToday?'var(--ink)':'var(--gold-dk)'}
-                  stroke="var(--bg)" strokeWidth="1.5"/>
-              ))}
-            </svg>
-          </div>
-
-          <div className={styles.weekLabels}>
-            {weekLabels.map(d => <span key={d.date} className={styles.weekLbl}>{d.label}</span>)}
-          </div>
-
-          <div className={styles.chartLegend}>
-            {[
-              { label:'Média 30d', val:`${avg}%` },
-              { label:'Hoje',      val: data[29].rate !== null ? `${data[29].rate}%` : '—' },
-              { label:'Melhor',    val:`${Math.max(...pts.map(d=>d.rate))}%` },
-            ].map(({ label, val }) => (
-              <div key={label} className={styles.legendItem}>
-                <span className={styles.legendLbl}>{label}</span>
-                <span className={styles.legendVal}>{val}</span>
-              </div>
-            ))}
-          </div>
-        </>
       )}
     </div>
   )
@@ -1119,7 +1036,7 @@ function DevCard() {
 // ══════════════════════════════════════
 export default function Profile({ onNavigate }) {
   const { habits, history, theme, setTheme, soundOn, setSoundOn, resetDay } = useApp()
-  const { allPoints }          = useHabits()
+  const { allPoints } = useHabits()
   const { streak, daysActive } = useStats(history)
   const { can }                = usePlan()
 
@@ -1179,8 +1096,6 @@ export default function Profile({ onNavigate }) {
     <div className={styles.page}>
 
       <HeroCard allPoints={allPoints} streak={streak} daysActive={daysActive}/>
-
-      <MonthlyChart history={history}/>
 
       {/* Configurações — inclui aparência e loja inline */}
       <div className="card">
@@ -1410,8 +1325,6 @@ export default function Profile({ onNavigate }) {
                 onClick={async () => {
                   setShowLogoutModal(false)
                   await signOut()
-                  localStorage.removeItem('ior_auth_skipped')
-                  window.location.reload()
                 }}>
                 Sair da conta
               </button>

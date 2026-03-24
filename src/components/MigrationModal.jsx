@@ -57,22 +57,7 @@ export function MigrationModal({ userId, onDone, mode = 'migrate' }) {
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <div className={styles.icon}>
-          {isPaywall ? (
-            <svg width="40" height="40" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="36" fill="#111"/>
-              <circle cx="36" cy="28" r="9" stroke="#fff" strokeWidth="2.8" fill="none"/>
-              <path d="M20 56 C20 46 52 46 52 56" stroke="#F0C020" strokeWidth="2.8" strokeLinecap="round" fill="none"/>
-            </svg>
-          ) : (
-            <svg width="40" height="40" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="36" fill="#111"/>
-              <path d="M36 50 C25 50 19 41 21 31 C23 21 33 16 42 19 C50 22 53 32 50 39 C48 44 43 47 38 46"
-                stroke="#fff" strokeWidth="2.8" strokeLinecap="round" fill="none"/>
-              <path d="M38 46 C34 45 32 42 34 39"
-                stroke="#F0C020" strokeWidth="2.8" strokeLinecap="round" fill="none"/>
-              <circle cx="34" cy="39" r="3" fill="#F0C020"/>
-            </svg>
-          )}
+          <img src="/icons/icon.svg" width="48" height="48" alt="Rootio" style={{ borderRadius: '50%' }}/>
         </div>
 
         <h2 className={styles.title}>
