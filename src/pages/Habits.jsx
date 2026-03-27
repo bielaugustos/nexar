@@ -72,7 +72,7 @@ const EST_OPTS       = [
 // ══════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════
-function HabIcon({ name, size = 16, color }) {
+function HabIcon({ name, size = 18, color }) {
   const Comp = ICON_MAP[name] || PiStarBold
   return <Comp size={size} color={color} />
 }
@@ -652,6 +652,7 @@ function EditPanel({ habit, history, onSave, onDelete, onClose }) {
             )}
             <div className={styles.freqPresets}>
               {[
+                { label: 'Não repetir', desc: 'Uma vez só',   val: [] },
                 { label: 'Todo dia',       desc: 'Seg → Dom',     val: [0,1,2,3,4,5,6] },
                 { label: 'Dias úteis',     desc: 'Seg → Sex',     val: [1,2,3,4,5]     },
                 { label: 'Fins de semana', desc: 'Sáb e Dom',     val: [0,6]           },

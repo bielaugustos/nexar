@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { signOut, updateProfile } from '../services/supabase'
+import { signOut, updateProfile, updateEmail, updatePassword } from '../services/supabase'
 import { MigrationModal } from '../components/MigrationModal'
 import { hasLocalData, clearLocalData, deleteAllData } from '../services/syncService'
 import {
@@ -13,7 +13,7 @@ import {
   PiCalendarBold, PiLockSimpleBold,
   PiKeyBold, PiEyeBold, PiEyeSlashBold,
   PiCrownBold, PiCreditCardBold, PiXBold, PiSparkleBold,
-  PiTrashBold,
+  PiTrashBold, PiEnvelopeBold,
   // PiEnvelopeBold, PiMapPinBold, PiPhoneBold, // contato desativado
   PiInstagramLogoFill, PiLinkedinLogoFill, PiYoutubeLogoFill, PiWhatsappLogoFill,
   PiUserCircleBold,
@@ -509,6 +509,267 @@ function ApiKeyCard() {
               Ter sua própria chave API da Anthropic é suficiente para usar o Mentor IA — <strong>sem precisar do plano Pro do Rootio</strong>. A chave é cobrada diretamente pela Anthropic conforme o uso (pay-as-you-go), e fica salva apenas no seu dispositivo.
             </p>
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════
+// CONFIGURAÇÕES DE CONTA
+// ══════════════════════════════════════
+function AccountSettingsCard() {
+  const { user } = useAuth()
+  const [open, setOpen] = useState(false)
+
+  // Estados para trocar email
+  const [newEmail, setNewEmail] = useState('')
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [showEmailForm, setShowEmailForm] = useState(false)
+
+  // Estados para trocar senha
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [showPasswordForm, setShowPasswordForm] = useState(false)
+  const [showPasswords, setShowPasswords] = useState(false)
+
+  const currentEmail = user?.email || ''
+
+  async function handleEmailChange(e) {
+    e.preventDefault()
+    if (!newEmail.trim()) {
+      toast('Digite o novo e-mail.')
+      return
+    }
+    if (newEmail === currentEmail) {
+      toast('O novo e-mail é igual ao atual.')
+      return
+    }
+
+    setEmailLoading(true)
+    try {
+      const { error } = await updateEmail(newEmail)
+      if (error) {
+        toast('Erro ao atualizar e-mail: ' + error.message)
+        return
+      }
+      toast('E-mail atualizado! Verifique sua caixa de entrada para confirmar.')
+      setShowEmailForm(false)
+      setNewEmail('')
+    } catch (err) {
+      toast('Erro ao atualizar e-mail. Tente novamente.')
+    } finally {
+      setEmailLoading(false)
+    }
+  }
+
+  async function handlePasswordChange(e) {
+    e.preventDefault()
+    if (!currentPassword) {
+      toast('Digite a senha atual.')
+      return
+    }
+    if (newPassword.length < 6) {
+      toast('A nova senha deve ter pelo menos 6 caracteres.')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast('As senhas não coincidem.')
+      return
+    }
+
+    setPasswordLoading(true)
+    try {
+      const { error } = await updatePassword(newPassword)
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast('Senha atual incorreta.')
+        } else {
+          toast('Erro ao atualizar senha: ' + error.message)
+        }
+        return
+      }
+      toast('Senha atualizada com sucesso!')
+      setShowPasswordForm(false)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err) {
+      toast('Erro ao atualizar senha. Tente novamente.')
+    } finally {
+      setPasswordLoading(false)
+    }
+  }
+
+  return (
+    <div className={styles.shopWrapper}>
+      <div className={styles.shopTrigger} onClick={() => setOpen(o => !o)} role="button" tabIndex={0}
+        onKeyDown={e => e.key === 'Enter' && setOpen(o => !o)}>
+        <span className={styles.settingIcon}><PiLockSimpleBold size={16}/></span>
+        <div style={{ flex:1 }}>
+          <span className={styles.settingLabel}>Configurações de conta</span>
+          <p className={styles.settingDesc}>
+            Alterar e-mail e senha
+          </p>
+        </div>
+        <span className={`${styles.shopArrow} ${open ? styles.shopArrowOpen : ''}`}>
+          <PiCaretDownBold size={14}/>
+        </span>
+      </div>
+
+      <div className={`${styles.shopDrawer} ${open ? styles.shopDrawerOpen : ''}`}>
+        <div className={styles.shopDrawerInner} style={{ display:'flex', flexDirection:'column', gap:16 }}>
+
+          {/* E-mail atual */}
+          <div style={{ background:'var(--surface)', border:'1.5px solid var(--border)', borderRadius:4, padding:'10px 12px' }}>
+            <p style={{ fontSize:10, fontWeight:700, color:'var(--ink2)', margin:'0 0 4px 0', textTransform:'uppercase', letterSpacing:'0.8px' }}>
+              E-mail atual
+            </p>
+            <p style={{ fontSize:13, color:'var(--ink)', margin:0, wordBreak:'break-all' }}>
+              {currentEmail}
+            </p>
+          </div>
+
+          {/* Trocar e-mail */}
+          {!showEmailForm ? (
+            <button
+              type="button"
+              className="btn"
+              style={{ display:'flex', alignItems:'center', gap:8, justifyContent:'center', fontSize:12 }}
+              onClick={() => setShowEmailForm(true)}>
+              <PiEnvelopeBold size={14}/> Trocar e-mail
+            </button>
+          ) : (
+            <form onSubmit={handleEmailChange} style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <div>
+                <label style={{ fontSize:11, fontWeight:700, color:'var(--ink2)', display:'block', marginBottom:4 }}>
+                  Novo e-mail
+                </label>
+                <input
+                  className="input"
+                  type="email"
+                  placeholder="novo@email.com"
+                  value={newEmail}
+                  onChange={e => setNewEmail(e.target.value)}
+                  autoComplete="email"
+                  style={{ fontSize:12 }}
+                />
+              </div>
+              <div style={{ display:'flex', gap:8 }}>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={emailLoading}
+                  style={{ flex:1, fontSize:12 }}>
+                  {emailLoading ? 'Atualizando...' : 'Salvar'}
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => { setShowEmailForm(false); setNewEmail('') }}
+                  style={{ fontSize:12 }}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Divider */}
+          <div style={{ height:1, background:'var(--border)', margin:'4px 0' }} />
+
+          {/* Trocar senha */}
+          {!showPasswordForm ? (
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              <button
+                type="button"
+                className="btn"
+                style={{ display:'flex', alignItems:'center', gap:8, justifyContent:'center', fontSize:12 }}
+                onClick={() => setShowPasswordForm(true)}>
+                <PiLockSimpleBold size={14}/> Trocar senha
+              </button>
+              <p style={{ fontSize:10, color:'var(--ink3)', margin:0, textAlign:'center', lineHeight:1.4 }}>
+                Você precisa digitar sua senha atual para trocá-la.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handlePasswordChange} style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <div style={{ background:'#fffbf0', border:'1px solid var(--gold-dk)', borderRadius:4, padding:'8px 10px' }}>
+                <p style={{ fontSize:11, color:'var(--ink)', margin:0, lineHeight:1.5 }}>
+                  💡 <strong>Esqueceu sua senha?</strong> Saia da conta e use a opção "Esqueceu a senha?" na tela de login para redefinir sem precisar da senha atual.
+                </p>
+              </div>
+
+              <div>
+                <label style={{ fontSize:11, fontWeight:700, color:'var(--ink2)', display:'block', marginBottom:4 }}>
+                  Senha atual
+                </label>
+                <input
+                  className="input"
+                  type={showPasswords ? 'text' : 'password'}
+                  placeholder="Digite sua senha atual"
+                  value={currentPassword}
+                  onChange={e => setCurrentPassword(e.target.value)}
+                  autoComplete="current-password"
+                  style={{ fontSize:12 }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize:11, fontWeight:700, color:'var(--ink2)', display:'block', marginBottom:4 }}>
+                  Nova senha
+                </label>
+                <input
+                  className="input"
+                  type={showPasswords ? 'text' : 'password'}
+                  placeholder="Mínimo 6 caracteres"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  autoComplete="new-password"
+                  style={{ fontSize:12 }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize:11, fontWeight:700, color:'var(--ink2)', display:'block', marginBottom:4 }}>
+                  Confirmar nova senha
+                </label>
+                <input
+                  className="input"
+                  type={showPasswords ? 'text' : 'password'}
+                  placeholder="Repita a nova senha"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  style={{ fontSize:12 }}
+                />
+              </div>
+              <button
+                type="button"
+                className="btn"
+                style={{ fontSize:11, color:'var(--ink2)', display:'flex', alignItems:'center', gap:6 }}
+                onClick={() => setShowPasswords(v => !v)}>
+                {showPasswords ? <PiEyeSlashBold size={12}/> : <PiEyeBold size={12}/>}
+                {showPasswords ? 'Ocultar senhas' : 'Mostrar senhas'}
+              </button>
+              <div style={{ display:'flex', gap:8 }}>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={passwordLoading}
+                  style={{ flex:1, fontSize:12 }}>
+                  {passwordLoading ? 'Atualizando...' : 'Salvar'}
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => { setShowPasswordForm(false); setCurrentPassword(''); setNewPassword(''); setConfirmPassword('') }}
+                  style={{ fontSize:12 }}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          )}
+
         </div>
       </div>
     </div>
@@ -1222,6 +1483,12 @@ export default function Profile({ onNavigate }) {
         <div className="card-title"><PiCrownBold size={15}/> Plano &amp; IA</div>
         <PlansCard/>
         <ApiKeyCard/>
+      </div>
+
+      {/* Configurações de conta */}
+      <div className="card">
+        <div className="card-title"><PiLockSimpleBold size={15}/> Configurações de conta</div>
+        <AccountSettingsCard/>
       </div>
 
       {/* DEV MODE — oculto em produção */}

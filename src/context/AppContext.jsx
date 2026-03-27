@@ -243,6 +243,11 @@ export function AppProvider({ children }) {
   // Calcula exatamente quantos ms faltam para 00:00:01 local
   // e agenda o reset. Após cada reset, reagenda para a próxima
   // meia-noite — loop correto sem drift de intervalo.
+  //
+  // Lógica inteligente:
+  // - Reseta done=false em todos os hábitos
+  // - Para usuários Pro: deleta hábitos únicos (não repetem amanhã)
+  // - Para Free: mantém comportamento atual
   const midnightTimer = useRef(null)
 
   useEffect(() => {
@@ -252,7 +257,51 @@ export function AppProvider({ children }) {
       const msRestantes = proxima - agora
 
       midnightTimer.current = setTimeout(() => {
-        setHabits(prev => prev.map(h => ({ ...h, done: false })))
+        // Calcula o dia de semana de amanhã (0=Dom, 6=Sáb)
+        const amanha = new Date()
+        amanha.setDate(amanha.getDate() + 1)
+        const tomorrowDow = amanha.getDay()
+
+        setHabits(prev => {
+          // Para Pro: identifica hábitos únicos (não repetem amanhã)
+          // Um hábito é "único" se seus days NÃO incluem o dia de amanhã
+          const isPro = plan === 'pro'
+
+          // Primeiro: reseta todos para done=false
+          let updated = prev.map(h => ({ ...h, done: false }))
+
+          // Segundo: para Pro, deleta hábitos únicos que foram concluídos
+          if (isPro) {
+            const uniqueDoneHabits = prev.filter(h =>
+              h.done &&                          // foi concluído hoje
+              (
+                (Array.isArray(h.days) && h.days.length === 0) ||  // não repete (days vazio)
+                (!Array.isArray(h.days) || !h.days.includes(tomorrowDow))  // NÃO repete amanhã
+              )
+            )
+
+            if (uniqueDoneHabits.length > 0) {
+              // Salva no histórico antes de deletar
+              const today = todayStr()
+              const newHistory = { ...history }
+              uniqueDoneHabits.forEach(h => {
+                if (!newHistory[today]) {
+                  newHistory[today] = { done: 0, total: 0, habits: {} }
+                }
+                newHistory[today].habits[h.id] = true
+              })
+              setHistory(newHistory)
+              saveStorage('nex_history', newHistory)
+
+              // Remove hábitos únicos da lista
+              const idsToDelete = new Set(uniqueDoneHabits.map(h => h.id))
+              updated = updated.filter(h => !idsToDelete.has(h.id))
+            }
+          }
+
+          return updated
+        })
+
         saveStorage('nex_last_reset', todayStr())
         agendarProximoReset() // reagenda para a próxima noite
       }, msRestantes)
@@ -260,7 +309,7 @@ export function AppProvider({ children }) {
 
     agendarProximoReset()
     return () => clearTimeout(midnightTimer.current)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [plan, history]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Ações — useCallback para identidade estável entre renders ──
 

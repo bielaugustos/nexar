@@ -2,10 +2,9 @@
 
 Um app de crescimento pessoal que combina rastreamento de hábitos, finanças, carreira e mentoria com IA — tudo roda localmente, sem necessidade de criar conta.
 
-
-
 ![alt text](public/icons/preview.webp)
-<p style="color:orange"> Imagem de exenplo: (Se fosse gerado pela IA desta era, com muitas excessões e parâmetros) </p>
+
+<p style="color:pink"> Imagem de exenplo: (Se fosse gerado pela IA desta era, seriam muitas excessões e parâmetros) </p>
 
 ---
 

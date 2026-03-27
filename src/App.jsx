@@ -11,15 +11,16 @@ import { SplashScreen }  from './components/SplashScreen'
 import { OfflineBanner } from './components/OfflineBanner'
 import { MigrationModal } from './components/MigrationModal'
 import { hasLocalData }   from './services/syncService'
-import Login    from './pages/Login'
-import Home     from './pages/Home'
-import Habits   from './pages/Habits'
-import Finance  from './pages/Finance'
-import Progress from './pages/Progress'
-import Mentor   from './pages/Mentor'
-import Profile  from './pages/Profile'
-import Career   from './pages/Career'
-import Projects from './pages/Projects'
+import Login          from './pages/Login'
+import ResetPassword  from './pages/ResetPassword'
+import Home           from './pages/Home'
+import Habits         from './pages/Habits'
+import Finance        from './pages/Finance'
+import Progress       from './pages/Progress'
+import Mentor         from './pages/Mentor'
+import Profile        from './pages/Profile'
+import Career         from './pages/Career'
+import Projects       from './pages/Projects'
 import './styles/global.css'
 
 // ── Verifica se o usuário atingiu 60% de qualquer limite free ──
@@ -123,15 +124,6 @@ function AppShell() {
 
   if (loading) return null
 
-  if (!isLoggedIn && !skipped) {
-    return (
-      <Login onSkip={() => {
-        localStorage.setItem('ior_auth_skipped', 'true')
-        setSkipped(true)
-      }}/>
-    )
-  }
-
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AppProvider>
@@ -157,7 +149,24 @@ function AppShell() {
             <SplashScreen onDone={() => setLoginTransition(false)} />
           </>
         )}
-        <Layout />
+        <Routes>
+          {/* Páginas autônomas (sem Layout) - sempre acessíveis */}
+          <Route path="/login" element={<Login onSkip={() => {
+            localStorage.setItem('ior_auth_skipped', 'true')
+            setSkipped(true)
+          }}/>} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
+          {/* App principal com Layout - requer autenticação ou skip */}
+          {isLoggedIn || skipped ? (
+            <Route path="/*" element={<Layout />} />
+          ) : (
+            <Route path="/*" element={<Login onSkip={() => {
+              localStorage.setItem('ior_auth_skipped', 'true')
+              setSkipped(true)
+            }}/>} />
+          )}
+        </Routes>
       </AppProvider>
     </BrowserRouter>
   )

@@ -23,6 +23,11 @@ export const supabase = (SUPABASE_URL && SUPABASE_ANON)
         autoRefreshToken:  true,
         detectSessionInUrl: true,
       },
+      global: {
+        headers: {
+          'Accept': 'application/json',
+        },
+      },
     })
   : null
 
@@ -41,6 +46,13 @@ export async function signIn({ email, password }) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
+  })
+  return { data, error }
+}
+
+export async function resetPassword(email) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
   })
   return { data, error }
 }
@@ -96,6 +108,20 @@ export async function updateProfile(userId, updates) {
     .eq('id', userId)
     .select()
     .single()
+  return { data, error }
+}
+
+export async function updateEmail(newEmail) {
+  const { data, error } = await supabase.auth.updateUser({
+    email: newEmail
+  })
+  return { data, error }
+}
+
+export async function updatePassword(newPassword) {
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword
+  })
   return { data, error }
 }
 

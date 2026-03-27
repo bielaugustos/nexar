@@ -44,6 +44,13 @@ export function AuthProvider({ children }) {
 
   // ── Inicialização ──
   useEffect(() => {
+    // Não carrega sessão se estamos na página de reset de senha
+    // Isso permite que o token de recuperação seja processado pela página ResetPassword
+    if (window.location.hash.includes('access_token') && window.location.hash.includes('type=recovery')) {
+      setLoading(false)
+      return
+    }
+
     // Lê sessão do cache local (não faz request de rede)
     getSession()
       .then(async (s) => {

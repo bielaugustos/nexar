@@ -525,3 +525,23 @@ input, select, textarea {
 ::-webkit-scrollbar       { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ══════════════════════════════════════
+   SPELLCHECK
+   Estilos para erros de ortografia sublinhados
+   pelo navegador (spellcheck="true")
+ ══════════════════════════════════════ */
+::spelling-error {
+  text-decoration: wavy underline;
+  text-decoration-color: var(--error);
+  text-underline-offset: 3px;
+}
+
+/* Cor de erro conforme o tema */
+:root {
+  --error: #c0392b;
+}
+[data-theme='dark'] {
+  --error: #e74c3c;
+}
+
