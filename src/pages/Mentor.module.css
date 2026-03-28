@@ -84,7 +84,7 @@
 .entryHeader { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .entryDate { font-size: 11px; font-weight: 700; color: var(--ink3); display: flex; align-items: center; gap: 4px; }
 .entryMood { font-size: 11px; font-weight: 700; margin-left: auto; display: flex; align-items: center; gap: 3px; }
-.entryDel { background: none; border: none; cursor: pointer; color: var(--ink3); display: flex; align-items: center; padding: 2px; transition: color .15s; }
+.entryDel { background: none; border: none; cursor: pointer; color: var(--ink3); display: flex; align-items: center; padding: 2px; margin-left: 8px; transition: color .15s; }
 .entryDel:hover { color: #c0392b; }
 .entryPrompt { font-size: 10px; color: var(--ink3); font-style: italic; margin: 0 0 6px; line-height: 1.4; border-left: 2px solid var(--border); padding-left: 7px; }
 .entryText { font-size: 13px; color: var(--ink); line-height: 1.6; white-space: pre-wrap; margin-bottom: 6px; }

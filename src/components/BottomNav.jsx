@@ -27,7 +27,7 @@ import styles from './BottomNav.module.css'
 // ── Itens de navegação ──
 
 const BASE_NAV = [
-  { to: '/',        label: 'Início',   Icon: PiHouseBold,          IconA: PiHouseFill          },
+  { to: '/',        label: 'Hoje',     Icon: PiHouseBold,          IconA: PiHouseFill          },
   { to: '/habits',  label: 'Hábitos',  Icon: PiCheckSquareBold,    IconA: PiCheckSquareFill    },
   { to: '/finance', label: 'Finanças', Icon: PiCurrencyDollarBold, IconA: PiCurrencyDollarFill },
   { to: '/profile', label: 'Perfil',   Icon: PiUserCircleBold,     IconA: PiUserCircleFill     },

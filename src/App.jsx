@@ -101,6 +101,12 @@ function AppShell() {
   // Paywall para usuários sem conta: exibe quando ≥60% de qualquer limite free atingido
   useEffect(() => {
     if (loading || isLoggedIn) return
+    // Se o usuário está no processo de criar conta, não mostra o paywall
+    const creatingAccount = localStorage.getItem('ior_creating_account')
+    if (creatingAccount) {
+      localStorage.removeItem('ior_creating_account')
+      return
+    }
     const dismissed = localStorage.getItem('nex_paywall_at')
     if (dismissed && (Date.now() - Number(dismissed)) / 86_400_000 < 7) return
     if (check60Percent()) setShowPaywall(true)

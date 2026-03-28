@@ -28,8 +28,11 @@ export function MigrationModal({ userId, onDone, mode = 'migrate' }) {
   // Abre o modal de consentimento (LGPD)
   function handlePrimary() {
     if (isPaywall) {
+      // Flag para indicar que o usuário iniciou a criação de conta
+      // Isso evita que o paywall reapareça após o reload
+      localStorage.setItem('ior_creating_account', 'true')
       localStorage.removeItem('ior_auth_skipped')
-      window.location.reload()
+      window.location.href = '/login'
       return
     }
     // Em vez de migrar direto, mostra o consentimento

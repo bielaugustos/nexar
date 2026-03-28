@@ -30,7 +30,7 @@ import styles from './SideNav.module.css'
 // ── Itens de navegação ──
 
 const BASE_NAV = [
-  { to: '/',        label: 'Início',   Icon: PiHouseBold,          IconA: PiHouseFill          },
+  { to: '/',        label: 'Hoje',     Icon: PiHouseBold,          IconA: PiHouseFill          },
   { to: '/habits',  label: 'Hábitos',  Icon: PiCheckSquareBold,    IconA: PiCheckSquareFill    },
   { to: '/finance', label: 'Finanças', Icon: PiCurrencyDollarBold, IconA: PiCurrencyDollarFill },
 ]

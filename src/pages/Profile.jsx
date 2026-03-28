@@ -197,15 +197,19 @@ function HeroCard({ allPoints, streak, daysActive }) {
 // sem card separado visualmente pesado.
 // ══════════════════════════════════════
 const THEME_LIST = [
-  { id:'light',    name:'Padrão',   emoji:'☀️',  free:true  },
-  { id:'dark',     name:'Escuro',   emoji:'🌙',  free:true  },
-  { id:'midnight', name:'Midnight', emoji:'🌌',  free:false, shopId:'theme_midnight' },
-  { id:'forest',   name:'Forest',   emoji:'🌿',  free:false, shopId:'theme_forest'   },
-  { id:'sakura',   name:'Sakura',   emoji:'🌸',  free:false, shopId:'theme_sakura'   },
-  { id:'desert',   name:'Desert',   emoji:'🏜️', free:false, shopId:'theme_desert'   },
-  { id:'dracula',  name:'Dracula',  emoji:'🧛',  free:false, shopId:'theme_dracula'  },
-  { id:'nord',     name:'Nord',     emoji:'🏔️', free:false, shopId:'theme_nord'     },
-  { id:'glass',    name:'Vidro',    emoji:'🪟',  free:false, shopId:'theme_glass'    },
+  { id:'light',         name:'Padrão',       emoji:'☀️',  free:true  },
+  { id:'dark',          name:'Escuro',       emoji:'🌙',  free:true  },
+  { id:'midnight',      name:'Midnight',     emoji:'🌌',  free:false, shopId:'theme_midnight' },
+  { id:'forest',        name:'Forest',       emoji:'🌿',  free:false, shopId:'theme_forest'   },
+  { id:'sakura',        name:'Sakura',       emoji:'🌸',  free:false, shopId:'theme_sakura'   },
+  { id:'desert',        name:'Desert',       emoji:'🏜️', free:false, shopId:'theme_desert'   },
+  { id:'dracula',       name:'Dracula',      emoji:'🧛',  free:false, shopId:'theme_dracula'  },
+  { id:'nord',          name:'Nord',         emoji:'🏔️', free:false, shopId:'theme_nord'     },
+  { id:'glass',         name:'Vidro',        emoji:'🪟', free:true, shopId:'theme_glass'    },
+  { id:'high_contrast', name:'Alto Contraste',emoji:'⬛',  free:false, shopId:'theme_high_contrast' },
+  { id:'macintosh',     name:'Macintosh',    emoji:'🍎',  free:false, shopId:'theme_macintosh'    },
+  { id:'windows98',     name:'Windows 98',   emoji:'🪟',  free:false, shopId:'theme_windows98'    },
+  { id:'linux',         name:'Linux',        emoji:'🐧',  free:false, shopId:'theme_linux'        },
 ]
 
 function ThemePicker({ currentTheme, onChangeTheme, ownedItems }) {
@@ -265,6 +269,10 @@ const SHOP_ITEMS = [
   { id:'theme_midnight',  cat:'tema',     name:'Midnight',      icon:'🌌', desc:'Desbloqueado com 1200 io acumulados.', cost:1200, pillar:'Bem-estar', pillarColor:'#8e44ad' },
   { id:'theme_forest',    cat:'tema',     name:'Forest',        icon:'🌿', desc:'Desbloqueado com 1200 io acumulados.', cost:1200, pillar:'Bem-estar', pillarColor:'#8e44ad' },
   { id:'theme_glass',     cat:'tema',     name:'Vidro',         icon:'🪟', desc:'O tema mais exclusivo — glassmorphism inspirado no design Apple. Desbloqueado com 2000 io.', cost:2000, pillar:'Bem-estar', pillarColor:'#8e44ad' },
+  { id:'theme_high_contrast', cat:'tema', name:'Alto Contraste', icon:'⬛', desc:'Tema de acessibilidade com alto contraste para melhor legibilidade. Desbloqueado com 1500 io.', cost:1500, pillar:'Acessibilidade', pillarColor:'#000000' },
+  { id:'theme_macintosh',     cat:'tema', name:'Macintosh',    icon:'🍎', desc:'Tema retro inspirado no Apple System 7. Desbloqueado com 1800 io.', cost:1800, pillar:'Retro', pillarColor:'#c0c0c0' },
+  { id:'theme_windows98',     cat:'tema', name:'Windows 98',   icon:'🪟', desc:'Tema retro inspirado no Windows 98. Desbloqueado com 1800 io.', cost:1800, pillar:'Retro', pillarColor:'#c0c0c0' },
+  { id:'theme_linux',         cat:'tema', name:'Linux',        icon:'🐧', desc:'Tema estilo terminal com cores verde neon. Desbloqueado com 2200 io.', cost:2200, pillar:'Tech', pillarColor:'#00ff00' },
 ]
 
 const CAT_LABELS = { all:'Todos', tema:'Temas', avatar:'Avatares', utilidade:'Utilitários' }
@@ -1164,6 +1172,7 @@ function PlansCard() {
 // ══════════════════════════════════════
 function DevCard() {
   const [on, setOn] = useState(() => localStorage.getItem('nex_devmode') === 'true')
+  const [pointsInput, setPointsInput] = useState('')
 
   function toggle() {
     const next = !on; setOn(next)
@@ -1474,6 +1483,45 @@ function DevCard() {
         </div>
         <Toggle on={on} onToggle={toggle} label="Demo"/>
       </div>
+      
+      <div className={styles.settingRow}>
+        <span className={styles.settingIcon}><PiSparkleBold size={16}/></span>
+        <div style={{ flex:1, display:'flex', flexDirection:'column', gap:8 }}>
+          <span className={styles.settingLabel}>Definir pontos para teste</span>
+          <p className={styles.settingDesc}>
+            Defina a quantidade de pontos (io) para testar o plano Pro e comprar temas.
+          </p>
+          <div style={{ display:'flex', gap:8 }}>
+            <input
+              className="input"
+              type="number"
+              placeholder="1000000"
+              value={pointsInput}
+              onChange={e => setPointsInput(e.target.value)}
+              style={{ flex:1, minWidth:120 }}
+            />
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                const points = parseInt(pointsInput, 10)
+                if (isNaN(points) || points < 0) {
+                  toast('Digite um valor válido de pontos')
+                  return
+                }
+                localStorage.setItem('nex_history', JSON.stringify({
+                  [new Date().toISOString().slice(0, 10)]: { done: 0, total: 0, habits: {} }
+                }))
+                toast(`Pontos definidos para ${points}. Recarregando...`)
+                setTimeout(() => window.location.reload(), 500)
+              }}
+              style={{ whiteSpace:'nowrap' }}
+            >
+              Definir pontos
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -1722,7 +1770,7 @@ export default function Profile({ onNavigate }) {
         </div>
 
         <p className={styles.footerCopy}>© 2026 Rootio · Todos os direitos reservados</p>
-        <p className={styles.footerVersion}>v0.1.0</p>
+        <p className={styles.footerVersion}>v2.0.0</p>
       </div>
 
       {/* Botão de migração - visível para todos, desabilitado para Free */}

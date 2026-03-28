@@ -324,10 +324,10 @@
   flex: 1;
   border: 2.5px solid var(--border);
   border-radius: 3px;
-  padding: 8px 4px;
+  padding: 10px 15px;
   text-align: center;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   font-family: var(--font-body);
   background: var(--white);
@@ -338,6 +338,13 @@
   flex-direction: column;
   align-items: center;
   gap: 3px;
+}
+
+@media (min-width: 768px) {
+  .priOpt {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
 }
 
 .priOpt:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--shadow); }
@@ -422,6 +429,10 @@
   box-shadow: 1px 1px 0 var(--shadow);
   transition: transform 0.1s, box-shadow 0.1s;
   aspect-ratio: 1;
+}
+
+@media (min-width: 768px) {
+  .iconOpt { padding: 4px; }
 }
 
 .iconSel { background: var(--gold); border-color: var(--gold-dk); color: #111; box-shadow: 2px 2px 0 var(--gold-dk); }
@@ -1100,7 +1111,7 @@
 /* Remove spinners nativos do input number */
 .estCustomInput::-webkit-outer-spin-button,
 .estCustomInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.estCustomInput[type=number] { -moz-appearance: textfield; }
+.estCustomInput[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
 .estTag {
   display: inline-flex;

@@ -74,9 +74,10 @@ export async function signOut() {
 
   await supabase.auth.signOut()
 
-  // Reload completo — destrói todo estado React em memória
-  // Garante que o próximo usuário começa com estado limpo
+  // Redireciona para a tela inicial e força reload completo
+  // Isso garante que o React Router não mantenha o estado da rota anterior
   window.location.href = '/'
+  window.location.reload()
 }
 
 export async function getSession() {

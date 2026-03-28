@@ -68,7 +68,13 @@
 
 /* Dados */
 .dataRow { display: flex; gap: 8px; }
+@media (min-width: 600px) {
+  .dataRow { gap: 12px; }
+}
 .importLabel { flex: 1; justify-content: center; cursor: pointer; }
+@media (min-width: 600px) {
+  .importLabel { flex: none; min-width: 140px; }
+}
 
 /* ── APARÊNCIA / TEMAS ── */
 /* ── LOJA DE RECOMPENSAS ── */

@@ -310,10 +310,19 @@ function MiniHeatmap({ habitId, history }) {
 // ══════════════════════════════════════
 function SubtasksEditor({ subtasks, onChange }) {
   const [newText, setNewText] = useState('')
-
+  const { isPro } = usePlan()
+  const MAX_SUBTASKS_FREE = 5
+  
   function addSubtask() {
     const text = newText.trim()
     if (!text) return
+    
+    // Verifica limite de subtarefas
+    if (!isPro && subtasks.length >= MAX_SUBTASKS_FREE) {
+      toast(`Limite de ${MAX_SUBTASKS_FREE} subtarefas atingido. Plano Pro permite ilimitadas.`)
+      return
+    }
+    
     // Subtarefas não têm pontuação própria — são passos de acompanhamento
     onChange([...subtasks, { id: Date.now(), text, done: false }])
     setNewText('')
@@ -383,6 +392,13 @@ function SubtasksEditor({ subtasks, onChange }) {
           <PiPlusBold size={12} />
         </button>
       </div>
+      {!isPro && subtasks.length >= MAX_SUBTASKS_FREE - 3 && (
+        <div style={{ fontSize: 11, color: 'var(--ink3)', marginTop: 8, textAlign: 'center' }}>
+          {subtasks.length >= MAX_SUBTASKS_FREE 
+            ? `Limite de ${MAX_SUBTASKS_FREE} subtarefas atingido. Plano Pro permite ilimitadas.`
+            : `${subtasks.length}/${MAX_SUBTASKS_FREE} subtarefas usadas`}
+        </div>
+      )}
     </div>
   )
 }
@@ -1318,6 +1334,8 @@ function MonthCalendar({ history, habits }) {
       {/* Detalhe do dia selecionado */}
       {selectedDay && (() => {
         const rec = history[selectedDay]
+        // Obter todos os hábitos concluídos neste dia (sem filtrar por dia da semana)
+        // pois o usuário quer ver o que fez naquele dia, não apenas o que estava programado
         const doneIds = Object.keys(rec?.habits || {}).map(Number)
         const dateLabel = new Date(selectedDay + 'T12:00:00').toLocaleDateString('pt-BR', {
           weekday: 'long', day: 'numeric', month: 'long',
@@ -1344,7 +1362,7 @@ function MonthCalendar({ history, habits }) {
               </div>
             ) : (
               <p className={styles.dayDetailEmpty}>
-                {rec ? 'Nenhum hábito concluído' : 'Sem registro para este dia'}
+                {rec ? 'Nenhum hábito concluído neste dia' : 'Sem registro para este dia'}
               </p>
             )}
           </div>

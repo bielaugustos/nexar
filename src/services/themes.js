@@ -137,6 +137,70 @@ export const THEMES = {
       '--radius':  '16px',
     },
   },
+
+  // Alto contraste — tema de acessibilidade com alto contraste
+  high_contrast: {
+    id: 'high_contrast', name: 'Alto Contraste', emoji: '⬛',
+    dark: false,
+    vars: {
+      '--bg':      '#ffffff',
+      '--surface': '#ffffff',
+      '--white':   '#ffffff',
+      '--ink':     '#000000',
+      '--ink2':    '#000000',
+      '--ink3':    '#000000',
+      '--border':  '#000000',
+      '--shadow':  '#000000',
+    },
+  },
+
+  // Macintosh — tema retro Apple System 7
+  macintosh: {
+    id: 'macintosh', name: 'Macintosh', emoji: '🍎',
+    dark: false,
+    vars: {
+      '--bg':      '#c0c0c0',
+      '--surface': '#a0a0a0',
+      '--white':   '#ffffff',
+      '--ink':     '#000000',
+      '--ink2':    '#000000',
+      '--ink3':    '#000000',
+      '--border':  '#000000',
+      '--shadow':  '#808080',
+    },
+  },
+
+  // Windows 98 — tema retro Microsoft
+  windows98: {
+    id: 'windows98', name: 'Windows 98', emoji: '🪟',
+    dark: false,
+    vars: {
+      '--bg':      '#c0c0c0',
+      '--surface': '#dfdfdf',
+      '--white':   '#ffffff',
+      '--ink':     '#000000',
+      '--ink2':    '#000000',
+      '--ink3':    '#000000',
+      '--border':  '#808080',
+      '--shadow':  '#404040',
+    },
+  },
+
+  // Linux — tema terminal estilo
+  linux: {
+    id: 'linux', name: 'Linux', emoji: '🐧',
+    dark: true,
+    vars: {
+      '--bg':      '#1e1e1e',
+      '--surface': '#2d2d2d',
+      '--white':   '#3d3d3d',
+      '--ink':     '#00ff00',
+      '--ink2':    '#00cc00',
+      '--ink3':    '#009900',
+      '--border':  '#00ff00',
+      '--shadow':  '#000000',
+    },
+  },
 }
 
 // Aplica tema injetando CSS variables direto no <html>

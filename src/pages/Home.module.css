@@ -188,7 +188,7 @@
   align-items: center;
   gap: 7px;
   background: var(--ink);
-  color: var(--bg);
+  color: var(--white);
   border: none;
   border-radius: 4px;
   padding: 10px 20px;
@@ -208,10 +208,10 @@
 
 /* Microanimação: press → verde (sucesso) → rebound */
 @keyframes comecarPress {
-  0%   { transform: scale(1);    background: var(--ink);  color: var(--bg); box-shadow: 3px 3px 0 var(--shadow); }
-  20%  { transform: scale(.93);  background: var(--ink);  color: var(--bg); box-shadow: 1px 1px 0 var(--shadow); }
+  0%   { transform: scale(1);    background: var(--ink);  color: var(--white); box-shadow: 3px 3px 0 var(--shadow); }
+  20%  { transform: scale(.93);  background: var(--ink);  color: var(--white); box-shadow: 1px 1px 0 var(--shadow); }
   55%  { transform: scale(1.05); background: #27ae60;     color: #fff;      box-shadow: 4px 4px 0 #1a7a44; }
-  100% { transform: scale(1);    background: var(--ink);  color: var(--bg); box-shadow: 3px 3px 0 var(--shadow); }
+  100% { transform: scale(1);    background: var(--ink);  color: var(--white); box-shadow: 3px 3px 0 var(--shadow); }
 }
 .comecarBtnPress { animation: comecarPress .55s cubic-bezier(.36,.07,.19,.97) forwards; }
 
@@ -232,7 +232,7 @@
 /* ══════════════════════════════════════
    BLOCO II — PROGRESSO
    ══════════════════════════════════════ */
-.progressoCard {}
+.progressoCard { display: flex; flex-direction: column; gap: 10px; }
 
 .progressoPct {
   margin-left: auto;
