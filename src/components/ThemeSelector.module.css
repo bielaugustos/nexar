@@ -1,0 +1,329 @@
+/* ══════════════════════════════════════
+   THEME SELECTOR - Componente visual e responsivo
+   para seleção de temas da aplicação
+══════════════════════════════════════ */
+
+.themeSelector {
+  width: 100%;
+}
+
+/* Header - botão principal */
+.themeHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  box-shadow: 2px 2px 0 var(--shadow);
+  transition: all 0.15s ease;
+}
+
+.themeHeader:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+
+.themeHeader:active {
+  transform: translate(0, 0);
+  box-shadow: 1px 1px 0 var(--shadow);
+}
+
+.themeInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.currentEmoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.currentName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Grid de temas */
+.themeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card de tema */
+.themeCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.15s ease;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.themeCard:hover:not(.themeCardLocked) {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+
+.themeCard:active:not(.themeCardLocked) {
+  transform: translate(0, 0);
+  box-shadow: 1px 1px 0 var(--shadow);
+}
+
+.themeCardActive {
+  border-color: var(--gold-dk);
+  background: var(--gold);
+}
+
+.themeCardLocked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.themeCardLocked:hover {
+  transform: none;
+}
+
+/* Preview do tema */
+.themePreview {
+  width: 100%;
+  height: 40px;
+  background: var(--preview-bg);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.previewBar {
+  width: 60%;
+  height: 8px;
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+.previewDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-left: auto;
+}
+
+/* Detalhes do tema */
+.themeDetails {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.themeEmoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.themeName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  flex: 1;
+}
+
+/* Status do tema */
+.themeStatus {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--white);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsividade para telas médias */
+@media (min-width: 600px) {
+  .themeGrid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .themeCard {
+    padding: 16px;
+  }
+
+  .themePreview {
+    height: 48px;
+    padding: 10px;
+  }
+
+  .themeName {
+    font-size: 14px;
+  }
+}
+
+/* Responsividade para telas grandes */
+@media (min-width: 768px) {
+  .themeGrid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .themeCard {
+    padding: 18px;
+  }
+
+  .themePreview {
+    height: 52px;
+    padding: 12px;
+  }
+
+  .themeName {
+    font-size: 15px;
+  }
+}
+
+/* Responsividade para telas muito grandes */
+@media (min-width: 1024px) {
+  .themeGrid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .themeCard {
+    padding: 20px;
+  }
+
+  .themePreview {
+    height: 56px;
+    padding: 14px;
+  }
+}
+
+/* Responsividade para mobile */
+@media (max-width: 480px) {
+  .themeGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .themeCard {
+    padding: 10px;
+  }
+
+  .themePreview {
+    height: 36px;
+    padding: 6px;
+  }
+
+  .themeName {
+    font-size: 12px;
+  }
+
+  .currentName {
+    font-size: 13px;
+  }
+}
+
+/* Override para tema Vidro */
+[data-theme='glass'] .themeCard {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme='glass'] .themeHeader {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme='glass'] .themeGrid {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Override para tema Vidro Dark */
+[data-theme='glass_dark'] .themeCard {
+  background: rgba(45, 45, 45, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f0f0f0;
+}
+
+[data-theme='glass_dark'] .themeCard:hover:not(.themeCardLocked) {
+  background: rgba(55, 55, 55, 0.75);
+}
+
+[data-theme='glass_dark'] .themeCardActive {
+  background: rgba(240, 192, 32, 0.85);
+  border-color: rgba(176, 128, 0, 0.70);
+}
+
+[data-theme='glass_dark'] .themeHeader {
+  background: rgba(45, 45, 45, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f0f0f0;
+}
+
+[data-theme='glass_dark'] .themeGrid {
+  background: rgba(30, 30, 30, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme='glass_dark'] .themeName {
+  color: #f0f0f0;
+}
+
+[data-theme='glass_dark'] .currentName {
+  color: #f0f0f0;
+}

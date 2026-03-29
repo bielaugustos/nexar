@@ -99,6 +99,161 @@ html[data-theme='glass'] .btn-primary:hover {
   box-shadow: 0 8px 20px rgba(240,192,32,0.35), 0 1px 0 rgba(255,255,255,0.80) inset;
 }
 
+/* ══════════════════════════════════════
+    TEMA VIDRO DARK (Glassmorphism Dark)
+══════════════════════════════════════ */
+html[data-theme='glass_dark'] body {
+  background:
+    radial-gradient(ellipse at 15% 15%, rgba(120,80,200,0.50) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(60,120,180,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 110%, rgba(80,160,140,0.35) 0%, transparent 50%),
+    #1a1a1e;
+  min-height: 100vh;
+}
+
+html[data-theme='glass_dark'] .nex-app {
+  background: transparent;
+  border-color: rgba(255,255,255,0.15);
+}
+
+html[data-theme='glass_dark'] .card {
+  background: rgba(30,30,30,0.55);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.40),
+    0 1px 0 rgba(255,255,255,0.10) inset;
+}
+
+html[data-theme='glass_dark'] .card-title {
+  border-bottom-color: rgba(255,255,255,0.15);
+}
+
+html[data-theme='glass_dark'] .btn {
+  background: rgba(45,45,45,0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.10) inset;
+  color: #f0f0f0;
+}
+
+html[data-theme='glass_dark'] .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.15) inset;
+}
+
+html[data-theme='glass_dark'] .btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.20);
+}
+
+html[data-theme='glass_dark'] .btn-primary {
+  background: rgba(240,192,32,0.85);
+  border-color: rgba(176,128,0,0.70);
+  box-shadow: 0 4px 14px rgba(240,192,32,0.30), 0 1px 0 rgba(255,255,255,0.10) inset;
+  color: #1c1c1e;
+}
+
+html[data-theme='glass_dark'] .btn-primary:hover {
+  box-shadow: 0 8px 20px rgba(240,192,32,0.40), 0 1px 0 rgba(255,255,255,0.15) inset;
+}
+
+/* ════════════════════════════════
+    HEADER E NAVBAR TRANSPARENTES NO MOBILE
+═════════════════════════════════ */
+@media (max-width: 767px) {
+  /* Header transparente no mobile */
+  html[data-theme='glass'] .header,
+  html[data-theme='glass_dark'] .header {
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-bottom-color: rgba(255,255,255,0.5);
+  }
+
+  /* BottomNav transparente no mobile */
+  html[data-theme='glass'] .nav,
+  html[data-theme='glass_dark'] .nav {
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-top-color: rgba(255,255,255,0.5);
+  }
+
+  html[data-theme='glass_dark'] .nav {
+    background: rgba(45,45,45,0.65);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-top-color: rgba(255,255,255,0.18);
+  }
+}
+
+/* ══════════════════════════════════════
+    TEMA VIDRO DARK (Glassmorphism Dark)
+   ══════════════════════════════════════ */
+html[data-theme='glass_dark'] body {
+  background:
+    radial-gradient(ellipse at 15% 15%, rgba(80,60,140,0.50) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(60,100,160,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 110%, rgba(80,140,120,0.35) 0%, transparent 50%),
+    #1a1a1a;
+  min-height: 100vh;
+}
+
+html[data-theme='glass_dark'] .nex-app {
+  background: transparent;
+  border-color: rgba(255,255,255,0.15);
+}
+
+html[data-theme='glass_dark'] .card {
+  background: rgba(30,30,30,0.52);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.40),
+    0 1px 0 rgba(255,255,255,0.10) inset;
+}
+
+html[data-theme='glass_dark'] .card-title {
+  border-bottom-color: rgba(255,255,255,0.15);
+}
+
+html[data-theme='glass_dark'] .btn {
+  background: rgba(45,45,45,0.60);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.30), 0 1px 0 rgba(255,255,255,0.10) inset;
+  color: #f0f0f0;
+}
+
+html[data-theme='glass_dark'] .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.40), 0 1px 0 rgba(255,255,255,0.15) inset;
+}
+
+html[data-theme='glass_dark'] .btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.20);
+}
+
+html[data-theme='glass_dark'] .btn-primary {
+  background: rgba(240,192,32,0.80);
+  border-color: rgba(176,128,0,0.60);
+  box-shadow: 0 4px 14px rgba(240,192,32,0.25), 0 1px 0 rgba(255,255,255,0.10) inset;
+}
+
+html[data-theme='glass_dark'] .btn-primary:hover {
+  box-shadow: 0 8px 20px rgba(240,192,32,0.35), 0 1px 0 rgba(255,255,255,0.15) inset;
+}
+
 html[data-theme='glass'] .input {
   background: rgba(255,255,255,0.58);
   backdrop-filter: blur(14px);

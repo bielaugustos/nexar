@@ -1,0 +1,572 @@
+/* ══════════════════════════════════════
+   DESKTOP - Área de Trabalho
+   ══════════════════════════════════════ */
+
+.desktop {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+  z-index: 1;
+}
+
+/* Wallpaper */
+.wallpaper {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--bg) 0%, var(--surface) 100%);
+  z-index: 0;
+}
+
+/* Widgets na área de trabalho */
+.widgets {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 5;
+}
+
+/* Ícones na área de trabalho */
+.icons {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 80px);
+  gap: 8px;
+  z-index: 5;
+}
+
+/* ══════════════════════════════════════
+   WINDOW - Janela Individual
+   ══════════════════════════════════════ */
+
+.window {
+  position: absolute;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s;
+}
+
+.window.focused {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+}
+
+.window.maximized {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: calc(100% - 48px) !important;
+  border-radius: 0;
+}
+
+/* Barra de título */
+.windowHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--ink);
+  color: var(--gold);
+  cursor: move;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.windowIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.windowTitle {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.windowControls {
+  display: flex;
+  gap: 6px;
+}
+
+.windowControl {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 700;
+  color: transparent;
+  transition: all 0.15s;
+}
+
+.windowControl:hover {
+  color: var(--ink);
+}
+
+.windowControl.close {
+  background: #e74c3c;
+}
+
+.windowControl.close:hover {
+  background: #c0392b;
+}
+
+.windowControl.minimize {
+  background: #f39c12;
+}
+
+.windowControl.minimize:hover {
+  background: #d68910;
+}
+
+.windowControl.maximize {
+  background: #27ae60;
+}
+
+.windowControl.maximize:hover {
+  background: #1e8449;
+}
+
+/* Conteúdo da janela */
+.windowContent {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg);
+}
+
+/* Handles de redimensionamento */
+.resizeHandle {
+  position: absolute;
+  background: transparent;
+  z-index: 10;
+}
+
+.resizeHandle.n {
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 4px;
+  cursor: n-resize;
+}
+
+.resizeHandle.s {
+  bottom: 0;
+  left: 8px;
+  right: 8px;
+  height: 4px;
+  cursor: s-resize;
+}
+
+.resizeHandle.e {
+  top: 8px;
+  right: 0;
+  bottom: 8px;
+  width: 4px;
+  cursor: e-resize;
+}
+
+.resizeHandle.w {
+  top: 8px;
+  left: 0;
+  bottom: 8px;
+  width: 4px;
+  cursor: w-resize;
+}
+
+.resizeHandle.ne {
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  cursor: ne-resize;
+}
+
+.resizeHandle.nw {
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  cursor: nw-resize;
+}
+
+.resizeHandle.se {
+  bottom: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  cursor: se-resize;
+}
+
+.resizeHandle.sw {
+  bottom: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  cursor: sw-resize;
+}
+
+/* ══════════════════════════════════════
+   TASKBAR - Barra de Tarefas
+   ══════════════════════════════════════ */
+
+.taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  z-index: 9999;
+  gap: 4px;
+}
+
+.startButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  border: none;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.startButton:hover {
+  background: var(--gold-dk);
+  transform: scale(1.05);
+}
+
+.taskbarApps {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+  padding: 0 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.taskbarApps::-webkit-scrollbar {
+  display: none;
+}
+
+.taskbarApp {
+  height: 40px;
+  min-width: 40px;
+  padding: 0 12px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--gold);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.taskbarApp:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.taskbarApp.active {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 -2px 0 var(--gold);
+}
+
+.taskbarAppName {
+  font-size: 11px;
+  font-weight: 700;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.systemTray {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.systemTrayClock {
+  font-family: var(--font-display);
+}
+
+/* ══════════════════════════════════════
+   START MENU - Menu de Início
+   ══════════════════════════════════════ */
+
+.startMenu {
+  position: fixed;
+  bottom: 56px;
+  left: 8px;
+  width: 320px;
+  max-height: 480px;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: startMenuIn 0.2s ease;
+}
+
+@keyframes startMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.startMenuHeader {
+  padding: 16px;
+  background: var(--ink);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.startMenuAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.startMenuUserInfo {
+  flex: 1;
+}
+
+.startMenuUserName {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.startMenuUserLevel {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.startMenuSearch {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.startMenuSearchInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.startMenuSearchInput:focus {
+  outline: none;
+  border-color: var(--gold-dk);
+}
+
+.startMenuApps {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.startMenuApp {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.1s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.startMenuApp:hover {
+  background: var(--surface);
+}
+
+.startMenuAppIcon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.startMenuAppName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ══════════════════════════════════════
+   DESKTOP ICON - Ícone na Área de Trabalho
+   ══════════════════════════════════════ */
+
+.desktopIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.1s;
+  width: 80px;
+}
+
+.desktopIcon:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.desktopIcon.selected {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.desktopIconImage {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--white);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.desktopIconName {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ══════════════════════════════════════
+   WIDGET - Widget na Área de Trabalho
+   ══════════════════════════════════════ */
+
+.widget {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 2px 2px 0 var(--shadow);
+  min-width: 160px;
+}
+
+.widgetClock {
+  text-align: center;
+}
+
+.widgetClockTime {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
+.widgetClockDate {
+  font-size: 12px;
+  color: var(--ink3);
+  margin-top: 4px;
+}
+
+.widgetStats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.widgetStat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.widgetStatIcon {
+  font-size: 16px;
+}
+
+.widgetStatValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.widgetStatLabel {
+  font-size: 10px;
+  color: var(--ink3);
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVIDADE
+   ══════════════════════════════════════ */
+
+/* Mobile: esconder desktop */
+@media (max-width: 1023px) {
+  .desktop {
+    display: none;
+  }
+}
+
+/* Desktop: mostrar desktop */
+@media (min-width: 1024px) {
+  .desktop {
+    display: block;
+  }
+}

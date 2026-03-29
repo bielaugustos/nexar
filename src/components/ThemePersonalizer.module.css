@@ -1,0 +1,318 @@
+/* ══════════════════════════════════════
+   THEME PERSONALIZER - Componente para
+   personalização de temas por foco
+══════════════════════════════════════ */
+
+.themePersonalizer {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+/* Header - botão principal */
+.themePersonalizerHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.15s ease;
+}
+
+.themePersonalizerHeader:hover {
+  background: var(--white);
+  border-color: var(--gold-dk);
+}
+
+.themePersonalizerInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.themePersonalizerLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Grid de focos */
+.focusGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card de foco */
+.focusCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.15s ease;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.focusCard:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+
+.focusCard:active {
+  transform: translate(0, 0);
+  box-shadow: 1px 1px 0 var(--shadow);
+}
+
+.focusCardActive {
+  border-color: var(--gold-dk);
+  background: var(--gold);
+}
+
+.focusCardLocked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.focusCardLocked:hover {
+  transform: none;
+}
+
+/* Preview do foco */
+.focusPreview {
+  width: 100%;
+  height: 40px;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.focusPreviewBar {
+  width: 60%;
+  height: 8px;
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+.focusPreviewDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-left: auto;
+}
+
+/* Detalhes do foco */
+.focusDetails {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.focusEmoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.focusName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  flex: 1;
+}
+
+/* Status do foco */
+.focusStatus {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--white);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsividade para telas médias */
+@media (min-width: 600px) {
+  .focusGrid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .focusCard {
+    padding: 18px;
+  }
+
+  .focusPreview {
+    height: 48px;
+    padding: 10px;
+  }
+
+  .focusName {
+    font-size: 14px;
+  }
+}
+
+/* Responsividade para telas grandes */
+@media (min-width: 768px) {
+  .focusGrid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .focusCard {
+    padding: 20px;
+  }
+
+  .focusPreview {
+    height: 52px;
+    padding: 12px;
+  }
+
+  .focusName {
+    font-size: 15px;
+  }
+}
+
+/* Responsividade para telas muito grandes */
+@media (min-width: 1024px) {
+  .focusGrid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .focusCard {
+    padding: 22px;
+  }
+
+  .focusPreview {
+    height: 56px;
+    padding: 14px;
+  }
+}
+
+/* Responsividade para mobile */
+@media (max-width: 480px) {
+  .focusGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .focusCard {
+    padding: 10px;
+  }
+
+  .focusPreview {
+    height: 36px;
+    padding: 6px;
+  }
+
+  .focusName {
+    font-size: 12px;
+  }
+
+  .themePersonalizerLabel {
+    font-size: 13px;
+  }
+}
+
+/* Override para tema Vidro */
+[data-theme='glass'] .focusCard {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme='glass'] .themePersonalizerHeader {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme='glass'] .focusGrid {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Override para tema Vidro Dark */
+[data-theme='glass_dark'] .focusCard {
+  background: rgba(45, 45, 45, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f0f0f0;
+}
+
+[data-theme='glass_dark'] .focusCard:hover:not(.focusCardLocked) {
+  background: rgba(55, 55, 55, 0.75);
+}
+
+[data-theme='glass_dark'] .focusCardActive {
+  background: rgba(240, 192, 32, 0.85);
+  border-color: rgba(176, 128, 0, 0.70);
+}
+
+[data-theme='glass_dark'] .themePersonalizerHeader {
+  background: rgba(45, 45, 45, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f0f0f0;
+}
+
+[data-theme='glass_dark'] .focusGrid {
+  background: rgba(30, 30, 30, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme='glass_dark'] .focusName {
+  color: #f0f0f0;
+}
+
+[data-theme='glass_dark'] .themePersonalizerLabel {
+  color: #f0f0f0;
+}

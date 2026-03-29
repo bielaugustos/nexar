@@ -9,12 +9,13 @@ import {
   PiStarBold, PiArrowRightBold,
   PiCheckCircleBold, PiClockBold, PiLinkBold,
   PiCaretDownBold, PiCaretUpBold, PiLockSimpleBold, PiCrownBold,
-  PiQuestionBold,
+  PiQuestionBold, PiCheckSquareBold,
 } from 'react-icons/pi'
 import { toast } from '../components/Toast'
 import { playSaveDirect } from '../hooks/useSound'
 import { useAuth } from '../context/AuthContext'
 import { upsertRows, fetchRows } from '../services/supabase'
+import { loadStorage } from '../services/storage'
 import styles from './Career.module.css'
 
 // ══════════════════════════════════════
@@ -384,7 +385,18 @@ function GoalCard({ goal, onUpdate, onDelete }) {
   const done = goal.milestones?.filter(m => m.done).length || 0
   const total = goal.milestones?.length || 0
   const pct = total > 0 ? Math.round(done / total * 100) : 0
-
+  
+  // Carregar hábito vinculado
+  const linkedHabit = useMemo(() => {
+    if (!goal.linkedHabitId) return null
+    try {
+      const habits = loadStorage('nex_habits') || []
+      return habits.find(h => h.id === goal.linkedHabitId) || null
+    } catch {
+      return null
+    }
+  }, [goal.linkedHabitId])
+ 
   function addMilestone() {
     const text = editMilestone.trim()
     if (!text) return
@@ -414,6 +426,11 @@ function GoalCard({ goal, onUpdate, onDelete }) {
             <span className={styles.areaTag} style={{ background: '#e8f0fe', color: '#185FA5', borderColor: '#185FA5' }}>
               {goal.area}
             </span>
+            {linkedHabit && (
+              <span className={styles.habitTag} style={{ background: '#f0f9ff', color: '#0288d1', borderColor: '#0288d1' }}>
+                <PiCheckSquareBold size={10}/> {linkedHabit.title}
+              </span>
+            )}
             {dl && <span className={styles.deadlineTag} style={{ color: dl.color }}>{dl.txt}</span>}
             {total > 0 && <span className={styles.progressTag}>{done}/{total} marcos</span>}
           </div>
@@ -483,10 +500,29 @@ function AddGoalForm({ onSave, onClose }) {
   const [area,     setArea]     = useState(GOAL_AREAS[0])
   const [deadline, setDeadline] = useState('')
   const [notes,    setNotes]    = useState('')
+  const [linkedHabitId, setLinkedHabitId] = useState('')
+  
+  // Carregar hábitos disponíveis para vincular
+  const habits = useMemo(() => {
+    try {
+      return loadStorage('nex_habits') || []
+    } catch {
+      return []
+    }
+  }, [])
 
   function submit() {
     if (!title.trim()) { toast('Informe o título da meta'); return }
-    onSave({ id: Date.now(), title: title.trim(), area, deadline: deadline || null, notes: notes.trim(), milestones: [], createdAt: todayISO() })
+    onSave({ 
+      id: Date.now(), 
+      title: title.trim(), 
+      area, 
+      deadline: deadline || null, 
+      notes: notes.trim(), 
+      milestones: [], 
+      linkedHabitId: linkedHabitId || null,
+      createdAt: todayISO() 
+    })
   }
 
   return (
@@ -509,6 +545,20 @@ function AddGoalForm({ onSave, onClose }) {
         <input className="input" type="date" style={{ flex:1 }}
           value={deadline} min={todayISO()} onChange={e => setDeadline(e.target.value)} />
       </div>
+      
+      {/* Vincular hábito */}
+      {habits.length > 0 && (
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <PiCheckSquareBold size={13} color="var(--ink3)"/>
+          <select className="input" style={{ flex:1 }} value={linkedHabitId} onChange={e => setLinkedHabitId(e.target.value)}>
+            <option value="">Vincular hábito (opcional)</option>
+            {habits.map(h => (
+              <option key={h.id} value={h.id}>{h.title}</option>
+            ))}
+          </select>
+        </div>
+      )}
+      
       <textarea className={`input ${styles.notesArea}`} placeholder="Descrição, motivação..." rows={2}
         value={notes} onChange={e => setNotes(e.target.value)} />
       <button type="button" className="btn btn-primary"
@@ -613,25 +663,36 @@ function ProjectCard({ project, onUpdate, onDelete }) {
   const dl = project.deadline ? fmtDeadline(project.deadline) : null
   const doneTasks  = project.tasks?.filter(t => t.done).length || 0
   const totalTasks = project.tasks?.length || 0
-
+  
+  // Carregar hábito vinculado
+  const linkedHabit = useMemo(() => {
+    if (!project.linkedHabitId) return null
+    try {
+      const habits = loadStorage('nex_habits') || []
+      return habits.find(h => h.id === project.linkedHabitId) || null
+    } catch {
+      return null
+    }
+  }, [project.linkedHabitId])
+ 
   function cycleStatus() {
     const idx  = PROJECT_STATUS.findIndex(s => s.id === project.status)
     const next = PROJECT_STATUS[(idx + 1) % PROJECT_STATUS.length]
     onUpdate({ ...project, status: next.id })
     toast(`${project.name} → ${next.label}`)
   }
-
+ 
   function addTask() {
     const text = newTask.trim()
     if (!text) return
     onUpdate({ ...project, tasks: [...(project.tasks||[]), { id:Date.now(), text, done:false }] })
     setNewTask('')
   }
-
+ 
   function toggleTask(id) {
     onUpdate({ ...project, tasks: project.tasks.map(t => t.id===id ? {...t,done:!t.done} : t) })
   }
-
+ 
   function removeTask(id) {
     onUpdate({ ...project, tasks: project.tasks.filter(t => t.id !== id) })
   }
@@ -649,6 +710,11 @@ function ProjectCard({ project, onUpdate, onDelete }) {
           <span className={styles.projectName}>{project.name}</span>
           <div className={styles.projectMeta}>
             <span className={styles.statusLabel} style={{ color: status.color }}>{status.label}</span>
+            {linkedHabit && (
+              <span className={styles.habitTag} style={{ background: '#f0f9ff', color: '#0288d1', borderColor: '#0288d1' }}>
+                <PiCheckSquareBold size={10}/> {linkedHabit.title}
+              </span>
+            )}
             {dl && <span style={{ fontSize:10, color:dl.color, fontWeight:700 }}>· {dl.txt}</span>}
             {totalTasks > 0 && <span className={styles.taskCount}>· {doneTasks}/{totalTasks} tarefas</span>}
           </div>
@@ -711,7 +777,17 @@ function AddProjectForm({ onSave, onClose }) {
   const [notes,    setNotes]    = useState('')
   const [deadline, setDeadline] = useState('')
   const [tags,     setTags]     = useState('')
-
+  const [linkedHabitId, setLinkedHabitId] = useState('')
+  
+  // Carregar hábitos disponíveis para vincular
+  const habits = useMemo(() => {
+    try {
+      return loadStorage('nex_habits') || []
+    } catch {
+      return []
+    }
+  }, [])
+ 
   function submit() {
     if (!name.trim()) { toast('Informe o nome do projeto'); return }
     playSaveDirect()
@@ -719,6 +795,7 @@ function AddProjectForm({ onSave, onClose }) {
       id: Date.now(), name: name.trim(), status: 'planejando',
       notes: notes.trim(), deadline: deadline||null,
       tags: tags.split(',').map(t=>t.trim()).filter(Boolean),
+      linkedHabitId: linkedHabitId || null,
       tasks: [], createdAt: todayISO(),
     })
     toast(`Projeto "${name.trim()}" criado!`)
@@ -739,6 +816,20 @@ function AddProjectForm({ onSave, onClose }) {
         <input className="input" type="date" style={{ flex:1 }}
           value={deadline} min={todayISO()} onChange={e => setDeadline(e.target.value)} />
       </div>
+      
+      {/* Vincular hábito */}
+      {habits.length > 0 && (
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <PiCheckSquareBold size={13} color="var(--ink3)"/>
+          <select className="input" style={{ flex:1 }} value={linkedHabitId} onChange={e => setLinkedHabitId(e.target.value)}>
+            <option value="">Vincular hábito (opcional)</option>
+            {habits.map(h => (
+              <option key={h.id} value={h.id}>{h.title}</option>
+            ))}
+          </select>
+        </div>
+      )}
+      
       <input className="input" placeholder="Tags (separadas por vírgula)" value={tags}
         onChange={e => setTags(e.target.value)} />
       <button type="button" className="btn btn-primary"

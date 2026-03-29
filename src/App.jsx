@@ -11,6 +11,8 @@ import { SplashScreen }  from './components/SplashScreen'
 import { OfflineBanner } from './components/OfflineBanner'
 import { MigrationModal } from './components/MigrationModal'
 import { hasLocalData }   from './services/syncService'
+import { Desktop }       from './components/Desktop'
+import { useIsDesktop }  from './hooks/useIsDesktop'
 import Login          from './pages/Login'
 import ResetPassword  from './pages/ResetPassword'
 import Home           from './pages/Home'
@@ -50,6 +52,14 @@ function ProfileWrapper() {
 }
 
 function Layout() {
+  const isDesktop = useIsDesktop()
+
+  // Modo Desktop: usar Desktop component
+  if (isDesktop) {
+    return <Desktop />
+  }
+
+  // Modo Mobile: usar layout atual
   return (
     <div className="nex-app">
       <Toast />

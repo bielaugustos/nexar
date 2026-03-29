@@ -26,6 +26,7 @@ import { calcLevel }   from '../services/levels'
 import { loadStorage, saveStorage } from '../services/storage'
 import { THEMES, applyTheme } from '../services/themes'
 import { LegalModal, useLegal } from '../components/LegalModal'
+import { ThemeSelector } from '../components/ThemeSelector'
 import { toast }     from '../components/Toast'
 import { playPurchaseDirect, playClickDirect } from '../hooks/useSound'
 import { usePlan }   from '../hooks/usePlan'
@@ -196,9 +197,12 @@ function HeroCard({ allPoints, streak, daysActive }) {
 // Aparência integrada diretamente nas configs,
 // sem card separado visualmente pesado.
 // ══════════════════════════════════════
+import { ThemePersonalizer } from '../components/ThemePersonalizer'
+
 const THEME_LIST = [
   { id:'light',         name:'Padrão',       emoji:'☀️',  free:true  },
   { id:'dark',          name:'Escuro',       emoji:'🌙',  free:true  },
+  { id:'glass_dark',    name:'Vidro Dark',   emoji:'🌑', free:true, shopId:'theme_glass_dark' },
   { id:'midnight',      name:'Midnight',     emoji:'🌌',  free:false, shopId:'theme_midnight' },
   { id:'forest',        name:'Forest',       emoji:'🌿',  free:false, shopId:'theme_forest'   },
   { id:'sakura',        name:'Sakura',       emoji:'🌸',  free:false, shopId:'theme_sakura'   },
@@ -269,6 +273,7 @@ const SHOP_ITEMS = [
   { id:'theme_midnight',  cat:'tema',     name:'Midnight',      icon:'🌌', desc:'Desbloqueado com 1200 io acumulados.', cost:1200, pillar:'Bem-estar', pillarColor:'#8e44ad' },
   { id:'theme_forest',    cat:'tema',     name:'Forest',        icon:'🌿', desc:'Desbloqueado com 1200 io acumulados.', cost:1200, pillar:'Bem-estar', pillarColor:'#8e44ad' },
   { id:'theme_glass',     cat:'tema',     name:'Vidro',         icon:'🪟', desc:'O tema mais exclusivo — glassmorphism inspirado no design Apple. Desbloqueado com 2000 io.', cost:2000, pillar:'Bem-estar', pillarColor:'#8e44ad' },
+  { id:'theme_glass_dark',cat:'tema',     name:'Vidro Dark',    icon:'🌑', desc:'Versão escura do tema Vidro com glassmorphism. Desbloqueado com 2200 io.', cost:2200, pillar:'Bem-estar', pillarColor:'#8e44ad' },
   { id:'theme_high_contrast', cat:'tema', name:'Alto Contraste', icon:'⬛', desc:'Tema de acessibilidade com alto contraste para melhor legibilidade. Desbloqueado com 1500 io.', cost:1500, pillar:'Acessibilidade', pillarColor:'#000000' },
   { id:'theme_macintosh',     cat:'tema', name:'Macintosh',    icon:'🍎', desc:'Tema retro inspirado no Apple System 7. Desbloqueado com 1800 io.', cost:1800, pillar:'Retro', pillarColor:'#c0c0c0' },
   { id:'theme_windows98',     cat:'tema', name:'Windows 98',   icon:'🪟', desc:'Tema retro inspirado no Windows 98. Desbloqueado com 1800 io.', cost:1800, pillar:'Retro', pillarColor:'#c0c0c0' },
@@ -289,7 +294,7 @@ const CAT_DESC   = {
 // Fica escondida por padrão para não
 // poluir o layout do Profile.
 // ══════════════════════════════════════
-function RewardsShop({ allPoints, onItemBought, isOpen, onToggle }) {
+function RewardsShop({ allPoints, onItemBought, isOpen, onToggle, theme, setTheme }) {
   const [cat,        setCat]        = useState('all')
   const [owned,      setOwned]      = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('nex_shop_owned') || '[]')) }
@@ -401,6 +406,11 @@ function RewardsShop({ allPoints, onItemBought, isOpen, onToggle }) {
                 </div>
               )
             })}
+          </div>
+
+          {/* Theme Personalizer */}
+          <div style={{ padding:'11px 0', borderBottom:'1px solid var(--border)' }}>
+            <ThemePersonalizer currentTheme={theme} onThemeChange={setTheme} />
           </div>
 
         </div>
@@ -1599,7 +1609,7 @@ export default function Profile({ onNavigate }) {
 
         {/* Aparência — tema como linha compacta */}
         <div style={{ padding:'11px 0', borderBottom:'1px solid var(--border)' }}>
-          <ThemePicker
+          <ThemeSelector
             currentTheme={theme}
             onChangeTheme={setTheme}
             ownedItems={ownedItems}
@@ -1614,6 +1624,8 @@ export default function Profile({ onNavigate }) {
           onItemBought={id => {
             setOwnedItems(prev => new Set([...prev, id]))
           }}
+          theme={theme}
+          setTheme={setTheme}
         />
 
         <div className={styles.settingRow}>

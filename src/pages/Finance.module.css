@@ -156,6 +156,20 @@
   transition: box-shadow .1s, transform .1s;
   margin-top: 4px;
 }
+
+/* Tema Vidro: ajuste do botão começar */
+[data-theme='glass'] .comecarBtn {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1c1c1e;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Tema Vidro Dark: ajuste do botão começar */
+[data-theme='glass_dark'] .comecarBtn {
+  background: rgba(240, 192, 32, 0.85);
+  color: #1c1c1e;
+  border: 1px solid rgba(176, 128, 0, 0.60);
+}
 .comecarBtn:hover {
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0 var(--shadow);

@@ -365,7 +365,7 @@
   position:absolute; top:calc(100% + 4px); left:0; right:0;
   background:var(--white); border:2px solid var(--border);
   border-radius:4px; box-shadow:4px 4px 0 var(--shadow);
-  z-index:100; overflow:hidden;
+  z-index:1000; overflow:hidden;
   animation: dropIn .15s ease;
 }
 @keyframes dropIn {
@@ -435,7 +435,7 @@
 
 .logoutBtn { display:flex; justify-content:center; align-items:center; gap:7px; width:100%; border:2px solid var(--border); border-radius:3px; padding:7px 20px; font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font-body); background:var(--bg); color:var(--ink); box-shadow:2px 2px 0 var(--shadow); transition:all .1s; }
 .logoutBtn:hover { transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--shadow); }
-.loginBtn { display:inline-flex; align-items:center; gap:7px; background:var(--ink); color:var(--bg); border-color:var(--ink); }
+.loginBtn { display:inline-flex; align-items:center; gap:7px; background:var(--ink); color:var(--gold); border-color:var(--ink); }
 .migrateDataBtn { display:inline-flex; align-items:center; gap:7px; background:var(--surface); color:var(--ink2); border-style:dashed; }
 .deleteDataBtn { display:inline-flex; align-items:center; gap:7px; background:#fdf2f2; color:#c0392b; border-color:#e74c3c; }
 .deleteDataBtn:hover { background:#fce4e4; }

@@ -1160,7 +1160,7 @@ function HabitCard({ habit, history, onToggle, onSave, onDelete, selecting, sele
               aria-label={habit.done ? 'Desmarcar' : `+${habit.pts} pts`}
             >
               {habit.done
-                ? <PiCheckBold size={11} color="var(--bg)" />
+                ? <PiCheckBold size={11} color="var(--gold-dk)" />
                 : <HabIcon name={habit.icon} size={13} color="var(--pri-color, var(--ink2))" />
               }
             </button>

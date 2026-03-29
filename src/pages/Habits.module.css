@@ -1319,6 +1319,7 @@
   background: color-mix(in srgb, var(--pri-color, var(--surface)) 12%, var(--white));
   transition: background .15s;
   border-left: 5px solid var(--pri-color, var(--border));
+  border-left-radius: 4px 0 0 4px;
   border-right: 3px dashed var(--pri-color, var(--border));
 }
 .habitCard:last-child { border-bottom: none; }

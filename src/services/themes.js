@@ -127,14 +127,32 @@ export const THEMES = {
     attr: 'glass',  // data-theme personalizado para CSS overrides
     vars: {
       '--bg':      'transparent',
-      '--surface': 'rgba(255,255,255,0.52)',
-      '--white':   'rgba(255,255,255,0.78)',
+      '--surface': 'rgba(255,255,255,0.55)',
+      '--white':   'rgba(255,255,255,0.85)',
       '--ink':     '#1c1c1e',
-      '--ink2':    '#3a3a3c',
-      '--ink3':    '#8a8a8e',
-      '--border':  'rgba(255,255,255,0.62)',
-      '--shadow':  'rgba(100,80,200,0.12)',
-      '--radius':  '16px',
+      '--ink2':    '#2d2d2d',
+      '--ink3':    '#6a6a6a',
+      '--border':  'rgba(255,255,255,0.7)',
+      '--shadow':  'rgba(0,0,0,0.15)',
+      '--radius':  '12px',
+    },
+  },
+
+  // Vidro Dark — tema glassmorphism escuro
+  glass_dark: {
+    id: 'glass_dark', name: 'Vidro Dark', emoji: '🌑',
+    dark: true,
+    attr: 'glass_dark',
+    vars: {
+      '--bg':      'transparent',
+      '--surface': 'rgba(30,30,30,0.55)',
+      '--white':   'rgba(45,45,45,0.85)',
+      '--ink':     '#f0f0f0',
+      '--ink2':    '#d0d0d0',
+      '--ink3':    '#909090',
+      '--border':  'rgba(255,255,255,0.15)',
+      '--shadow':  'rgba(0,0,0,0.4)',
+      '--radius':  '12px',
     },
   },
 
