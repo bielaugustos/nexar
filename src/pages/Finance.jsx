@@ -1298,57 +1298,43 @@ function GoalsCard({ goals, onAdd, onAddSaved, onRemove, onUndoAporte, atLimit, 
 const TOTAL_MONTHS = 12
 
 function MonthNav({ monthOffset, onChange }) {
-  const [isOpen, setIsOpen] = useState(false)
   const viewDate = useMemo(() => {
     const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + monthOffset)
     return d
   }, [monthOffset])
-  
+
   const viewLabel = viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
   const isCurrentMonth = monthOffset === 0
-  
-  const months = useMemo(() => {
-    return Array.from({ length: TOTAL_MONTHS }, (_, i) => {
-      const offset = -(TOTAL_MONTHS - 1) + i
-      const d = new Date()
-      d.setDate(1)
-      d.setMonth(d.getMonth() + offset)
-      const label = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
-      return { offset, label }
-    })
-  }, [])
-  
+  const canGoBack = monthOffset > -(TOTAL_MONTHS - 1)
+  const canGoForward = monthOffset < 0
+
   return (
-    <div className={styles.monthNav}>
+    <div className={styles.monthNavBar}>
       <button
         type="button"
-        className={styles.monthNavButton}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
+        className={styles.monthNavArrow}
+        onClick={() => onChange(monthOffset - 1)}
+        disabled={!canGoBack}
+        title="Mês anterior"
       >
-        <PiCalendarBold size={14} />
-        <span className={styles.monthNavLabel}>{viewLabel}</span>
-        {!isCurrentMonth && <span className={styles.monthNavBadge}>Não atual</span>}
-        <PiCaretDownBold size={11} className={isOpen ? styles.monthNavArrowOpen : ''} />
+        <PiCaretLeftBold size={16} />
       </button>
-      
-      {isOpen && (
-        <div className={styles.monthDropdown}>
-          <div className={styles.monthDropdownList}>
-            {months.map(m => (
-              <button
-                key={m.offset}
-                type="button"
-                className={`${styles.monthDropdownItem} ${m.offset === monthOffset ? styles.monthDropdownItemActive : ''}`}
-                onClick={() => { onChange(m.offset); setIsOpen(false) }}
-              >
-                {m.offset === 0 && <span className={styles.monthDropdownCurrent}>Atual</span>}
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+
+      <div className={styles.monthNavBarContent}>
+        <PiCalendarBold size={14} />
+        <span className={styles.monthNavBarLabel}>{viewLabel}</span>
+        {isCurrentMonth && <span className={styles.monthNavBarBadge}>Atual</span>}
+      </div>
+
+      <button
+        type="button"
+        className={styles.monthNavArrow}
+        onClick={() => onChange(monthOffset + 1)}
+        disabled={!canGoForward}
+        title="Próximo mês"
+      >
+        <PiCaretRightBold size={16} />
+      </button>
     </div>
   )
 }

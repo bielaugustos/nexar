@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { WindowManager } from './WindowManager'
 import { Taskbar } from './Taskbar'
 import { StartMenu } from './StartMenu'
 import { DesktopIcon } from './DesktopIcon'
 import { Widget } from './Widget'
-import { PiHouseBold, PiCheckCircleBold, PiCurrencyDollarBold, PiBriefcaseBold, PiRocketLaunchBold, PiRobotBold, PiChartLineUpBold, PiUserBold, PiCalculatorBold } from 'react-icons/pi'
+import { PiHouseBold, PiCheckCircleBold, PiCurrencyDollarBold, PiBriefcaseBold, PiRocketLaunchBold, PiRobotBold, PiChartLineUpBold, PiUserBold, PiCalculatorBold, PiGearBold, PiXBold, PiClockBold, PiChartBarBold } from 'react-icons/pi'
 import { useUnlockableItem } from '../../hooks/useNav'
 import Home from '../../pages/Home'
 import Habits from '../../pages/Habits'
@@ -47,6 +47,34 @@ const APPS = [
   { id: 'profile', name: 'Perfil', icon: PiUserBold, component: 'Profile' },
 ]
 
+// WIDGETS DISPONÍVEIS
+const WIDGETS = [
+  { id: 'clock', name: 'Relógio', icon: PiClockBold },
+  { id: 'stats', name: 'Estatísticas', icon: PiChartBarBold },
+]
+
+// CORES DE FUNDO DO DESKTOP
+const DESKTOP_BG_COLORS = [
+  { id: 'default', color: 'linear-gradient(135deg, var(--bg) 0%, var(--surface) 100%)', name: 'Padrão' },
+  { id: 'blue', color: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', name: 'Azul Escuro' },
+  { id: 'purple', color: 'linear-gradient(135deg, #2d1b4e 0%, #1a1a2e 100%)', name: 'Roxo' },
+  { id: 'green', color: 'linear-gradient(135deg, #1a3a2e 0%, #0d2818 100%)', name: 'Verde Escuro' },
+  { id: 'sunset', color: 'linear-gradient(135deg, #4a1942 0%, #1a0a1a 100%)', name: 'Pôr do Sol' },
+  { id: 'ocean', color: 'linear-gradient(135deg, #0a192f 0%, #112240 100%)', name: 'Oceano' },
+  { id: 'warm', color: 'linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%)', name: 'Quente' },
+]
+
+// LEITURA/ESCRITA DE CONFIGURAÇÃO DO DESKTOP
+function getDesktopConfig() {
+  try {
+    return JSON.parse(localStorage.getItem('nex_desktop_config') || '{}')
+  } catch { return {} }
+}
+
+function saveDesktopConfig(config) {
+  localStorage.setItem('nex_desktop_config', JSON.stringify(config))
+}
+
 // ══════════════════════════════════════
 // DESKTOP COMPONENT
 // ══════════════════════════════════════
@@ -55,6 +83,38 @@ export function Desktop() {
   const [activeWindowId, setActiveWindowId] = useState(null)
   const [startMenuOpen, setStartMenuOpen] = useState(false)
   const [selectedIcon, setSelectedIcon] = useState(null)
+
+  // Configuração do desktop
+  const [desktopConfig, setDesktopConfig] = useState(() => {
+    const saved = getDesktopConfig()
+    // Posições padrão para ícones organizados em grid
+    const defaultIconPositions = {
+      home: { x: 16, y: 16 },
+      habits: { x: 104, y: 16 },
+      finance: { x: 192, y: 16 },
+      career: { x: 280, y: 16 },
+      projects: { x: 368, y: 16 },
+      mentor: { x: 16, y: 104 },
+      progress: { x: 104, y: 104 },
+      calculator: { x: 192, y: 104 },
+      profile: { x: 280, y: 104 },
+    }
+    return {
+      iconPositions: saved.iconPositions || defaultIconPositions,
+      widgetPositions: saved.widgetPositions || { clock: { x: 800, y: 16 }, stats: { x: 800, y: 100 } },
+      hiddenIcons: saved.hiddenIcons || [],
+      hiddenWidgets: saved.hiddenWidgets || [],
+      bgColor: saved.bgColor || 'default',
+    }
+  })
+
+  // Estado de customização
+  const [showCustomize, setShowCustomize] = useState(false)
+
+  // Estado de drag
+  const [draggingItem, setDraggingItem] = useState(null)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const dragRef = useRef(null)
 
   // Abrir janela
   const openWindow = useCallback((appId) => {
@@ -148,19 +208,97 @@ export function Desktop() {
     focusWindow(windowId)
   }, [focusWindow])
 
-  // Clique em ícone
+  // Clique em ícone - apenas seleciona
   const handleIconClick = useCallback((appId) => {
-    // Clique único abre janela
-    openWindow(appId)
-    setSelectedIcon(null)
-  }, [openWindow])
+    setSelectedIcon(appId)
+  }, [])
 
   // Clique na área de trabalho (desselecionar ícone)
   const handleDesktopClick = useCallback((e) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget || e.target.classList.contains(styles.wallpaper)) {
       setSelectedIcon(null)
       setStartMenuOpen(false)
     }
+  }, [])
+
+  // ===== DRAG & DROP =====
+  const handleDragStart = useCallback((e, item, type) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const rect = e.currentTarget.getBoundingClientRect()
+    setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top })
+    setDraggingItem({ id: item.id, type })
+  }, [])
+
+  const handleDragMove = useCallback((e) => {
+    if (!draggingItem) return
+    const x = e.clientX - dragOffset.x
+    const y = e.clientY - dragOffset.y
+    if (draggingItem.type === 'icon') {
+      setDesktopConfig(prev => ({
+        ...prev,
+        iconPositions: { ...prev.iconPositions, [draggingItem.id]: { x, y } }
+      }))
+    } else if (draggingItem.type === 'widget') {
+      setDesktopConfig(prev => ({
+        ...prev,
+        widgetPositions: { ...prev.widgetPositions, [draggingItem.id]: { x, y } }
+      }))
+    }
+  }, [draggingItem, dragOffset])
+
+  const handleDragEnd = useCallback(() => {
+    if (draggingItem) {
+      const config = draggingItem.type === 'icon'
+        ? { iconPositions: desktopConfig.iconPositions }
+        : { widgetPositions: desktopConfig.widgetPositions }
+      saveDesktopConfig({ ...desktopConfig, ...config })
+    }
+    setDraggingItem(null)
+  }, [draggingItem, desktopConfig])
+
+  // Listeners de drag
+  useEffect(() => {
+    if (draggingItem) {
+      document.addEventListener('mousemove', handleDragMove)
+      document.addEventListener('mouseup', handleDragEnd)
+      return () => {
+        document.removeEventListener('mousemove', handleDragMove)
+        document.removeEventListener('mouseup', handleDragEnd)
+      }
+    }
+  }, [draggingItem, handleDragMove, handleDragEnd])
+
+  // ===== CUSTOMIZAÇÃO =====
+  const toggleIconVisibility = useCallback((appId) => {
+    setDesktopConfig(prev => {
+      const hidden = prev.hiddenIcons.includes(appId)
+        ? prev.hiddenIcons.filter(id => id !== appId)
+        : [...prev.hiddenIcons, appId]
+      const newConfig = { ...prev, hiddenIcons: hidden }
+      saveDesktopConfig(newConfig)
+      return newConfig
+    })
+  }, [])
+
+  const toggleWidgetVisibility = useCallback((widgetId) => {
+    setDesktopConfig(prev => {
+      const hidden = prev.hiddenWidgets.includes(widgetId)
+        ? prev.hiddenWidgets.filter(id => id !== widgetId)
+        : [...prev.hiddenWidgets, widgetId]
+      const newConfig = { ...prev, hiddenWidgets: hidden }
+      saveDesktopConfig(newConfig)
+      return newConfig
+    })
+  }, [])
+
+  // Mudar cor de fundo
+  const setBackgroundColor = useCallback((colorId) => {
+    setDesktopConfig(prev => {
+      const newConfig = { ...prev, bgColor: colorId }
+      saveDesktopConfig(newConfig)
+      return newConfig
+    })
   }, [])
 
   // Fechar StartMenu ao clicar fora
@@ -174,39 +312,70 @@ export function Desktop() {
     return () => document.removeEventListener('click', handleClickOutside)
   }, [startMenuOpen])
 
+  // Fechar painel de customização ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showCustomize && !e.target.closest(`.${styles.customizePanel}`) && !e.target.closest(`.${styles.customizeIcon}`)) {
+        setShowCustomize(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showCustomize])
+
   return (
     <div className={styles.desktop} onClick={handleDesktopClick}>
       {/* Wallpaper */}
-      <div className={styles.wallpaper} />
+      <div
+        className={styles.wallpaper}
+        style={{ background: DESKTOP_BG_COLORS.find(c => c.id === desktopConfig.bgColor)?.color }}
+      />
 
       {/* Widgets na área de trabalho */}
-      <div className={styles.widgets}>
-        <Widget type="clock" />
-        <Widget type="stats" />
-      </div>
+      {WIDGETS.map(widget => {
+        if (desktopConfig.hiddenWidgets.includes(widget.id)) return null
+        const pos = desktopConfig.widgetPositions[widget.id] || { x: 16, y: 16 }
+        return (
+          <div
+            key={widget.id}
+            className={styles.widget}
+            style={{ position: 'absolute', top: pos.y, left: pos.x }}
+            onMouseDown={(e) => handleDragStart(e, widget, 'widget')}
+          >
+            <Widget type={widget.id} />
+          </div>
+        )
+      })}
 
       {/* Ícones na área de trabalho */}
-      <div className={styles.icons}>
-        {APPS.map(app => {
-          // Verificar se é um item desbloqueável
-          const isUnlockable = ['progress', 'career', 'projects', 'mentor', 'calculator'].includes(app.id)
-          const { visible, animCls } = isUnlockable ? useUnlockableItem(`util_${app.id}`) : { visible: true, animCls: 'visible' }
-          
-          // Se não estiver visível, não renderizar
-          if (!visible) return null
-          
-          return (
+      {APPS.map((app) => {
+        // Verificar se é um item desbloqueável
+        const isUnlockable = ['progress', 'career', 'projects', 'mentor', 'calculator'].includes(app.id)
+        const { visible, animCls } = isUnlockable ? useUnlockableItem(`util_${app.id}`) : { visible: true, animCls: 'visible' }
+
+        // Verificar se está oculto pelo usuário
+        if (desktopConfig.hiddenIcons.includes(app.id)) return null
+        if (!visible) return null
+
+        const pos = desktopConfig.iconPositions[app.id]
+
+        return (
+          <div
+            key={app.id}
+            className={`${styles.desktopIcon} ${draggingItem?.id === app.id ? styles.dragging : ''}`}
+            style={{ position: 'absolute', top: pos?.y || 0, left: pos?.x || 0 }}
+            onMouseDown={(e) => handleDragStart(e, app, 'icon')}
+          >
             <DesktopIcon
-              key={app.id}
               app={app}
               isSelected={selectedIcon === app.id}
               onClick={() => handleIconClick(app.id)}
               onDoubleClick={() => openWindow(app.id)}
               animCls={animCls}
             />
-          )
-        })}
-      </div>
+          </div>
+        )
+      })}
 
       {/* Gerenciador de janelas */}
       <WindowManager
@@ -227,6 +396,80 @@ export function Desktop() {
           onAppClick={openWindow}
           onClose={() => setStartMenuOpen(false)}
         />
+      )}
+
+      {/* Botão de customização (ícone fixo) */}
+      <div
+        className={styles.customizeIcon}
+        style={{ position: 'absolute', top: 8, right: 8 }}
+        onClick={() => setShowCustomize(prev => !prev)}
+      >
+        <PiGearBold size={20} />
+      </div>
+
+      {/* Painel de customização */}
+      {showCustomize && (
+        <div className={styles.customizePanel}>
+          <h4>
+            <PiGearBold size={12} style={{ marginRight: 4 }} />
+            Personalizar Área de Trabalho
+          </h4>
+
+          <h4 style={{ marginTop: 12 }}>Cor de Fundo</h4>
+          <div className={styles.colorPicker}>
+            {DESKTOP_BG_COLORS.map(color => (
+              <button
+                key={color.id}
+                type="button"
+                className={`${styles.colorOption} ${desktopConfig.bgColor === color.id ? styles.colorSelected : ''}`}
+                style={{ background: color.color }}
+                onClick={() => setBackgroundColor(color.id)}
+                title={color.name}
+              />
+            ))}
+          </div>
+
+          <h4 style={{ marginTop: 12 }}>Ícones</h4>
+          <div className={styles.customizeList}>
+            {APPS.map(app => {
+              const IconComponent = app.icon
+              const isHidden = desktopConfig.hiddenIcons.includes(app.id)
+              return (
+                <div
+                  key={app.id}
+                  className={`${styles.customizeItem} ${isHidden ? styles.hidden : ''}`}
+                  onClick={() => toggleIconVisibility(app.id)}
+                >
+                  <IconComponent size={18} />
+                  <span>{app.name}</span>
+                </div>
+              )
+            })}
+          </div>
+
+          <h4>Widgets</h4>
+          <div className={styles.customizeList}>
+            {WIDGETS.map(widget => {
+              const IconComponent = widget.icon
+              const isHidden = desktopConfig.hiddenWidgets.includes(widget.id)
+              return (
+                <div
+                  key={widget.id}
+                  className={`${styles.customizeItem} ${isHidden ? styles.hidden : ''}`}
+                  onClick={() => toggleWidgetVisibility(widget.id)}
+                >
+                  <IconComponent size={18} />
+                  <span>{widget.name}</span>
+                </div>
+              )
+            })}
+          </div>
+
+          <p style={{ fontSize: 10, color: 'var(--ink2)', margin: 0, textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)' }}>
+            Clique nos itens para mostrar/ocultar.<br/>
+            Arraste para repositionar.
+          </p>
+        </div>
       )}
 
       {/* Barra de tarefas */}

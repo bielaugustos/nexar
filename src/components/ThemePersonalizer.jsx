@@ -107,7 +107,7 @@ export function ThemePersonalizer({ currentTheme, onThemeChange }) {
         }}
       >
         <PiPaletteBold size={16} color="var(--ink2)" />
-        <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--ink)' }}>
+        <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--ink)', textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)' }}>
           Personalizar Tema por Foco
         </span>
         {expanded ? <PiCaretUpBold size={14} /> : <PiCaretDownBold size={14} />}
@@ -145,12 +145,12 @@ export function ThemePersonalizer({ currentTheme, onThemeChange }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <span style={{ fontSize: '24px' }}>{theme.emoji}</span>
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: isSelected ? '#fff' : 'var(--ink)' }}>
+                  <span style={{ fontSize: '14px', fontWeight: '700', color: isSelected ? '#fff' : 'var(--ink)', textShadow: isSelected ? 'none' : '0 1px 2px rgba(255, 255, 255, 0.8)' }}>
                     {theme.name}
                   </span>
                   {isSelected && <PiCheckCircleBold size={14} color="#fff" />}
                 </div>
-                <div style={{ fontSize: '11px', color: isSelected ? '#fff' : 'var(--ink3)' }}>
+                <div style={{ fontSize: '11px', color: isSelected ? '#fff' : 'var(--ink2)', textShadow: isSelected ? 'none' : '0 1px 2px rgba(255, 255, 255, 0.8)' }}>
                   Personalize as cores para {theme.name.toLowerCase()}
                 </div>
               </button>

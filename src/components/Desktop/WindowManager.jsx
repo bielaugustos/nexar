@@ -13,6 +13,7 @@ const PAGE_COMPONENTS = {
   Profile: () => import('../../pages/Profile'),
   Career: () => import('../../pages/Career'),
   Projects: () => import('../../pages/Projects'),
+  Calculator: () => import('../../pages/Calculator'),
 }
 
 // ══════════════════════════════════════
@@ -259,8 +260,9 @@ function PageContent({ component }) {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        color: 'var(--ink3)',
-        fontSize: 14
+        color: 'var(--ink2)',
+        fontSize: 14,
+        textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)'
       }}>
         Carregando...
       </div>
@@ -274,8 +276,9 @@ function PageContent({ component }) {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        color: 'var(--ink3)',
-        fontSize: 14
+        color: 'var(--ink2)',
+        fontSize: 14,
+        textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)'
       }}>
         Componente não encontrado
       </div>

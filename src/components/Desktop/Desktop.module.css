@@ -29,15 +29,134 @@
   z-index: 5;
 }
 
+.widget {
+  cursor: move;
+  user-select: none;
+  z-index: 10;
+}
+
+.widget:hover {
+  border-color: var(--gold-dk);
+}
+
 /* Ícones na área de trabalho */
-.icons {
+.desktopIcon.dragging {
+  opacity: 0.5;
+  z-index: 1000;
+}
+
+/* Customização do desktop */
+.customizeIcon {
   position: absolute;
-  top: 16px;
-  left: 16px;
+  z-index: 10000;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--white);
+  transition: all .15s;
+}
+
+.customizeIcon:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+}
+
+.customizePanel {
+  position: fixed;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 var(--shadow);
+  padding: 12px;
+  z-index: 10000;
+  min-width: 280px;
+}
+
+.customizePanel h4 {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.customizeList {
   display: grid;
-  grid-template-columns: repeat(4, 80px);
-  gap: 8px;
-  z-index: 5;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.customizeItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.customizeItem:hover {
+  border-color: var(--gold-dk);
+}
+
+.customizeItem.hidden {
+  opacity: 0.4;
+}
+
+.customizeItem span {
+  font-size: 9px;
+  color: var(--ink2);
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.customizeItem i {
+  font-size: 18px;
+  color: var(--ink);
+  filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.8));
+}
+
+/* Seletor de cores */
+.colorPicker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.colorOption {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.colorOption:hover {
+  transform: scale(1.1);
+}
+
+.colorSelected {
+  border-color: var(--gold-dk);
+  box-shadow: 0 0 0 2px var(--gold);
 }
 
 /* ══════════════════════════════════════
@@ -54,6 +173,8 @@
   display: flex;
   flex-direction: column;
   transition: box-shadow 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .window.focused {
@@ -93,6 +214,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .windowControls {
@@ -148,6 +270,8 @@
   flex: 1;
   overflow: auto;
   background: var(--bg);
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* Handles de redimensionamento */
@@ -304,6 +428,7 @@
   max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .systemTray {
@@ -314,6 +439,7 @@
   color: var(--gold);
   font-size: 12px;
   font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .systemTrayClock {
@@ -379,11 +505,13 @@
 .startMenuUserName {
   font-size: 14px;
   font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .startMenuUserLevel {
   font-size: 11px;
-  opacity: 0.8;
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .startMenuSearch {
@@ -399,11 +527,17 @@
   font-size: 13px;
   background: var(--surface);
   color: var(--ink);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .startMenuSearchInput:focus {
   outline: none;
   border-color: var(--gold-dk);
+}
+
+.startMenuSearchInput::placeholder {
+  color: var(--ink3);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .startMenuApps {
@@ -439,6 +573,7 @@
   font-size: 13px;
   font-weight: 700;
   color: var(--ink);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 /* ══════════════════════════════════════
@@ -449,14 +584,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   padding: 8px;
   border-radius: 4px;
-  cursor: pointer;
+  cursor: move;
   user-select: none;
   -webkit-user-select: none;
   transition: background 0.1s;
-  width: 80px;
+  width: 88px;
+  height: 88px;
 }
 
 .desktopIcon:hover {
@@ -506,12 +643,13 @@
   height: 48px;
   border-radius: 8px;
   background: var(--white);
-  border: 2px solid var(--border);
+  border: 2px solid rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  box-shadow: 2px 2px 0 var(--shadow);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  color: var(--ink);
 }
 
 .desktopIconName {
@@ -522,6 +660,7 @@
   line-height: 1.2;
   max-width: 100%;
   overflow: hidden;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -534,11 +673,13 @@
    ══════════════════════════════════════ */
 
 .widget {
-  background: var(--white);
-  border: 2px solid var(--border);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 8px;
   padding: 12px 16px;
-  box-shadow: 2px 2px 0 var(--shadow);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   min-width: 160px;
 }
 
@@ -549,15 +690,17 @@
 .widgetClockTime {
   font-size: 32px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--white);
   font-family: var(--font-display);
   line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .widgetClockDate {
   font-size: 12px;
-  color: var(--ink3);
+  color: rgba(255, 255, 255, 0.9);
   margin-top: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .widgetStats {
@@ -574,17 +717,20 @@
 
 .widgetStatIcon {
   font-size: 16px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 .widgetStatValue {
   font-size: 14px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--white);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .widgetStatLabel {
   font-size: 10px;
-  color: var(--ink3);
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* ══════════════════════════════════════

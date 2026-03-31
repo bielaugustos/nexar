@@ -76,8 +76,9 @@ export function StartMenu({ apps, onAppClick, onClose }) {
           <div style={{
             padding: 16,
             textAlign: 'center',
-            color: 'var(--ink3)',
-            fontSize: 12
+            color: 'var(--ink2)',
+            fontSize: 12,
+            textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)'
           }}>
             Nenhum aplicativo encontrado
           </div>
