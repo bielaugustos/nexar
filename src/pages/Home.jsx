@@ -3,7 +3,7 @@ import {
   PiArrowRightBold, PiCheckBold, PiCalendarDots,
   PiLightbulbBold, PiLockBold, PiChartLineUp,
   PiTrendUpBold, PiTrendDownBold, PiMinusBold,
-  PiCalendarBold, PiFlame, PiStarBold,
+  PiCalendarBold, PiFlame, PiStarBold, PiSkipForwardBold,
 } from 'react-icons/pi'
 import { useApp }      from '../context/AppContext'
 import { useHabits }   from '../hooks/useHabits'
@@ -59,12 +59,13 @@ function PontosCard({ history }) {
 // ══════════════════════════════════════
 // BLOCO I — AÇÃO PRINCIPAL
 // ══════════════════════════════════════
-function AcaoPrincipalCard({ habits, onToggle }) {
+function AcaoPrincipalCard({ habits, onToggle, onSkip }) {
   const [pressing, setPressing] = useState(false)
+  const [skipped, setSkipped] = useState([])
 
   const todayDow = new Date().getDay()
   const todayAll = habits.filter(h => Array.isArray(h.days) && h.days.includes(todayDow))
-  const pending  = todayAll.filter(h => !h.done)
+  const pending  = todayAll.filter(h => !h.done && !skipped.includes(h.id))
 
   const PRI = { alta: 0, media: 1, baixa: 2 }
   const next = [...pending].sort((a, b) => (PRI[a.priority] ?? 1) - (PRI[b.priority] ?? 1))[0]
@@ -76,6 +77,12 @@ function AcaoPrincipalCard({ habits, onToggle }) {
     setPressing(true)
     setTimeout(() => setPressing(false), 600)
     onToggle(next.id)
+  }
+
+  function handlePular() {
+    if (!next) return
+    setSkipped(prev => [...prev, next.id])
+    if (onSkip) onSkip(next.id)
   }
 
   return (
@@ -107,14 +114,24 @@ function AcaoPrincipalCard({ habits, onToggle }) {
               ))}
             </div>
           </div>
-          <button
-            type="button"
-            className={`${styles.comecarBtn} ${pressing ? styles.comecarBtnPress : ''}`}
-            onClick={handleComecar}
-            disabled={pressing}
-          >
-            <PiArrowRightBold size={13} /> COMEÇAR
-          </button>
+          <div className={styles.acaoButtons}>
+            <button
+              type="button"
+              className={`${styles.comecarBtn} ${pressing ? styles.comecarBtnPress : ''}`}
+              onClick={handleComecar}
+              disabled={pressing}
+            >
+              <PiArrowRightBold size={13} /> COMEÇAR
+            </button>
+            <button
+              type="button"
+              className={styles.pularBtn}
+              onClick={handlePular}
+              title="Pular para o próximo hábito"
+            >
+              <PiSkipForwardBold size={13} />
+            </button>
+          </div>
         </>
       )}
     </div>

@@ -663,6 +663,7 @@
 
 /* ══ NAVEGAÇÃO DE MESES — mês atual com dropdown ══ */
 .monthNav {
+  position: relative;
   display: flex; align-items: center;
   margin-bottom: 12px;
 }

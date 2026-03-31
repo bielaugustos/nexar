@@ -1309,8 +1309,10 @@ function MonthNav({ monthOffset, onChange }) {
   
   const months = useMemo(() => {
     return Array.from({ length: TOTAL_MONTHS }, (_, i) => {
-      const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + i)
-      const offset = i - (TOTAL_MONTHS - 1)
+      const offset = -(TOTAL_MONTHS - 1) + i
+      const d = new Date()
+      d.setDate(1)
+      d.setMonth(d.getMonth() + offset)
       const label = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
       return { offset, label }
     })

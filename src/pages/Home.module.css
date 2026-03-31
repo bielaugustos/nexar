@@ -181,9 +181,15 @@
   opacity: .75;
 }
 
+/* ── Container dos botões ── */
+.acaoButtons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* ── Botão COMEÇAR ── */
 .comecarBtn {
-  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -228,6 +234,48 @@
   100% { transform: scale(1);    background: var(--ink);  color: var(--white); box-shadow: 3px 3px 0 var(--shadow); }
 }
 .comecarBtnPress { animation: comecarPress .55s cubic-bezier(.36,.07,.19,.97) forwards; }
+
+/* ── Botão PULAR ── */
+.pularBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--ink3);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--shadow);
+  transition: all .1s;
+}
+
+.pularBtn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--shadow);
+  color: var(--ink);
+  border-color: var(--ink3);
+}
+
+.pularBtn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--shadow);
+}
+
+/* Tema Vidro: ajuste do botão pular */
+[data-theme='glass'] .pularBtn {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Tema Vidro Dark: ajuste do botão pular */
+[data-theme='glass_dark'] .pularBtn {
+  background: rgba(28, 28, 30, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
 /* Estado de conclusão */
 .acaoConcluido {
