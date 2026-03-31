@@ -97,15 +97,10 @@ export async function askClaude({ messages, system }) {
 
 // ── Sugestão de hábitos (retorna JSON) ──
 export async function suggestHabits(existingHabits) {
-  const names  = existingHabits.map(h => h.name).join(', ')
+  const names = existingHabits.map(h => h.name).join(', ')
   const result = await askClaude({
-    system: `Você é um coach de hábitos. Responda SOMENTE com JSON válido, sem markdown, sem backticks.
-Formato: [{"name":"...","icon":"PiStarBold","pts":20,"reason":"...","priority":"alta|media|baixa","freq":"diario"}]
-Use nomes de ícones Phosphor válidos com prefixo Pi. Gere exatamente 3 sugestões.`,
-    messages: [{
-      role: 'user',
-      content: `Hábitos atuais: ${names}. Sugira 3 hábitos complementares em português.`,
-    }],
+    system: 'Sugira 3 hábitos complementares PT-BR',
+    messages: [{ role: 'user', content: `Atuais: ${names}` }],
   })
   const clean = result.replace(/```json|```/g, '').trim()
   return JSON.parse(clean)
@@ -117,26 +112,21 @@ export function buildMentorSystem(habits, history) {
   const pending = habits.filter(h => !h.done)
   const rate    = Math.round(done.length / habits.length * 100) || 0
 
-  const weekSummary = Array.from({ length: 7 }, (_, i) => {
+  // Resumo compacto: apenas últimos 3 dias com dados
+  const weekSummary = Array.from({ length: 3 }, (_, i) => {
     const d = new Date()
     d.setDate(d.getDate() - i)
     const date = d.toISOString().slice(0, 10)
     const r    = history[date]
-    return r ? `${date}: ${r.done}/${r.total}` : `${date}: sem dados`
-  }).join('\n')
+    return r ? `${date}: ${r.done}/${r.total}` : null
+  }).filter(Boolean).join('\n')
 
-  return `Você é o Mentor Ioversoroot, um coach de desenvolvimento pessoal.
-Seja direto, motivador e empático. Responda SEMPRE em português brasileiro.
-Máximo 3 parágrafos. Use linguagem próxima e encorajadora.
+  return `Mentor Ioversoroot. Coach dev pessoal. Direto, motivador, empático. PT-BR. Máx 3 parágrafos.
 
-CONTEXTO DO USUÁRIO:
-- Taxa de hoje: ${rate}%
-- Concluídos: ${done.map(h => h.name).join(', ') || 'nenhum ainda'}
-- Pendentes: ${pending.map(h => h.name).join(', ') || 'todos feitos!'}
-- Pontos hoje: ${done.reduce((a, h) => a + h.pts, 0)}
-
-HISTÓRICO SEMANAL:
-${weekSummary}`
+HOJE: ${rate}% (${done.length}/${habits.length})
+Feitos: ${done.map(h => h.name).join(', ') || 'nenhum'}
+Pendentes: ${pending.map(h => h.name).join(', ') || 'todos feitos'}
+${weekSummary ? `Últimos dias:\n${weekSummary}` : ''}`
 }
 
 // ── Streak — helper interno compartilhado ──
@@ -168,12 +158,11 @@ export async function getDailySummary(habits, history, apiKey) {
 
   try {
     const text = await _fetchClaude(key, {
-      max_tokens: 120,
-      system: `Você é o Mentor Ioversoroot. Gere UMA frase motivacional personalizada em português (máx 25 palavras).
-Seja específico com os dados. Sem saudação, sem explicação — apenas a frase direta e impactante.`,
+      max_tokens: 80,
+      system: 'Frase motivacional PT-BR, máx 20 palavras. Direta, impactante. Sem saudação.',
       messages: [{
         role: 'user',
-        content: `Taxa hoje: ${rate}%. Feitos: ${done.map(h => h.name).join(', ') || 'nenhum'}. Pendentes: ${pending.map(h => h.name).join(', ') || 'todos feitos'}. Sequência: ${streak} dias.`,
+        content: `${rate}% hoje. ${done.length} feitos. ${streak}d sequência.`,
       }],
     })
     if (text) localStorage.setItem(cacheKey, text)
@@ -201,13 +190,11 @@ export async function generatePersonalBadge(habits, history, apiKey) {
 
   try {
     const text = await _fetchClaude(key, {
-      max_tokens: 200,
-      system: `Você cria badges personalizados para apps de hábitos.
-Responda SOMENTE com JSON válido, sem markdown, sem backticks:
-{"icon":"emoji","name":"Nome do Badge (2-3 palavras)","desc":"Descrição curta do porquê este badge é único para este usuário (máx 15 palavras)","reason":"Motivo técnico curto"}`,
+      max_tokens: 150,
+      system: 'Badge personalizado app hábitos. JSON válido, sem markdown: {"icon":"emoji","name":"2-3 palavras","desc":"máx 12 palavras","reason":"curto"}',
       messages: [{
         role: 'user',
-        content: `Usuário: ${daysActive} dias ativos, ${totalDone} hábitos totais feitos, sequência ${streak} dias, hábito mais consistente: "${topHabit}". Hábitos: ${habits.map(h => h.name).join(', ')}. Crie um badge personalizado único que reflita o perfil real deste usuário.`,
+        content: `${daysActive}d ativos, ${totalDone} feitos, ${streak}d seq, top: ${topHabit}.`,
       }],
     })
     const clean = text.replace(/```json|```/g, '').trim()

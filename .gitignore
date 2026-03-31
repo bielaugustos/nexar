@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 # others 
 
 /plans/*
+
+*storybook.log
+storybook-static

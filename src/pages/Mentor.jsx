@@ -27,47 +27,27 @@ import styles from './Mentor.module.css'
 // cada par (índices 0-1, 2-3…) é exibido junto
 // ══════════════════════════════════════
 const PROMPTS = [
-  { Icon: PiPencilSimpleBold, text: 'O que aconteceu hoje que vale guardar para sempre?' },
-  { Icon: PiHeartBold,        text: 'Quem ou o que fez você sorrir genuinamente hoje?' },
-  { Icon: PiSunBold,          text: 'Como você se sente agora mesmo, honestamente?' },
-  { Icon: PiSparkleBold,      text: 'Qual pequeno momento de hoje merece ser lembrado?' },
-  { Icon: PiLeafBold,         text: 'O que você aprendeu sobre si mesmo esta semana?' },
-  { Icon: PiChatCircleTextBold, text: 'Qual pensamento não sai da sua cabeça ultimamente?' },
-  { Icon: PiHeartBold,        text: 'Por que você é grato hoje — algo que normalmente ignora?' },
-  { Icon: PiTargetBold,       text: 'O que fez hoje que seu eu de ontem não faria?' },
-  { Icon: PiEyeBold,          text: 'Daqui a um ano, o que você gostaria de ter escrito hoje?' },
-  { Icon: PiFireBold,         text: 'Qual foi o maior obstáculo que você superou recentemente?' },
-  { Icon: PiMoonBold,         text: 'O que ficou inacabado hoje — e tudo bem com isso?' },
-  { Icon: PiHeartBold,        text: 'A quem você gostaria de agradecer, mas ainda não agradeceu?' },
-  { Icon: PiCompassBold,      text: 'Para onde sua vida está caminhando? Você está feliz com esse caminho?' },
-  { Icon: PiDropBold,         text: 'O que você está carregando que poderia simplesmente soltar?' },
-  { Icon: PiStarBold,         text: 'Qual versão de você apareceu mais hoje?' },
-  { Icon: PiBookOpenTextBold, text: 'Se hoje fosse um capítulo do seu livro, como você o chamaria?' },
-  { Icon: PiHouseBold,        text: 'O que te faz sentir em casa — dentro de você mesmo?' },
-  { Icon: PiButterflyBold,    text: 'Em que aspecto você percebe que está crescendo?' },
-  { Icon: PiLightbulbBold,    text: 'Qual ideia ou insight surgiu hoje que não quer esquecer?' },
-  { Icon: PiGiftBold,         text: 'Qual foi o presente inesperado do dia de hoje?' },
-  { Icon: PiPuzzlePieceBold,  text: 'O que faz sentido na sua vida agora que antes parecia confuso?' },
-  { Icon: PiSparkleBold,      text: 'O que está florescendo na sua vida, mesmo que lentamente?' },
-  { Icon: PiUserCircleBold,   text: 'O que você quer que as pessoas próximas saibam sobre você?' },
-  { Icon: PiSunBold,          text: 'O que está diferente em você comparado há seis meses atrás?' },
-  { Icon: PiMedalBold,        text: 'Qual conquista sua você subestima mas deveria celebrar?' },
-  { Icon: PiPaletteBold,      text: 'Se você pudesse redesenhar amanhã do zero, como seria?' },
-  { Icon: PiLeafBold,         text: 'O que você está nutrindo em você mesmo que ainda não contou pra ninguém?' },
-  { Icon: PiMoonBold,         text: 'Qual foi o melhor momento desta semana — por menor que pareça?' },
-  { Icon: PiCompassBold,      text: 'O que te faz sentir que está no caminho certo?' },
-  { Icon: PiHeartBold,        text: 'O que você precisa ouvir de si mesmo hoje?' },
+  { Icon: PiPencilSimpleBold, text: 'O que vale guardar hoje?' },
+  { Icon: PiHeartBold, text: 'Quem fez você sorrir?' },
+  { Icon: PiSunBold, text: 'Como você se sente?' },
+  { Icon: PiSparkleBold, text: 'Qual momento merece ser lembrado?' },
+  { Icon: PiLeafBold, text: 'O que aprendeu sobre si mesmo?' },
+  { Icon: PiChatCircleTextBold, text: 'Qual pensamento não sai da cabeça?' },
+  { Icon: PiHeartBold, text: 'Por que é grato hoje?' },
+  { Icon: PiTargetBold, text: 'O que seu eu de ontem não faria?' },
+  { Icon: PiEyeBold, text: 'Daqui a um ano, o que gostaria de ter escrito?' },
+  { Icon: PiFireBold, text: 'Qual obstáculo superou recentemente?' },
 ]
 
 // ══════════════════════════════════════
 // HUMOR
 // ══════════════════════════════════════
 const MOOD_OPTIONS = [
-  { key: 'great',      Icon: PiSmileyBold,      label: 'Ótimo',      color: '#27ae60' },
-  { key: 'good',       Icon: PiSmileyWinkBold,   label: 'Bem',        color: '#2ecc71' },
-  { key: 'neutral',    Icon: PiSmileyMehBold,    label: 'Neutro',     color: '#95a5a6' },
-  { key: 'tired',      Icon: PiSmileySadBold,    label: 'Cansado',    color: '#e67e22' },
-  { key: 'frustrated', Icon: PiSmileyAngryBold,  label: 'Frustrado',  color: '#e74c3c' },
+  { key: 'great', Icon: PiSmileyBold, label: 'Ótimo', color: '#27ae60' },
+  { key: 'good', Icon: PiSmileyWinkBold, label: 'Bem', color: '#2ecc71' },
+  { key: 'neutral', Icon: PiSmileyMehBold, label: 'Neutro', color: '#95a5a6' },
+  { key: 'tired', Icon: PiSmileySadBold, label: 'Cansado', color: '#e67e22' },
+  { key: 'frustrated', Icon: PiSmileyAngryBold, label: 'Frustrado', color: '#e74c3c' },
 ]
 
 // ══════════════════════════════════════
@@ -90,10 +70,10 @@ function PinDots({ value, max = 4 }) {
 }
 
 function PinScreen({ mode, onSuccess, onCancel }) {
-  const [step,    setStep]    = useState(1)
-  const [pin,     setPin]     = useState('')
+  const [step, setStep] = useState(1)
+  const [pin, setPin] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [error,   setError]   = useState('')
+  const [error, setError] = useState('')
 
   function press(d) {
     playPinKeyDirect()
@@ -257,17 +237,16 @@ function PromptPair({ onSelect, selected }) {
 // Formulário de nova entrada
 // ──────────────────────────────────────
 function NewEntry({ onSave, onCancel }) {
-  const [text,     setText]     = useState('')
-  const [mood,     setMood]     = useState(null)
-  const [tags,     setTags]     = useState([])
-  const [tagIn,    setTagIn]    = useState('')
-  const [selPair,  setSelPair]  = useState(0)
-  const [pairStart]             = useState(() => {
+  const [text, setText] = useState('')
+  const [mood, setMood] = useState(null)
+  const [tags, setTags] = useState([])
+  const [tagIn, setTagIn] = useState('')
+  const [selPair, setSelPair] = useState(0)
+  const [pairStart] = useState(() => {
     const r = Math.floor(Math.random() * Math.floor(PROMPTS.length / 2)) * 2
     return r
   })
 
-  // sincroniza com PromptPair via callback — guardamos o par corrente separado
   const [currentPair, setCurrentPair] = useState(pairStart)
   const activePrompt = PROMPTS[(currentPair + selPair) % PROMPTS.length]
 
@@ -281,11 +260,11 @@ function NewEntry({ onSave, onCancel }) {
     if (!text.trim()) { toast('Escreva algo antes de salvar.'); return }
     playSaveDirect()
     onSave({
-      id:     Date.now(),
-      date:   new Date().toISOString().slice(0, 10),
-      text:   text.trim(),
+      id: Date.now(),
+      date: new Date().toISOString().slice(0, 10),
+      text: text.trim(),
       prompt: activePrompt.text,
-      mood:   mood ? { key: mood.key, label: mood.label, color: mood.color } : null,
+      mood: mood ? { key: mood.key, label: mood.label, color: mood.color } : null,
       tags,
     })
     toast('Reflexão salva!')
@@ -350,7 +329,7 @@ function NewEntry({ onSave, onCancel }) {
 // Versão controlada do par de prompts (expõe o par atual via callback)
 function PromptPairControlled({ onPairChange, onSelect, selected, initialPair }) {
   const [pairStart, setPairStart] = useState(initialPair)
-  const [anim,      setAnim]      = useState('in')
+  const [anim, setAnim] = useState('in')
 
   const pa = PROMPTS[pairStart % PROMPTS.length]
   const pb = PROMPTS[(pairStart + 1) % PROMPTS.length]
@@ -478,11 +457,40 @@ function EmptyDiary({ onStart }) {
 }
 
 // ══════════════════════════════════════
+// MODAL DE AVISO EXPERIMENTAL
+// ══════════════════════════════════════
+function ExperimentalWarningModal({ onBackToDiary }) {
+  return (
+    <div className={styles.experimentalModalOverlay}>
+      <div className={styles.experimentalModal}>
+        <div className={styles.experimentalModalIcon}>
+          <PiRobotBold size={28} color="var(--gold-dk)"/>
+        </div>
+        <h3 className={styles.experimentalModalTitle}>Mentor IA - Experimental</h3>
+        <p className={styles.experimentalModalText}>
+          O Mentor IA é uma função experimental que utiliza inteligência artificial para analisar seus hábitos e progresso.
+        </p>
+        <div className={styles.experimentalModalWarning}>
+          <PiSparkleBold size={16} color="var(--gold-dk)" style={{ flexShrink: 0, marginTop: 1 }}/>
+          <p className={styles.experimentalModalWarningText}>
+            Para usar o Mentor IA, você precisa configurar sua chave API Claude no Perfil. Esta função ainda está em desenvolvimento e pode sofrer alterações.
+          </p>
+        </div>
+        <button type="button" className={styles.experimentalModalBtn} onClick={onBackToDiary}>
+          <PiBookOpenTextBold size={14}/>
+          Voltar para o Diário
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════
 // MENTOR IA
 // ══════════════════════════════════════
 function MentorIA({ habits, history }) {
-  const [messages,  setMessages]  = useState([])
-  const [input,     setInput]     = useState('')
+  const [messages, setMessages] = useState([])
+  const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const bottomRef = useRef(null)
   const apiKey = localStorage.getItem('nex_apikey') || ''
@@ -583,11 +591,11 @@ async function loadEntriesFromDB(userId) {
   const { data } = await fetchRows('journal', userId)
   if (data?.length > 0) {
     const mapped = data.map(e => ({
-      id:     e.id,
-      text:   e.text,
-      mood:   e.mood,
-      tags:   e.tags   ?? [],
-      date:   e.date,
+      id: e.id,
+      text: e.text,
+      mood: e.mood,
+      tags: e.tags ?? [],
+      date: e.date,
       prompt: e.prompt ?? '',
     }))
     saveEntries(mapped)
@@ -601,14 +609,18 @@ export default function Mentor() {
   const { isLoggedIn, user } = useAuth()
   const userId = user?.id ?? null
 
-  const [tab,     setTab]     = useState('diario')
+  const [tab, setTab] = useState('diario')
   const [entries, setEntries] = useState(loadEntries)
   const [writing, setWriting] = useState(false)
-  const [search,  setSearch]  = useState('')
+  const [search, setSearch] = useState('')
 
   const hasPin = !!getStoredPin()
-  const [locked,  setLocked]  = useState(hasPin)
+  const [locked, setLocked] = useState(hasPin)
   const [pinMode, setPinMode] = useState(null)
+
+  const apiKey = localStorage.getItem('nex_apikey') || ''
+  const hasKey = apiKey.startsWith('sk-ant-')
+  const [showExperimentalModal, setShowExperimentalModal] = useState(false)
 
   useEffect(() => {
     if (!isLoggedIn || !userId) return
@@ -622,13 +634,13 @@ export default function Mentor() {
     setEntries(updated); saveEntries(updated); setWriting(false)
     if (isLoggedIn && userId) {
       upsertRows('journal', [{
-        id:      entry.id,
+        id: entry.id,
         user_id: userId,
-        text:    entry.text,
-        mood:    entry.mood   ?? null,
-        tags:    entry.tags   ?? [],
-        date:    entry.date,
-        prompt:  entry.prompt ?? '',
+        text: entry.text,
+        mood: entry.mood ?? null,
+        tags: entry.tags ?? [],
+        date: entry.date,
+        prompt: entry.prompt ?? '',
       }]).catch(e => console.warn('[Sync] journal add:', e))
     }
   }
@@ -652,10 +664,25 @@ export default function Mentor() {
         <button type="button" className={`${styles.tab} ${tab === 'diario' ? styles.tabActive : ''}`} onClick={() => setTab('diario')}>
           <PiBookOpenTextBold size={13}/> Diário
         </button>
-        <button type="button" className={`${styles.tab} ${tab === 'mentor' ? styles.tabActive : ''}`} onClick={() => setTab('mentor')}>
+        <button type="button" className={`${styles.tab} ${tab === 'mentor' ? styles.tabActive : ''}`} onClick={() => {
+          if (!hasKey) {
+            setShowExperimentalModal(true)
+          } else {
+            setTab('mentor')
+          }
+        }}>
           <PiRobotBold size={13}/> Mentor IA
         </button>
       </div>
+
+      {showExperimentalModal && (
+        <ExperimentalWarningModal
+          onBackToDiary={() => {
+            setShowExperimentalModal(false)
+            setTab('diario')
+          }}
+        />
+      )}
 
       {tab === 'diario' && (
         <>
@@ -683,7 +710,6 @@ export default function Mentor() {
               )}
             </div>
 
-            {/* Dica discreta sobre o cadeado — só aparece quando não há PIN */}
             {!hasPin && !locked && !writing && (
               <div className={styles.lockHint}>
                 <div className={styles.lockHintStep}>
@@ -697,7 +723,6 @@ export default function Mentor() {
               </div>
             )}
 
-            {/* PIN */}
             {pinMode && (
               <PinScreen mode={pinMode}
                 onSuccess={() => {
@@ -709,7 +734,6 @@ export default function Mentor() {
               />
             )}
 
-            {/* Bloqueado */}
             {locked && !pinMode && (
               <div className="empty-state" style={{ padding:'24px 0' }}>
                 <PiLockBold size={36} color="var(--gold-dk)"/>
@@ -720,7 +744,6 @@ export default function Mentor() {
               </div>
             )}
 
-            {/* Desbloqueado */}
             {!locked && (
               writing ? (
                 <NewEntry onSave={handleSave} onCancel={() => setWriting(false)} />

@@ -39,6 +39,24 @@ export async function signUp({ email, password, username, birthdate }) {
     password,
     options: { data: { username, birthdate } },
   })
+  
+  // Cria o perfil automaticamente após o cadastro
+  if (!error && data?.user) {
+    try {
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        email: email,
+        username: username,
+        birthdate: birthdate,
+        plan: 'free',
+        points: 0,
+        avatar: '🌱',
+      })
+    } catch (e) {
+      console.warn('[Supabase] Erro ao criar perfil:', e)
+    }
+  }
+  
   return { data, error }
 }
 
@@ -128,7 +146,37 @@ export async function updatePassword(newPassword) {
 
 // ── Pontos do perfil ──────────────────────────────────────
 
-export async function updateProfilePoints(userId, points) {
+// Garante que o perfil existe antes de atualizar
+async function ensureProfileExists(userId, email, username) {
+  try {
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .single()
+    
+    if (existing) return true
+    
+    // Cria o perfil se não existir
+    await supabase.from('profiles').insert({
+      id: userId,
+      email: email || '',
+      username: username || '',
+      plan: 'free',
+      points: 0,
+      avatar: '🌱',
+    })
+    return true
+  } catch (e) {
+    console.warn('[Supabase] Erro ao garantir perfil:', e)
+    return false
+  }
+}
+
+export async function updateProfilePoints(userId, points, email = '', username = '') {
+  // Garante que o perfil existe antes de atualizar
+  await ensureProfileExists(userId, email, username)
+  
   const { data, error } = await supabase
     .from('profiles')
     .update({ points, updated_at: new Date().toISOString() })

@@ -23,6 +23,7 @@ import Mentor         from './pages/Mentor'
 import Profile        from './pages/Profile'
 import Career         from './pages/Career'
 import Projects       from './pages/Projects'
+import Calculator     from './pages/Calculator'
 import './styles/global.css'
 
 // ── Verifica se o usuário atingiu 60% de qualquer limite free ──
@@ -69,15 +70,16 @@ function Layout() {
         <OfflineBanner />
         <main>
           <Routes>
-            <Route path="/"         element={<Home />} />
-            <Route path="/habits"   element={<Habits />} />
-            <Route path="/finance"  element={<Finance />} />
-            <Route path="/progress" element={<Progress />} />
-            <Route path="/mentor"   element={<Mentor />} />
-            <Route path="/career"   element={<Career />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/profile"  element={<ProfileWrapper />} />
-            <Route path="*"         element={<Navigate to="/" replace />} />
+            <Route path="/"          element={<Home />} />
+            <Route path="/habits"    element={<Habits />} />
+            <Route path="/finance"   element={<Finance />} />
+            <Route path="/progress"  element={<Progress />} />
+            <Route path="/mentor"     element={<Mentor />} />
+            <Route path="/career"    element={<Career />} />
+            <Route path="/projects"  element={<Projects />} />
+            <Route path="/calculator" element={<Calculator />} />
+            <Route path="/profile"   element={<ProfileWrapper />} />
+            <Route path="*"          element={<Navigate to="/" replace />} />
           </Routes>
         </main>
         <BottomNav />

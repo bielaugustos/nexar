@@ -2,12 +2,12 @@ import styles from './Desktop.module.css'
 
 // ══════════════════════════════════════
 // DESKTOP ICON - Ícone na Área de Trabalho
-// ══════════════════════════════════════
-export function DesktopIcon({ app, isSelected, onClick, onDoubleClick }) {
+// ════════════════════════════════════
+export function DesktopIcon({ app, isSelected, onClick, onDoubleClick, animCls = '' }) {
   const IconComponent = app.icon
   return (
     <div
-      className={`${styles.desktopIcon} ${isSelected ? styles.selected : ''}`}
+      className={`${styles.desktopIcon} ${isSelected ? styles.selected : ''} ${animCls}`}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       title={app.name}

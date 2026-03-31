@@ -11,6 +11,7 @@
 // ══════════════════════════════════════════════════════════
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { supabase, getSession, getProfile, onAuthChange } from '../services/supabase'
+import { analytics } from '../services/analytics'
 
 const AuthContext = createContext(null)
 
@@ -33,7 +34,15 @@ export function AuthProvider({ children }) {
   const loadProfile = useCallback(async (userId) => {
     try {
       const { data } = await withTimeout(getProfile(userId))
-      if (data) setProfile(data)
+      if (data) {
+        setProfile(data)
+        // Identifica usuário no analytics
+        analytics.identify(userId, {
+          email: data.email,
+          username: data.username,
+          plan: data.plan,
+        })
+      }
     } catch {
       // Offline ou timeout — continua sem perfil (dados locais são suficientes)
     }
@@ -67,9 +76,13 @@ export function AuthProvider({ children }) {
       if (s?.user) {
         setSession(s)
         await loadProfile(s.user.id)
+        // Track login event
+        analytics.track('user_login', { method: 'email' })
       } else {
         setSession(null)
         setProfile(null)
+        // Reset analytics on logout
+        analytics.reset()
       }
       setLoading(false)
     })

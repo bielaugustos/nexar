@@ -467,6 +467,40 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+.desktopIcon.hidden {
+  display: none;
+}
+
+.desktopIcon.entering {
+  animation: iconEnter 0.55s ease forwards;
+}
+
+.desktopIcon.leaving {
+  animation: iconLeave 0.42s ease forwards;
+}
+
+@keyframes iconEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes iconLeave {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
 .desktopIconImage {
   width: 48px;
   height: 48px;

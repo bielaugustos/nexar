@@ -20,6 +20,7 @@ import {
   PiBriefcaseBold,
   PiRocketLaunchBold,
   PiRobotBold,
+  PiCalculatorBold,
 } from 'react-icons/pi'
 import { useUnlockableItem } from '../hooks/useNav'
 import styles from './BottomNav.module.css'
@@ -34,10 +35,11 @@ const BASE_NAV = [
 ]
 
 const UNLOCKABLE = [
-  { id: 'util_progress', to: '/progress', label: 'Experiência', Icon: PiChartBarBold,     IconA: PiChartBarFill     },
-  { id: 'util_career',   to: '/career',   label: 'Carreira',    Icon: PiBriefcaseBold,    IconA: PiBriefcaseBold    },
-  { id: 'util_projects', to: '/projects', label: 'Projetos',    Icon: PiRocketLaunchBold, IconA: PiRocketLaunchBold },
-  { id: 'util_mentor',   to: '/mentor',   label: 'Mentor',      Icon: PiRobotBold,        IconA: PiRobotBold        },
+  { id: 'util_progress',   to: '/progress',   label: 'Experiência', Icon: PiChartBarBold,     IconA: PiChartBarFill     },
+  { id: 'util_career',     to: '/career',     label: 'Carreira',    Icon: PiBriefcaseBold,    IconA: PiBriefcaseBold    },
+  { id: 'util_projects',   to: '/projects',   label: 'Projetos',    Icon: PiRocketLaunchBold, IconA: PiRocketLaunchBold },
+  { id: 'util_mentor',     to: '/mentor',     label: 'Mentor',      Icon: PiRobotBold,        IconA: PiRobotBold        },
+  { id: 'util_calculator', to: '/calculator', label: 'Calculadora', Icon: PiCalculatorBold,   IconA: PiCalculatorBold   },
 ]
 
 // ── BottomNavBtn — botão base (sem animação) ──

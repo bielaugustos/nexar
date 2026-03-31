@@ -661,51 +661,77 @@
 .eStepDone  { border-color:#27ae60; background:#f6fdf0; }
 [data-theme='dark'] .eStepDone { background:#0d1f0d; }
 
-/* ══ CUSTOM TAB BAR — meses ══ */
-.monthTabBar {
-  display: flex; align-items: stretch;
-  border: 2px solid var(--border); border-radius: 4px;
-  overflow: hidden; box-shadow: 2px 2px 0 var(--shadow);
-}
-.monthTabArrow {
-  flex-shrink: 0; width: 28px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--white); border: none; cursor: pointer;
-  color: var(--ink); font-family: var(--font-body);
-  border-right: 1px solid var(--border);
-  transition: background .1s;
-}
-.monthTabArrow:last-child { border-right: none; border-left: 1px solid var(--border); }
-.monthTabArrow:hover:not(:disabled) { background: var(--surface); }
-.monthTabArrow:disabled { color: var(--border); cursor: default; opacity: 0.4; }
-
-.monthTabTrack {
-  flex: 1; overflow-x: auto; position: relative;
-  scrollbar-width: none; -ms-overflow-style: none;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-.monthTabTrack::-webkit-scrollbar { display: none; }
-
-.monthTabList {
-  display: flex; height: 100%;
-  transition: transform .35s cubic-bezier(.25, .1, .25, 1);
+/* ══ NAVEGAÇÃO DE MESES — mês atual com dropdown ══ */
+.monthNav {
+  display: flex; align-items: center;
+  margin-bottom: 12px;
 }
 
-.monthTab {
-  flex-shrink: 0;
-  padding: 9px 10px; text-align: center;
-  font-size: 10px; font-weight: 700; cursor: pointer;
-  font-family: var(--font-body); background: var(--white); color: var(--ink3);
-  border: none; border-right: 1px solid var(--border);
-  transition: background .15s ease, color .15s ease;
-  white-space: nowrap;
+.monthNavButton {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px; border: 2px solid var(--border);
+  border-radius: 4px; font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: var(--font-body); background: var(--white);
+  color: var(--ink); transition: all .15s;
 }
-.monthTab:last-child { border-right: none; }
-.monthTab:hover:not(.monthTabActive) { background: var(--surface); color: var(--ink); }
-.monthTabActive { background: var(--ink); color: var(--gold); }
 
-.monthTag { margin-left:auto; font-size:10px; font-weight:700; color:var(--ink3); background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:2px 6px; }
+.monthNavButton:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.monthNavLabel {
+  font-size: 13px; font-weight: 700; color: var(--ink);
+}
+
+.monthNavBadge {
+  font-size: 9px; font-weight: 600; color: var(--ink3);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 2px 6px;
+  margin-left: 6px;
+}
+
+.monthNavArrow {
+  transition: transform .2s;
+}
+
+.monthNavArrowOpen {
+  transform: rotate(180deg);
+}
+
+.monthDropdown {
+  position: absolute; top: calc(100% + 4px); left: 0;
+  background: var(--white); border: 2px solid var(--border);
+  border-radius: 4px; box-shadow: 2px 2px 8px var(--shadow);
+  z-index: 10; min-width: 160px;
+}
+
+.monthDropdownList {
+  max-height: 280px; overflow-y: auto;
+}
+
+.monthDropdownItem {
+  width: 100%; padding: 10px 12px; text-align: left;
+  font-size: 12px; font-weight: 600; color: var(--ink);
+  border: none; background: none; cursor: pointer;
+  font-family: var(--font-body); transition: background .15s;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.monthDropdownItem:hover {
+  background: var(--surface);
+}
+
+.monthDropdownItemActive {
+  background: var(--ink); color: var(--gold); font-weight: 700;
+}
+
+.monthDropdownCurrent {
+  font-size: 9px; font-weight: 700; color: var(--gold);
+  padding: 2px 6px; border-radius: 10px;
+  background: rgba(255, 215, 0, 0.1);
+  margin-right: 6px;
+}
 
 /* ══ FORMULÁRIO INLINE (padrão Projects) ══ */
 .inlineForm {

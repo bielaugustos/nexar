@@ -51,8 +51,7 @@ export function useHabits() {
   const avgPtsPerHabit = useMemo(() => {
     const doneHabits = habits.filter(h => h.done)
     if (!doneHabits.length) return 15
-    const soma = doneHabits.reduce((a, h) => a + (h.pts ?? 15), 0)
-    return Math.round(soma / doneHabits.length)
+    return Math.round(doneHabits.reduce((a, h) => a + (h.pts ?? 15), 0) / doneHabits.length)
   }, [habits])
 
   // ── Pontos acumulados (histórico + hoje) ──

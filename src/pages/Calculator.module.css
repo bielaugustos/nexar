@@ -1,0 +1,192 @@
+.page {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.calculator {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
+.display {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  text-align: right;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.operation {
+  font-size: 14px;
+  color: var(--ink3);
+  font-weight: 600;
+  min-height: 20px;
+}
+
+.result {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: var(--font-display);
+  word-break: break-all;
+  line-height: 1.2;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--white);
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.1s;
+  box-shadow: 2px 2px 0 var(--shadow);
+  min-height: 56px;
+}
+
+.button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+
+.button:active {
+  transform: translate(0, 0);
+  box-shadow: 1px 1px 0 var(--shadow);
+}
+
+.btnNumber {
+  background: var(--white);
+}
+
+.btnOperator {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold-dk);
+}
+
+.btnOperator:hover {
+  background: var(--gold-dk);
+  color: var(--bg);
+}
+
+.btnEquals {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+  grid-column: span 2;
+}
+
+.btnEquals:hover {
+  background: var(--ink2);
+  color: var(--bg);
+}
+
+.btnClear {
+  background: #e74c3c;
+  color: white;
+  border-color: #c0392b;
+}
+
+.btnClear:hover {
+  background: #c0392b;
+  color: white;
+}
+
+.btnBackspace {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.btnBackspace:hover {
+  background: var(--bg);
+}
+
+/* Tema Vidro: ajustes */
+[data-theme='glass'] .calculator {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme='glass'] .display {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme='glass'] .button {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Tema Vidro Dark: ajustes */
+[data-theme='glass_dark'] .calculator {
+  background: rgba(30, 30, 30, 0.8);
+  backdrop-filter: blur(10px);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='glass_dark'] .display {
+  background: rgba(40, 40, 40, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='glass_dark'] .button {
+  background: rgba(50, 50, 50, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--bg);
+}
+
+[data-theme='glass_dark'] .btnOperator {
+  background: rgba(240, 192, 32, 0.8);
+  border-color: rgba(176, 128, 0, 0.6);
+  color: #1c1c1e;
+}
+
+[data-theme='glass_dark'] .btnEquals {
+  background: rgba(240, 192, 32, 0.9);
+  border-color: rgba(176, 128, 0, 0.8);
+  color: #1c1c1e;
+}
+
+[data-theme='glass_dark'] .btnClear {
+  background: rgba(231, 76, 60, 0.8);
+  border-color: rgba(192, 57, 43, 0.8);
+}
+
+/* Responsividade */
+@media (max-width: 380px) {
+  .result {
+    font-size: 28px;
+  }
+
+  .button {
+    padding: 14px 6px;
+    font-size: 18px;
+    min-height: 50px;
+  }
+}

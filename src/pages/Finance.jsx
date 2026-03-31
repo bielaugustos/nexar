@@ -8,6 +8,7 @@ import {
   PiCalendarBold, PiLightbulbBold,
   PiFloppyDiskBold, PiPencilSimpleBold,
   PiCrownBold, PiLockSimpleBold, PiCaretLeftBold, PiCaretRightBold,
+  PiCaretDownBold,
   PiTrophyBold, PiAirplaneBold, PiLaptopBold, PiHouseBold,
   PiCarBold, PiGraduationCapBold, PiDiamondBold, PiBarbellBold,
   PiMusicNotesBold, PiDeviceMobileBold, PiGlobeBold, PiShoppingCartBold,
@@ -1292,70 +1293,60 @@ function GoalsCard({ goals, onAdd, onAddSaved, onRemove, onUndoAporte, atLimit, 
 }
 
 // ══════════════════════════════════════
-// NAVEGAÇÃO DE MESES — custom tab bar
+// NAVEGAÇÃO DE MESES — mês atual com dropdown
 // ══════════════════════════════════════
 const TOTAL_MONTHS = 12
 
-function useVisibleMonths() {
-  const [n, setN] = useState(() => {
-    const w = typeof window !== 'undefined' ? window.innerWidth : 375
-    return w >= 440 ? 6 : w >= 360 ? 5 : 4
-  })
-  useEffect(() => {
-    function upd() {
-      setN(window.innerWidth >= 440 ? 6 : window.innerWidth >= 360 ? 5 : 4)
-    }
-    window.addEventListener('resize', upd)
-    return () => window.removeEventListener('resize', upd)
+function MonthNav({ monthOffset, onChange }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const viewDate = useMemo(() => {
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + monthOffset)
+    return d
+  }, [monthOffset])
+  
+  const viewLabel = viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  const isCurrentMonth = monthOffset === 0
+  
+  const months = useMemo(() => {
+    return Array.from({ length: TOTAL_MONTHS }, (_, i) => {
+      const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + i)
+      const offset = i - (TOTAL_MONTHS - 1)
+      const label = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+      return { offset, label }
+    })
   }, [])
-  return n
-}
-
-function MonthTabBar({ monthOffset, onChange }) {
-  const vis        = useVisibleMonths()
-  const activeIdx  = TOTAL_MONTHS - 1 + monthOffset  // 0→oldest, TOTAL-1→current
-  const [winStart, setWinStart] = useState(() => Math.max(0, TOTAL_MONTHS - vis))
-
-  // keep active tab inside the visible window
-  useEffect(() => {
-    if (activeIdx < winStart)           setWinStart(activeIdx)
-    else if (activeIdx >= winStart + vis) setWinStart(Math.min(activeIdx - vis + 1, TOTAL_MONTHS - vis))
-  }, [activeIdx, vis])
-
-  const canPrev = winStart > 0
-  const canNext = winStart + vis < TOTAL_MONTHS
-
+  
   return (
-    <div className={styles.monthTabBar}>
-      <button type="button" className={styles.monthTabArrow}
-        onClick={() => setWinStart(s => Math.max(0, s - 1))} disabled={!canPrev}>
-        <PiCaretLeftBold size={11}/>
+    <div className={styles.monthNav}>
+      <button
+        type="button"
+        className={styles.monthNavButton}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+      >
+        <PiCalendarBold size={14} />
+        <span className={styles.monthNavLabel}>{viewLabel}</span>
+        {!isCurrentMonth && <span className={styles.monthNavBadge}>Não atual</span>}
+        <PiCaretDownBold size={11} className={isOpen ? styles.monthNavArrowOpen : ''} />
       </button>
-
-      <div className={styles.monthTabTrack}>
-        <div className={styles.monthTabList}
-          style={{ transform: `translateX(calc(-${winStart} * (100% / ${vis})))` }}>
-          {Array.from({ length: TOTAL_MONTHS }, (_, i) => {
-            const off    = i - (TOTAL_MONTHS - 1)
-            const d      = new Date(); d.setDate(1); d.setMonth(d.getMonth() + off)
-            const lbl    = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase()
-            const active = monthOffset === off
-            return (
-              <button key={i} type="button"
-                className={`${styles.monthTab} ${active ? styles.monthTabActive : ''}`}
-                style={{ flex: `0 0 calc(100% / ${vis})` }}
-                onClick={() => onChange(off)}>
-                {lbl}
+      
+      {isOpen && (
+        <div className={styles.monthDropdown}>
+          <div className={styles.monthDropdownList}>
+            {months.map(m => (
+              <button
+                key={m.offset}
+                type="button"
+                className={`${styles.monthDropdownItem} ${m.offset === monthOffset ? styles.monthDropdownItemActive : ''}`}
+                onClick={() => { onChange(m.offset); setIsOpen(false) }}
+              >
+                {m.offset === 0 && <span className={styles.monthDropdownCurrent}>Atual</span>}
+                {m.label}
               </button>
-            )
-          })}
+            ))}
+          </div>
         </div>
-      </div>
-
-      <button type="button" className={styles.monthTabArrow}
-        onClick={() => setWinStart(s => Math.min(s + 1, TOTAL_MONTHS - vis))} disabled={!canNext}>
-        <PiCaretRightBold size={11}/>
-      </button>
+      )}
     </div>
   )
 }
@@ -1450,8 +1441,8 @@ export default function Finance() {
       {/* ── VISÃO PRINCIPAL ── */}
       {view === 'main' && (
         <>
-          {/* Navegação de meses — custom tab bar */}
-          <MonthTabBar
+          {/* Navegação de meses — mês atual com dropdown */}
+          <MonthNav
             monthOffset={monthOffset}
             onChange={off => setMonthOffset(Math.max(-(TOTAL_MONTHS - 1), Math.min(0, off)))}
           />

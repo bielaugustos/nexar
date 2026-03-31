@@ -12,11 +12,11 @@ import {
   PiStarBold, PiCheckCircleBold,
   PiCalendarBold, PiLockSimpleBold,
   PiKeyBold, PiEyeBold, PiEyeSlashBold,
-  PiCrownBold, PiCreditCardBold, PiXBold, PiSparkleBold,
+  PiCrownBold, PiSparkleBold,
   PiTrashBold, PiEnvelopeBold,
-  // PiEnvelopeBold, PiMapPinBold, PiPhoneBold, // contato desativado
   PiInstagramLogoFill, PiLinkedinLogoFill, PiYoutubeLogoFill, PiWhatsappLogoFill,
   PiUserCircleBold,
+  PiCalculatorBold,
 } from 'react-icons/pi'
 import { useAuth }     from '../context/AuthContext'
 import { useApp }      from '../context/AppContext'
@@ -27,10 +27,21 @@ import { loadStorage, saveStorage } from '../services/storage'
 import { THEMES, applyTheme } from '../services/themes'
 import { LegalModal, useLegal } from '../components/LegalModal'
 import { ThemeSelector } from '../components/ThemeSelector'
+import { ThemePersonalizer } from '../components/ThemePersonalizer'
 import { toast }     from '../components/Toast'
 import { playPurchaseDirect, playClickDirect } from '../hooks/useSound'
 import { usePlan }   from '../hooks/usePlan'
 import styles        from './Profile.module.css'
+
+// Constantes importadas
+import { SHOP_ITEMS, CAT_LABELS, CAT_DESC } from '../constants/shopConstants'
+import { THEME_LIST } from '../constants/themeConstants'
+import { BASE_AVATARS, SHOP_AVATAR_MAP, getAvailableAvatars } from '../constants/avatarConstants'
+import { FREE_FEATURES, PRO_EXTRAS, WHATSAPP_URL } from '../constants/planConstants'
+import {
+  DEMO_HABITS, generateDemoHistory, generateDemoFinances,
+  DEMO_JOURNAL, DEMO_CAREER, DEMO_PROJECTS
+} from '../constants/demoData'
 
 // ══════════════════════════════════════
 // HELPERS
@@ -50,20 +61,6 @@ function Toggle({ on, onToggle, label }) {
       <div className={`${styles.toggleThumb} ${on ? styles.thumbOn : ''}`} />
     </div>
   )
-}
-
-// ══════════════════════════════════════
-// AVATAR helpers
-// ══════════════════════════════════════
-const BASE_AVATARS    = ['🧑','👩','👨','🧒','👴','👵','🦸','🧙','🚀','🌟','🔥','⚡']
-const SHOP_AVATAR_MAP = { avatar_eagle:'🦅', avatar_monk:'🧘', avatar_lightning:'⚡', avatar_cosmos:'🪐' }
-
-function getAvailableAvatars() {
-  try {
-    const owned = new Set(JSON.parse(localStorage.getItem('nex_shop_owned') || '[]'))
-    const extra = Object.entries(SHOP_AVATAR_MAP).filter(([id]) => owned.has(id)).map(([,e]) => e)
-    return [...new Set([...BASE_AVATARS, ...extra])]
-  } catch { return BASE_AVATARS }
 }
 
 // ══════════════════════════════════════
@@ -190,102 +187,6 @@ function HeroCard({ allPoints, streak, daysActive }) {
       )}
     </div>
   )
-}
-
-// ══════════════════════════════════════
-// SELETOR DE TEMAS — lista horizontal compacta
-// Aparência integrada diretamente nas configs,
-// sem card separado visualmente pesado.
-// ══════════════════════════════════════
-import { ThemePersonalizer } from '../components/ThemePersonalizer'
-
-const THEME_LIST = [
-  { id:'light',         name:'Padrão',       emoji:'☀️',  free:true  },
-  { id:'dark',          name:'Escuro',       emoji:'🌙',  free:true  },
-  { id:'glass_dark',    name:'Vidro Dark',   emoji:'🌑', free:true, shopId:'theme_glass_dark' },
-  { id:'midnight',      name:'Midnight',     emoji:'🌌',  free:false, shopId:'theme_midnight' },
-  { id:'forest',        name:'Forest',       emoji:'🌿',  free:false, shopId:'theme_forest'   },
-  { id:'sakura',        name:'Sakura',       emoji:'🌸',  free:false, shopId:'theme_sakura'   },
-  { id:'desert',        name:'Desert',       emoji:'🏜️', free:false, shopId:'theme_desert'   },
-  { id:'dracula',       name:'Dracula',      emoji:'🧛',  free:false, shopId:'theme_dracula'  },
-  { id:'nord',          name:'Nord',         emoji:'🏔️', free:false, shopId:'theme_nord'     },
-  { id:'glass',         name:'Vidro',        emoji:'🪟', free:true, shopId:'theme_glass'    },
-  { id:'high_contrast', name:'Alto Contraste',emoji:'⬛',  free:false, shopId:'theme_high_contrast' },
-  { id:'macintosh',     name:'Macintosh',    emoji:'🍎',  free:false, shopId:'theme_macintosh'    },
-  { id:'windows98',     name:'Windows 98',   emoji:'🪟',  free:false, shopId:'theme_windows98'    },
-  { id:'linux',         name:'Linux',        emoji:'🐧',  free:false, shopId:'theme_linux'        },
-]
-
-function ThemePicker({ currentTheme, onChangeTheme, ownedItems }) {
-  const [open, setOpen] = useState(false)
-  const current = THEME_LIST.find(t => t.id === currentTheme) || THEME_LIST[0]
-
-  return (
-    <div className={styles.themeDropdown}>
-      {/* Trigger */}
-      <button type="button" className={styles.themeDropTrigger} onClick={() => setOpen(o => !o)}>
-        <PiPaletteBold size={15} color="var(--ink2)" style={{ flexShrink:0 }}/>
-        <span className={styles.themeDropEmoji}>{current.emoji}</span>
-        <span className={styles.themeDropName}>{current.name}</span>
-        <PiCheckCircleBold size={12} color="var(--gold-dk)" style={{marginLeft:'auto', marginRight:4}}/>
-        <PiCaretDownBold size={12} className={open ? styles.themeDropArrowOpen : ''} style={{transition:'transform .2s', transform: open ? 'rotate(180deg)' : 'none'}}/>
-      </button>
-
-      {/* Lista */}
-      {open && (
-        <div className={styles.themeDropList}>
-          {THEME_LIST.map(t => {
-            const unlocked = t.free || ownedItems.has(t.shopId)
-            const active   = currentTheme === t.id
-            return (
-              <button key={t.id} type="button"
-                className={[styles.themeDropItem, active && styles.themeDropItemActive, !unlocked && styles.themeDropItemLocked].filter(Boolean).join(' ')}
-                onClick={() => { if (unlocked) { onChangeTheme(t.id); setOpen(false) } }}
-                title={!unlocked ? 'Desbloquear na loja' : t.name}>
-                <span className={styles.themeDropEmoji}>{t.emoji}</span>
-                <span className={styles.themeDropItemName}>{t.name}</span>
-                {active    && <PiCheckCircleBold size={13} color="var(--gold-dk)" style={{marginLeft:'auto'}}/>}
-                {!unlocked && <span className={styles.themeDropLock}><PiLockSimpleBold size={11}/></span>}
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ══════════════════════════════════════
-// LOJA DE RECOMPENSAS
-// ══════════════════════════════════════
-const SHOP_ITEMS = [
-  { id:'util_progress',   cat:'utilidade', name:'Experiência',   icon:'📊', desc:'Disponível gratuitamente — adiciona a tela de Conquistas e Estatísticas à navegação.', cost:0, pillar:'Rotina', pillarColor:'#27ae60' },
-  { id:'util_mentor',     cat:'utilidade', name:'Mentor IA',     icon:'🤖', desc:'Disponível gratuitamente — adiciona a tela do Mentor e Diário de Reflexão à navegação.', cost:0, pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'util_calendar',   cat:'utilidade', name:'Calendário',    icon:'📅', desc:'Desbloqueado com 500 io — exibe o calendário mensal na tela de hábitos. Pode ser ocultado a qualquer momento.', cost:500, toggle:true, pillar:'Rotina', pillarColor:'#27ae60' },
-  { id:'avatar_eagle',    cat:'avatar',   name:'Águia',         icon:'🦅', desc:'Disponível gratuitamente — adicione ao seu perfil agora.',           cost:0,    pillar:'Rotina',    pillarColor:'#27ae60' },
-  { id:'avatar_monk',     cat:'avatar',   name:'Monge',         icon:'🧘', desc:'Disponível gratuitamente — adicione ao seu perfil agora.',           cost:0,    pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'avatar_lightning',cat:'avatar',   name:'Relâmpago',     icon:'⚡', desc:'Disponível gratuitamente — adicione ao seu perfil agora.',           cost:0,    pillar:'Rotina',    pillarColor:'#27ae60' },
-  { id:'avatar_cosmos',   cat:'avatar',   name:'Cosmos',        icon:'🪐', desc:'Disponível gratuitamente — adicione ao seu perfil agora.',           cost:0,    pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'theme_sakura',    cat:'tema',     name:'Sakura',        icon:'🌸', desc:'Desbloqueado com 800 io acumulados.',  cost:800,  pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'theme_desert',    cat:'tema',     name:'Desert',        icon:'🏜️',desc:'Desbloqueado com 800 io acumulados.',  cost:800,  pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'theme_dracula',   cat:'tema',     name:'Dracula',       icon:'🧛', desc:'Desbloqueado com 1000 io acumulados.', cost:1000, pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'theme_nord',      cat:'tema',     name:'Nord',          icon:'🏔️',desc:'Desbloqueado com 1000 io acumulados.', cost:1000, pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'theme_midnight',  cat:'tema',     name:'Midnight',      icon:'🌌', desc:'Desbloqueado com 1200 io acumulados.', cost:1200, pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'theme_forest',    cat:'tema',     name:'Forest',        icon:'🌿', desc:'Desbloqueado com 1200 io acumulados.', cost:1200, pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'theme_glass',     cat:'tema',     name:'Vidro',         icon:'🪟', desc:'O tema mais exclusivo — glassmorphism inspirado no design Apple. Desbloqueado com 2000 io.', cost:2000, pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'theme_glass_dark',cat:'tema',     name:'Vidro Dark',    icon:'🌑', desc:'Versão escura do tema Vidro com glassmorphism. Desbloqueado com 2200 io.', cost:2200, pillar:'Bem-estar', pillarColor:'#8e44ad' },
-  { id:'theme_high_contrast', cat:'tema', name:'Alto Contraste', icon:'⬛', desc:'Tema de acessibilidade com alto contraste para melhor legibilidade. Desbloqueado com 1500 io.', cost:1500, pillar:'Acessibilidade', pillarColor:'#000000' },
-  { id:'theme_macintosh',     cat:'tema', name:'Macintosh',    icon:'🍎', desc:'Tema retro inspirado no Apple System 7. Desbloqueado com 1800 io.', cost:1800, pillar:'Retro', pillarColor:'#c0c0c0' },
-  { id:'theme_windows98',     cat:'tema', name:'Windows 98',   icon:'🪟', desc:'Tema retro inspirado no Windows 98. Desbloqueado com 1800 io.', cost:1800, pillar:'Retro', pillarColor:'#c0c0c0' },
-  { id:'theme_linux',         cat:'tema', name:'Linux',        icon:'🐧', desc:'Tema estilo terminal com cores verde neon. Desbloqueado com 2200 io.', cost:2200, pillar:'Tech', pillarColor:'#00ff00' },
-]
-
-const CAT_LABELS = { all:'Todos', tema:'Temas', avatar:'Avatares', utilidade:'Utilitários' }
-const CAT_DESC   = {
-  all:       'Todos os itens disponíveis na loja',
-  tema:      'Temas visuais que alteram as cores do app',
-  avatar:    'Avatares exclusivos para o seu perfil',
-  utilidade: 'Ferramentas e bônus para sua rotina',
 }
 
 // ══════════════════════════════════════
@@ -980,80 +881,70 @@ function AccountSettingsCard() {
 }
 
 // ══════════════════════════════════════
-// PLANOS — Free vs Pro + checkout real
+// SELETOR DE TEMAS — lista horizontal compacta
+// Aparência integrada diretamente nas configs,
+// sem card separado visualmente pesado.
 // ══════════════════════════════════════
-const FREE_FEATURES = [
-  'Até 10 hábitos',
-  'Diário de reflexão',
-  'Finanças pessoais',
-  'Até 10 leituras (carreira)',
-  '1 meta de carreira ativa',
-  'Temas Light e Dark',
-  'Mentor IA (chave própria)',
-  'Backup local (JSON)',
-]
 
-const PRO_EXTRAS = [
-  'Hábitos ilimitados',
-  'Leituras e metas ilimitadas',
-  'Projetos profissionais',
-  'Histórico de 6 meses',
-  'Mentor IA integrado (sem chave)',
-  'Resumo diário por IA',
-  'Sugestões de hábitos por IA',
-  'Badge personalizado por IA',
-  'Temas exclusivos',
-]
+function ThemePicker({ currentTheme, onChangeTheme, ownedItems }) {
+  const [open, setOpen] = useState(false)
+  const current = THEME_LIST.find(t => t.id === currentTheme) || THEME_LIST[0]
 
+  return (
+    <div className={styles.themeDropdown}>
+      {/* Trigger */}
+      <button type="button" className={styles.themeDropTrigger} onClick={() => setOpen(o => !o)}>
+        <PiPaletteBold size={15} color="var(--ink2)" style={{ flexShrink:0 }}/>
+        <span className={styles.themeDropEmoji}>{current.emoji}</span>
+        <span className={styles.themeDropName}>{current.name}</span>
+        <PiCheckCircleBold size={12} color="var(--gold-dk)" style={{marginLeft:'auto', marginRight:4}}/>
+        <PiCaretDownBold size={12} className={open ? styles.themeDropArrowOpen : ''} style={{transition:'transform .2s', transform: open ? 'rotate(180deg)' : 'none'}}/>
+      </button>
+
+      {/* Lista */}
+      {open && (
+        <div className={styles.themeDropList}>
+          {THEME_LIST.map(t => {
+            const unlocked = t.free || ownedItems.has(t.shopId)
+            const active   = currentTheme === t.id
+            return (
+              <button key={t.id} type="button"
+                className={[styles.themeDropItem, active && styles.themeDropItemActive, !unlocked && styles.themeDropItemLocked].filter(Boolean).join(' ')}
+                onClick={() => { if (unlocked) { onChangeTheme(t.id); setOpen(false) } }}
+                title={!unlocked ? 'Desbloquear na loja' : t.name}>
+                <span className={styles.themeDropEmoji}>{t.emoji}</span>
+                <span className={styles.themeDropItemName}>{t.name}</span>
+                {active    && <PiCheckCircleBold size={13} color="var(--gold-dk)" style={{marginLeft:'auto'}}/>}
+                {!unlocked && <span className={styles.themeDropLock}><PiLockSimpleBold size={11}/></span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ══════════════════════════════════════
+// PLANOS — cartão de upgrade
+// ══════════════════════════════════════
 function PlansCard() {
-  const { isPro, setPlan } = usePlan()
-  const [showCheckout, setShowCheckout] = useState(false)
-  const [cardNum,      setCardNum]      = useState('')
-  const [cardExp,      setCardExp]      = useState('')
-  const [cardCvc,      setCardCvc]      = useState('')
-  const [processing]                     = useState(false)
-  const [open,         setOpen]         = useState(false)
-
-  function fmtCard(v) {
-    return v.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim()
-  }
-  function fmtExp(v) {
-    const d = v.replace(/\D/g,'').slice(0,4)
-    return d.length > 2 ? d.slice(0,2) + '/' + d.slice(2) : d
-  }
-
-  function handleCheckout(e) {
-    e.preventDefault()
-    toast('Pagamentos em breve! Acompanhe as novidades.')
-    setShowCheckout(false)
-  }
-
-  function cancelPro() {
-    if (!window.confirm('Cancelar o plano Pro? Você voltará ao plano gratuito.')) return
-    setPlan('free')
-    toast('Plano cancelado. Você está no plano gratuito.')
-  }
+  const { isPro, cancelPro } = usePlan()
 
   return (
     <div className={styles.shopWrapper}>
-      <div className={styles.shopTrigger} onClick={() => setOpen(o => !o)} role="button" tabIndex={0}
-        onKeyDown={e => e.key === 'Enter' && setOpen(o => !o)}>
-        <span className={styles.settingIcon}><PiCrownBold size={16} color={isPro ? '#f39c12' : undefined}/></span>
-        <div style={{ flex: 1 }}>
-          <span className={styles.settingLabel}>Plano atual</span>
+      <div className={styles.shopTrigger} role="button" tabIndex={0}>
+        <span className={styles.settingIcon}><PiCrownBold size={16}/></span>
+        <div style={{ flex:1 }}>
+          <span className={styles.settingLabel}>Plano Pro</span>
           <p className={styles.settingDesc}>
-            {isPro ? 'Pro — todos os recursos desbloqueados' : 'Gratuito — upgrade para Pro'}
+            {isPro ? 'Plano ativo — obrigado pelo suporte!' : 'Desbloqueie recursos avançados'}
           </p>
         </div>
-        <span className={isPro ? styles.planBadgePro : styles.planBadge} style={{ marginRight: 6 }}>
-          {isPro ? <><PiCrownBold size={9}/> PRO</> : 'FREE'}
-        </span>
-        <span className={`${styles.shopArrow} ${open ? styles.shopArrowOpen : ''}`}><PiCaretDownBold size={14}/></span>
       </div>
 
-      <div className={`${styles.shopDrawer} ${open ? styles.shopDrawerOpen : ''}`}>
+      <div className={styles.shopDrawerOpen}>
         <div className={styles.shopDrawerInner}>
-
           {/* Grade de planos */}
           <div className={styles.plansGrid}>
             {/* Gratuito */}
@@ -1117,62 +1008,18 @@ function PlansCard() {
               </button>
             </div>
           ) : (
-            <button type="button" className="btn btn-primary"
-              style={{ justifyContent: 'center', gap: 6, fontSize: 13 }}
-              onClick={() => setShowCheckout(true)}>
-              <PiCrownBold size={15}/> Ativar Pro — R$ 9,90/mês
-            </button>
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
+              className="btn btn-primary"
+              style={{ justifyContent: 'center', gap: 6, fontSize: 13, textDecoration: 'none' }}>
+              <PiCrownBold size={15}/> Ativar Pro por R$ 9,90 (WhatsApp)
+            </a>
           )}
 
           <p className={styles.plansNote}>
-            Pagamento fictício — ambiente de testes. Nenhum valor real é cobrado.
+            Entre em contato pelo WhatsApp para ativar o plano Pro vitalício.
           </p>
         </div>
       </div>
-
-      {/* Modal de checkout */}
-      {showCheckout && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div className="card" style={{ width: '100%', maxWidth: 340, padding: 20, position: 'relative' }}>
-            <button type="button" style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink3)' }} onClick={() => setShowCheckout(false)}>
-              <PiXBold size={16}/>
-            </button>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <PiCreditCardBold size={18} color="var(--gold-dk)"/>
-              <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--ink)' }}>Checkout Pro</span>
-            </div>
-
-            <div style={{ background: '#f39c1211', border: '1px solid #f39c1233', borderRadius: 4, padding: '8px 10px', marginBottom: 14, fontSize: 11, color: '#f39c12', fontWeight: 700 }}>
-              Pagamentos ainda não disponíveis — em breve!
-            </div>
-
-            <form onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div>
-                <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink3)', display: 'block', marginBottom: 3 }}>Número do cartão</label>
-                <input className="input" placeholder="4242 4242 4242 4242" value={cardNum}
-                  onChange={e => setCardNum(fmtCard(e.target.value))} maxLength={19} required style={{ fontFamily: 'monospace' }}/>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <div>
-                  <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink3)', display: 'block', marginBottom: 3 }}>Validade</label>
-                  <input className="input" placeholder="MM/AA" value={cardExp}
-                    onChange={e => setCardExp(fmtExp(e.target.value))} maxLength={5} required/>
-                </div>
-                <div>
-                  <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink3)', display: 'block', marginBottom: 3 }}>CVC</label>
-                  <input className="input" placeholder="123" value={cardCvc}
-                    onChange={e => setCardCvc(e.target.value.replace(/\D/g,'').slice(0,3))} maxLength={3} required/>
-                </div>
-              </div>
-              <button type="submit" className="btn btn-primary" disabled={processing}
-                style={{ justifyContent: 'center', marginTop: 4, fontSize: 13 }}>
-                {processing ? 'Processando...' : <><PiCrownBold size={14}/> Assinar Pro — R$ 9,90/mês</>}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -1189,284 +1036,18 @@ function DevCard() {
     localStorage.setItem('nex_devmode', String(next))
 
     if (next) {
-      const today    = new Date().toISOString().slice(0, 10)
-      const todayDow = new Date().getDay()
-
-      // ──────────────────────────────────────
-      // HÁBITOS DEMO — 7 hábitos com todos os
-      // campos preenchidos para testar Home e
-      // Habits (QuickPanel, prioridades, etc.)
-      // ──────────────────────────────────────
-      const DEMO_HABITS = [
-        {
-          id:1, name:'Meditação', done:true, pts:20, icon:'PiBrainBold',
-          priority:'alta', freq:'diario', days:[0,1,2,3,4,5,6],
-          subtasks:[],
-          notes:'Usar app Headspace. Foco na respiração e no corpo.',
-          reason:'Reduz estresse e melhora minha clareza mental ao longo do dia.',
-          tags:['mente','manhã'], estMins:15, deadline:null, createdAt:'2024-10-01',
-        },
-        {
-          id:2, name:'Exercício', done:false, pts:30, icon:'PiBarbell',
-          priority:'alta', freq:'personalizado', days:[1,3,5],
-          subtasks:[
-            {id:21,text:'Aquecimento 5 min',  done:false},
-            {id:22,text:'Treino principal',    done:false},
-            {id:23,text:'Alongamento final',   done:false},
-          ],
-          notes:'Seg: pernas · Qua: costas · Sex: peito e ombro.',
-          reason:'Saúde é a base de tudo. Energia, disposição e longevidade.',
-          tags:['corpo','saúde'], estMins:60, deadline:null, createdAt:'2024-10-01',
-        },
-        {
-          id:3, name:'Leitura', done:true, pts:20, icon:'PiBookOpenText',
-          priority:'media', freq:'diario', days:[0,1,2,3,4,5,6],
-          subtasks:[],
-          notes:'Mínimo 20 páginas. Atualmente: Atomic Habits — James Clear.',
-          reason:'Cada livro é um mentor disponível 24h. Conhecimento composto.',
-          tags:['mente','aprendizado'], estMins:30, deadline:null, createdAt:'2024-10-01',
-        },
-        {
-          id:4, name:'Código', done:false, pts:30, icon:'PiCodeBold',
-          priority:'media', freq:'personalizado', days:[1,2,3,4,5],
-          subtasks:[],
-          notes:'Foco: React + TypeScript. Side projects e contribuições open source.',
-          reason:'Construir fluência técnica que abre portas para projetos maiores.',
-          tags:['carreira','tech'], estMins:90, deadline:null, createdAt:'2024-10-15',
-        },
-        {
-          id:5, name:'Água', done:false, pts:10, icon:'PiDropBold',
-          priority:'baixa', freq:'diario', days:[0,1,2,3,4,5,6],
-          subtasks:[
-            {id:51,text:'500 ml pela manhã', done:false},
-            {id:52,text:'500 ml à tarde',    done:false},
-            {id:53,text:'500 ml à noite',    done:false},
-          ],
-          notes:'Meta: 1,5 L mínimo. Usar garrafa de 500 ml como referência.',
-          reason:'Hidratação afeta diretamente foco, humor e energia.',
-          tags:['saúde'], estMins:null, deadline:null, createdAt:'2024-10-01',
-        },
-        {
-          id:6, name:'Diário', done:false, pts:15, icon:'PiPencilBold',
-          priority:'baixa', freq:'diario', days:[0,1,2,3,4,5,6],
-          subtasks:[],
-          notes:'3 gratidões + 1 aprendizado do dia. Máximo 10 min.',
-          reason:'Registro de progresso e clareza mental. Quem escreve, processa.',
-          tags:['reflexão','mente'], estMins:10, deadline:null, createdAt:'2024-10-20',
-        },
-        {
-          id:7, name:'Sono', done:false, pts:15, icon:'PiMoonBold',
-          priority:'baixa', freq:'diario', days:[0,1,2,3,4,5,6],
-          subtasks:[],
-          notes:'Dormir antes das 23h. Meta: 8h por noite. Celular fora do quarto.',
-          reason:'Sem sono de qualidade, nenhum dos outros hábitos funciona direito.',
-          tags:['saúde','noite'], estMins:null, deadline:null, createdAt:'2024-11-01',
-        },
-      ]
-
-      // Todos os hábitos começam como não feitos — o AppContext sempre reseta
-      // done:false no primeiro load, então não adianta marcar done:true aqui
-      const habitsForStorage = DEMO_HABITS.map(h => ({ ...h, done: false }))
-
-      // ──────────────────────────────────────
-      // HISTÓRICO — 90 dias
-      //
-      // Padrão para testar os gráficos:
-      //   i=1..22   → streak garantido (done > 0)   → nível "Núcleo" (22d)
-      //   i=23..70  → ~75% conclusão (ativo, bom)
-      //   i=71..90  → ~50% conclusão (começo do uso)
-      //
-      // NÃO inclui hoje: o AppContext escreve o entry de hoje sozinho
-      // conforme o usuário faz hábitos. O cálculo de streak já trata o caso
-      // em que hoje tem done=0 (começa a contar a partir de ontem).
-      // ──────────────────────────────────────
-      const HABIT_DEFS = DEMO_HABITS.map(h => ({ id: h.id, days: h.days }))
-
-      // Semente determinística para resultados consistentes entre recargas
-      let seed = 42
-      function rng() { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return (seed >>> 0) / 0xffffffff }
-
-      const history = {}
-
-      // Dias passados
-      for (let i = 1; i <= 90; i++) {
-        const d = new Date(); d.setDate(d.getDate() - i)
-        const k   = d.toISOString().slice(0, 10)
-        const dow = d.getDay()
-        const dayHabits = HABIT_DEFS.filter(h => h.days.includes(dow))
-        if (!dayHabits.length) continue
-
-        const hm = {}
-
-        if (i <= 22) {
-          // Streak zone — alta conclusão para garantir streak e nível Núcleo
-          dayHabits.forEach(h => { if (rng() > 0.12) hm[h.id] = true })
-          if (!Object.keys(hm).length) hm[dayHabits[0].id] = true // mínimo 1
-        } else if (i <= 70) {
-          // Zona ativa — padrão realista, ~75%
-          dayHabits.forEach(h => { if (rng() > 0.28) hm[h.id] = true })
-        } else {
-          // Início — começo do uso, ~50%
-          dayHabits.forEach(h => { if (rng() > 0.50) hm[h.id] = true })
-        }
-
-        history[k] = {
-          done:   Object.keys(hm).length,
-          total:  dayHabits.length,
-          habits: hm,
-        }
-      }
-
-      localStorage.setItem('nex_habits',     JSON.stringify(habitsForStorage))
-      localStorage.setItem('nex_history',    JSON.stringify(history))
-      // JSON.stringify obrigatório: AppContext lê via loadStorage (JSON.parse)
-      localStorage.setItem('nex_last_reset', JSON.stringify(today))
-
-      // ──────────────────────────────────────
-      // PLANO PRO + LOJA
-      // ──────────────────────────────────────
-      localStorage.setItem('nex_plan', 'pro')
-      localStorage.setItem('nex_shop_owned', JSON.stringify([
-        'util_calendar', 'util_mentor', 'util_progress',
-        'theme_sakura', 'theme_desert', 'theme_dracula', 'theme_nord',
-        'theme_midnight', 'theme_forest', 'theme_glass',
-      ]))
-      localStorage.setItem('nex_cal_visible', 'true')
-      localStorage.setItem('nex_sound', 'true')
-
-      // ──────────────────────────────────────
-      // FINANÇAS demo — 3 meses de dados
-      // ──────────────────────────────────────
-      function isoFin(daysAgo = 0) {
-        const d = new Date(); d.setDate(d.getDate() - daysAgo)
-        return d.toISOString().slice(0, 10)
-      }
-      function isoMonth(monthsAgo, day) {
-        const d = new Date(); d.setDate(day); d.setMonth(d.getMonth() - monthsAgo)
-        return d.toISOString().slice(0, 10)
-      }
-
-      const FIN_TXS = []
-      let txId = 3001
-
-      // Salário mensal (3 meses)
-      for (let m = 0; m < 3; m++) {
-        FIN_TXS.push({ id: txId++, type: 'income',  desc: 'Salário',  category: 'Salário',    amount: 6800, date: isoMonth(m, 5) })
-      }
-      // Freelance
-      FIN_TXS.push({ id: txId++, type: 'income',  desc: 'Freelance — landing page', category: 'Freelance', amount: 1200, date: isoFin(45) })
-      FIN_TXS.push({ id: txId++, type: 'income',  desc: 'Freelance — consultoria',  category: 'Freelance', amount:  800, date: isoFin(12) })
-
-      // Despesas recorrentes (3 meses)
-      const REC = [
-        { desc: 'Aluguel',           cat: 'Moradia',      amt: 1800 },
-        { desc: 'Supermercado',      cat: 'Alimentação',  amt:  620 },
-        { desc: 'Academia',          cat: 'Saúde',        amt:  110 },
-        { desc: 'Plano de saúde',    cat: 'Saúde',        amt:  290 },
-        { desc: 'Internet',          cat: 'Moradia',      amt:  120 },
-        { desc: 'Spotify + Netflix', cat: 'Lazer',        amt:   65 },
-      ]
-      for (let m = 0; m < 3; m++) {
-        REC.forEach((r, i) => {
-          FIN_TXS.push({ id: txId++, type: 'expense', desc: r.desc, category: r.cat, amount: r.amt, date: isoMonth(m, 8 + i) })
-        })
-      }
-      // Despesas avulsas
-      const AVULSAS = [
-        { desc: 'Restaurante',          cat: 'Alimentação', amt:  87, d:  3 },
-        { desc: 'Uber',                 cat: 'Transporte',  amt:  23, d:  5 },
-        { desc: 'Livros — Amazon',      cat: 'Educação',    amt: 134, d:  8 },
-        { desc: 'Farmácia',             cat: 'Saúde',       amt:  58, d: 10 },
-        { desc: 'Presente aniversário', cat: 'Outros',      amt: 150, d: 15 },
-        { desc: 'Curso online',         cat: 'Educação',    amt: 297, d: 20 },
-        { desc: 'Gasolina',             cat: 'Transporte',  amt: 180, d: 22 },
-        { desc: 'Jantar fora',          cat: 'Alimentação', amt: 145, d: 28 },
-        { desc: 'Roupas',               cat: 'Outros',      amt: 320, d: 35 },
-        { desc: 'Suplemento',           cat: 'Saúde',       amt: 189, d: 40 },
-        { desc: 'Cinema',               cat: 'Lazer',       amt:  60, d: 50 },
-        { desc: 'Dentista',             cat: 'Saúde',       amt: 250, d: 55 },
-      ]
-      AVULSAS.forEach(a => {
-        FIN_TXS.push({ id: txId++, type: 'expense', desc: a.desc, category: a.cat, amount: a.amt, date: isoFin(a.d) })
-      })
-      FIN_TXS.sort((a, b) => b.date.localeCompare(a.date))
-
-      localStorage.setItem('nex_fin_transactions', JSON.stringify(FIN_TXS))
-      localStorage.setItem('nex_fin_income',    JSON.stringify(6800))
-      localStorage.setItem('nex_fin_monthgoal', JSON.stringify({ target: 1500, enabled: true }))
-      localStorage.setItem('nex_fin_emergency', JSON.stringify({ current: 8400, target: 18030 }))
-      localStorage.setItem('nex_fin_goals', JSON.stringify([
-        { id: 4001, name: 'Viagem para Portugal', icon: '✈️', target: 12000, saved: 4200, deadline: isoFin(-180), color: '#3498db', createdAt: isoFin(60), aportes: [] },
-        { id: 4002, name: 'Notebook novo',         icon: '💻', target:  5500, saved: 3800, deadline: isoFin(-60),  color: '#8e44ad', createdAt: isoFin(45), aportes: [] },
-        { id: 4003, name: 'Reserva para MBA',      icon: '🎓', target: 30000, saved: 8500, deadline: isoFin(-365), color: '#27ae60', createdAt: isoFin(30), aportes: [] },
-      ]))
-      localStorage.setItem('nex_cats_income',  JSON.stringify(['Salário', 'Freelance', 'Investimentos', 'Outros']))
-      localStorage.setItem('nex_cats_expense', JSON.stringify(['Moradia', 'Alimentação', 'Transporte', 'Saúde', 'Educação', 'Lazer', 'Outros']))
-
-      // ──────────────────────────────────────
-      // DIÁRIO demo
-      // ──────────────────────────────────────
-      localStorage.setItem('nex_journal', JSON.stringify([
-        { id: 5001, prompt: 'O que aconteceu hoje que vale guardar?', text: 'Terminei o primeiro módulo do curso de product design. Finalmente clicou o conceito de hierarquia visual.', mood: '😊', tags: ['aprendizado','design'], date: isoFin(2),  createdAt: new Date(Date.now()-2*864e5).toISOString() },
-        { id: 5002, prompt: 'Qual obstáculo você superou hoje?',      text: 'Não queria ir malhar. Coloquei o tênis assim mesmo e fui. Às vezes aparecer já é o suficiente.',          mood: '💪', tags: ['exercício','disciplina'], date: isoFin(5),  createdAt: new Date(Date.now()-5*864e5).toISOString() },
-        { id: 5003, prompt: 'Que escolha de hoje seu eu de amanhã vai agradecer?', text: 'Dormi cedo. Acordei com energia de verdade pela primeira vez em semanas.',                     mood: '😴', tags: ['sono','autocuidado'],    date: isoFin(8),  createdAt: new Date(Date.now()-8*864e5).toISOString() },
-        { id: 5004, prompt: 'Quem fez você sorrir genuinamente hoje?', text: 'Ligação com minha mãe. Ela contou uma história ridícula do meu sobrinho e ri de verdade por uns 5 min.', mood: '😄', tags: ['família','gratidão'],     date: isoFin(12), createdAt: new Date(Date.now()-12*864e5).toISOString() },
-      ]))
-
-      // ──────────────────────────────────────
-      // CARREIRA demo
-      // ──────────────────────────────────────
-      localStorage.setItem('nex_career_readings', JSON.stringify([
-        {id:1,title:'Atomic Habits',author:'James Clear',type:'Livro',status:'concluido',notes:'Melhor livro sobre hábitos que já li.',rating:5,createdAt:'2024-10-10'},
-        {id:2,title:'Deep Work',author:'Cal Newport',type:'Livro',status:'lendo',notes:'Foco no trabalho profundo e sessões sem distração.',rating:4,createdAt:'2024-11-01'},
-        {id:3,title:'React Avançado',author:'Kent C. Dodds',type:'Curso',status:'lendo',notes:'Patterns de performance e composição.',createdAt:'2024-11-15'},
-        {id:4,title:'The Pragmatic Programmer',author:'Hunt & Thomas',type:'Livro',status:'lista',createdAt:'2024-12-01'},
-      ]))
-      localStorage.setItem('nex_career_goals', JSON.stringify([
-        {id:1,title:'Dominar React + TypeScript',area:'Tecnologia',milestones:[
-          {id:1,text:'Completar curso avançado',done:true},
-          {id:2,text:'Construir 3 projetos próprios',done:true},
-          {id:3,text:'Contribuir para open source',done:false},
-          {id:4,text:'Deploy de SaaS pessoal',done:false},
-        ],createdAt:'2024-10-01'},
-        {id:2,title:'Comunicação e liderança',area:'Soft Skills',milestones:[
-          {id:1,text:'Fazer 10 apresentações técnicas',done:false},
-          {id:2,text:'Mentorar 2 pessoas',done:false},
-        ],createdAt:'2024-11-01'},
-      ]))
-      localStorage.setItem('nex_career_projects', JSON.stringify([
-        {id:1,name:'Portfolio Pessoal',status:'andamento',notes:'Site profissional com case studies.',
-         tasks:[{id:1,text:'Design',done:true},{id:2,text:'Desenvolvimento',done:true},{id:3,text:'Deploy',done:false}],createdAt:'2024-10-15'},
-        {id:2,name:'Ioversoroot App',status:'andamento',notes:'PWA de hábitos e produtividade.',
-         tasks:[{id:1,text:'MVP',done:true},{id:2,text:'Design system',done:true},{id:3,text:'Loja',done:false}],createdAt:'2024-11-01'},
-      ]))
-
-      // ──────────────────────────────────────
-      // PROJETOS DE VIDA demo
-      // ──────────────────────────────────────
-      localStorage.setItem('nex_projects', JSON.stringify([
-        {id:1,title:'Aprender Espanhol',category:'Aprendizado',priority:'media',status:'andamento',
-         milestones:[
-           {id:1,text:'Completar nível A1',done:true},
-           {id:2,text:'Assistir série sem legenda',done:false},
-           {id:3,text:'Conversação básica fluente',done:false},
-         ],desc:'Meta de longo prazo. 20 min/dia consistentes.',createdAt:'2024-10-01'},
-        {id:2,title:'Correr 10km',category:'Saúde',priority:'alta',status:'andamento',
-         milestones:[
-           {id:1,text:'Correr 1km sem parar',done:true},
-           {id:2,text:'Correr 5km',done:true},
-           {id:3,text:'Correr 10km',done:false},
-         ],createdAt:'2024-11-01'},
-        {id:3,title:'Economizar R$ 10k',category:'Finanças',priority:'alta',status:'andamento',
-         milestones:[
-           {id:1,text:'Reserva de emergência (3 meses)',done:true},
-           {id:2,text:'Investir mensalmente',done:false},
-           {id:3,text:'Atingir meta dos 10k',done:false},
-         ],desc:'Fundo de liberdade para projetos próprios.',createdAt:'2024-10-20'},
-      ]))
-
+      // Limpar todos os dados e recarregar para começar do zero
+      [
+        'nex_habits','nex_history','nex_last_reset',
+        'nex_plan','nex_shop_owned','nex_cal_visible',
+        'nex_fin_transactions','nex_fin_income','nex_fin_monthgoal',
+        'nex_fin_emergency','nex_fin_goals','nex_cats_income','nex_cats_expense',
+        'nex_journal',
+        'nex_career_readings','nex_career_goals','nex_career_projects','nex_projects',
+      ].forEach(k => localStorage.removeItem(k))
       setTimeout(() => window.location.reload(), 300)
     } else {
+      // Desativar modo dev - limpar dados de demonstração
       [
         'nex_habits','nex_history','nex_last_reset',
         'nex_plan','nex_shop_owned','nex_cal_visible',
@@ -1657,6 +1238,15 @@ export default function Profile({ onNavigate }) {
         </div>
 
         <div className={styles.settingRow}>
+          <span className={styles.settingIcon}><PiCalculatorBold size={16}/></span>
+          <div style={{ flex:1 }}>
+            <span className={styles.settingLabel}>Calculadora na navegação</span>
+            <p className={styles.settingDesc}>Exibe a Calculadora na barra inferior.</p>
+          </div>
+          <Toggle on={ownedItems.has('util_calculator')} onToggle={() => toggleNavItem('util_calculator')} label="Calculator nav"/>
+        </div>
+
+        <div className={styles.settingRow}>
           <span className={styles.settingIcon}><PiBriefcaseBold size={16}/></span>
           <div style={{ flex:1 }}>
             <span className={styles.settingLabel}>Carreira na navegação</span>
@@ -1735,10 +1325,7 @@ export default function Profile({ onNavigate }) {
         <div className="card-title"><PiLockSimpleBold size={15}/> Configurações de conta</div>
         <AccountSettingsCard/>
       </div>
-
-      {/* DEV MODE — oculto em produção */}
-      {/* <DevCard/> */}
-
+ 
       {/* Footer */}
       <div className={styles.footer}>
 
@@ -1746,28 +1333,16 @@ export default function Profile({ onNavigate }) {
         <img src="/icons/icon.svg" alt="Rootio" width={90} height={90} className={styles.brandLogo} />
         <p className={styles.footerTagline}>Evolua com consistência, um dia de cada vez.</p>
 
-        {/* Contato */}
-        {/* <div className={styles.footerContact}>
-          <a href="mailto:contato@rootio.app" className={styles.footerContactItem}>
-            <PiEnvelopeBold size={13}/> contato@rootio.app
-          </a>
-          <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className={styles.footerContactItem}>
-            <PiWhatsappLogoFill size={13}/> (11) 99999-9999
-          </a>
-          <span className={styles.footerContactItem}>
-            <PiMapPinBold size={13}/> São Paulo, SP — Brasil
-          </span>
-        </div> */}
 
         {/* Redes sociais */}
         <div className={styles.footerSocial}>
-          <a href="https://instagram.com/rootio.app" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Instagram">
+          <a href="https://instagram.com/roootioverso" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Instagram">
             <PiInstagramLogoFill size={18}/>
           </a>
-          <a href="https://linkedin.com/company/rootio" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="LinkedIn">
+          <a href="https://linkedin.com/company/rootioverso" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="LinkedIn">
             <PiLinkedinLogoFill size={18}/>
           </a>
-          <a href="https://youtube.com/@rootio" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="YouTube">
+          <a href="https://youtube.com/@rootioverso" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="YouTube">
             <PiYoutubeLogoFill size={18}/>
           </a>
         </div>

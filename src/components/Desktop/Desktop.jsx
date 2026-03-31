@@ -4,7 +4,8 @@ import { Taskbar } from './Taskbar'
 import { StartMenu } from './StartMenu'
 import { DesktopIcon } from './DesktopIcon'
 import { Widget } from './Widget'
-import { PiHouseBold, PiCheckCircleBold, PiCurrencyDollarBold, PiBriefcaseBold, PiRocketLaunchBold, PiRobotBold, PiChartLineUpBold, PiUserBold } from 'react-icons/pi'
+import { PiHouseBold, PiCheckCircleBold, PiCurrencyDollarBold, PiBriefcaseBold, PiRocketLaunchBold, PiRobotBold, PiChartLineUpBold, PiUserBold, PiCalculatorBold } from 'react-icons/pi'
+import { useUnlockableItem } from '../../hooks/useNav'
 import Home from '../../pages/Home'
 import Habits from '../../pages/Habits'
 import Finance from '../../pages/Finance'
@@ -13,6 +14,7 @@ import Mentor from '../../pages/Mentor'
 import Profile from '../../pages/Profile'
 import Career from '../../pages/Career'
 import Projects from '../../pages/Projects'
+import Calculator from '../../pages/Calculator'
 import styles from './Desktop.module.css'
 
 // ══════════════════════════════════════
@@ -27,6 +29,7 @@ const PAGE_COMPONENTS = {
   Profile: Profile,
   Career: Career,
   Projects: Projects,
+  Calculator: Calculator,
 }
 
 // ══════════════════════════════════════
@@ -40,6 +43,7 @@ const APPS = [
   { id: 'projects', name: 'Projetos', icon: PiRocketLaunchBold, component: 'Projects' },
   { id: 'mentor', name: 'Mentor IA', icon: PiRobotBold, component: 'Mentor' },
   { id: 'progress', name: 'Progresso', icon: PiChartLineUpBold, component: 'Progress' },
+  { id: 'calculator', name: 'Calculadora', icon: PiCalculatorBold, component: 'Calculator' },
   { id: 'profile', name: 'Perfil', icon: PiUserBold, component: 'Profile' },
 ]
 
@@ -183,15 +187,25 @@ export function Desktop() {
 
       {/* Ícones na área de trabalho */}
       <div className={styles.icons}>
-        {APPS.map(app => (
-          <DesktopIcon
-            key={app.id}
-            app={app}
-            isSelected={selectedIcon === app.id}
-            onClick={() => handleIconClick(app.id)}
-            onDoubleClick={() => openWindow(app.id)}
-          />
-        ))}
+        {APPS.map(app => {
+          // Verificar se é um item desbloqueável
+          const isUnlockable = ['progress', 'career', 'projects', 'mentor', 'calculator'].includes(app.id)
+          const { visible, animCls } = isUnlockable ? useUnlockableItem(`util_${app.id}`) : { visible: true, animCls: 'visible' }
+          
+          // Se não estiver visível, não renderizar
+          if (!visible) return null
+          
+          return (
+            <DesktopIcon
+              key={app.id}
+              app={app}
+              isSelected={selectedIcon === app.id}
+              onClick={() => handleIconClick(app.id)}
+              onDoubleClick={() => openWindow(app.id)}
+              animCls={animCls}
+            />
+          )
+        })}
       </div>
 
       {/* Gerenciador de janelas */}

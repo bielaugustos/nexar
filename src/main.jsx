@@ -4,18 +4,23 @@
 // Ordem de inicialização:
 //   1. Aplica o tema salvo ANTES do React montar
 //      → elimina o flash de tema incorreto (FOUC)
-//   2. Em desenvolvimento, carrega dados de semente
+//   2. Inicializa analytics (PostHog)
+//   3. Em desenvolvimento, carrega dados de semente
 //      e silencia avisos conhecidos do React Router v6
-//   3. Monta o React com StrictMode
+//   4. Monta o React com StrictMode
 // ══════════════════════════════════════
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { applyTheme } from './services/themes'
+import { initAnalytics } from './services/analytics'
 
 // ── 1. Tema antecipado (antes do primeiro paint) ──
 const savedTheme = localStorage.getItem('nex_theme') || 'light'
 applyTheme(savedTheme)
+
+// ── 2. Inicializa analytics ──
+initAnalytics()
 
 // ── 2. Ambiente de desenvolvimento ──
 if (import.meta.env.DEV) {

@@ -19,6 +19,7 @@ import { loadStorage, saveStorage } from '../services/storage'
 import { applyTheme, initTheme }    from '../services/themes'
 import { useAuth }                  from './AuthContext'
 import { upsertRows, fetchRows, deleteRow, updateProfilePoints } from '../services/supabase'
+import { analytics }                from '../services/analytics'
 
 // ══════════════════════════════════════
 // UTILITÁRIOS DE DATA
@@ -50,48 +51,14 @@ function todayStr() {
 // ══════════════════════════════════════
 function migrateHabit(h) {
   return {
-    // ── Identidade ──
-    id:       h.id       ?? Date.now(),
-    name:     h.name     ?? 'Hábito',
-    icon:     h.icon     ?? 'PiStarBold',
-
-    // ── Progresso diário ──
-    done:     h.done     ?? false,
-    pts:      h.pts      ?? 20,
-
-    // ── Classificação ──
+    id: h.id ?? Date.now(),
+    name: h.name ?? 'Hábito',
+    icon: h.icon ?? 'PiStarBold',
+    done: h.done ?? false,
+    pts: h.pts ?? 20,
     priority: h.priority ?? 'media',
-
-    // ── Frequência ──
-    // freq: 'diario' ou 'personalizado'
-    // days: array de 0 (Dom) a 6 (Sáb)
     freq: h.freq ?? 'diario',
-    days: Array.isArray(h.days) && h.days.length > 0
-      ? h.days
-      : [0, 1, 2, 3, 4, 5, 6],
-
-    // ── Contexto e metadados ──
-    subtasks:  Array.isArray(h.subtasks) ? h.subtasks : [],
-    notes:     h.notes    ?? '',
-    reason:    h.reason   ?? '',   // "por que esse hábito importa"
-    tags:      Array.isArray(h.tags) ? h.tags : [],
-    createdAt: h.createdAt ?? null,
-
-    // ── Planejamento ──
-    // estMins: tempo estimado (null = não definido)
-    estMins:   h.estMins != null ? Number(h.estMins) : null,
-
-    // deadline: "YYYY-MM-DD" — até quando praticar (independente da freq.)
-    deadline:  h.deadline ?? null,
-
-    // period: null | 'manha' | 'tarde' | 'noite'
-    period: ['manha', 'tarde', 'noite'].includes(h.period) ? h.period : null,
-
-    // habitTime: "HH:MM" — horário sugerido
-    habitTime: h.habitTime ?? null,
-
-    // ── Arquivamento ──
-    archived:  h.archived ?? false,
+    days: Array.isArray(h.days) ? h.days : [0,1,2,3,4,5,6],
   }
 }
 
@@ -152,7 +119,7 @@ export function AppProvider({ children }) {
   // ── Efeitos de persistência e sincronização ──
 
   // Aplica o tema no <html> sempre que mudar
-  useEffect(() => { applyTheme(theme) }, [theme]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { applyTheme(theme) }, [theme])
 
   // Persiste preferência de som
   useEffect(() => { saveStorage('nex_sound', soundOn) }, [soundOn])
@@ -169,22 +136,19 @@ export function AppProvider({ children }) {
       setPlanState(profile.plan)
       saveStorage('nex_plan', profile.plan)
     }
-  }, [profile?.plan]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [profile?.plan])
 
   // Carrega hábitos e histórico do Supabase quando o usuário loga
   useEffect(() => {
     if (!isLoggedIn || !userId) return
     
-    // Só carregar dados do Supabase se usuário entrou com senha (tem session)
     const userEnteredWithPassword = !!session?.user
     if (!userEnteredWithPassword) return
     
-    // Verificar se já existem dados locais para não sobrescrever
     const localHabits = loadStorage('nex_habits', [])
     const localHistory = loadStorage('nex_history', {})
     const hasLocalData = localHabits.length > 0 || Object.keys(localHistory).length > 0
     
-    // Se já tem dados locais, não sobrescrever com dados do Supabase
     if (hasLocalData) return
 
     async function loadFromDB() {
@@ -210,16 +174,13 @@ export function AppProvider({ children }) {
     }
 
     loadFromDB()
-  }, [isLoggedIn, userId, session]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, userId, session])
 
   // Sincroniza histórico com Supabase em background apenas quando usuário entrou com senha
   useEffect(() => {
     if (!isLoggedIn || !userId) return
     
-    // Verificar se usuário entrou com senha (tem token de autenticação)
     const userEnteredWithPassword = !!session?.user
-    
-    // Só sincronizar se usuário entrou com senha
     if (!userEnteredWithPassword) return
     
     const entries = Object.entries(history)
@@ -235,7 +196,7 @@ export function AppProvider({ children }) {
 
     upsertRows('habit_history', rows, { onConflict: 'user_id,date' })
       .catch(e => console.warn('[Sync] history:', e))
-  }, [history, isLoggedIn, userId, session]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [history, isLoggedIn, userId, session])
 
   // Persiste hábitos e registra o dia atual no histórico
   useEffect(() => {
@@ -255,18 +216,9 @@ export function AppProvider({ children }) {
     }
     setHistory(updated)
     saveStorage('nex_history', updated)
-  }, [habits]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [habits])
 
   // ── Reset automático à meia-noite (fuso local) ──
-  //
-  // Calcula exatamente quantos ms faltam para 00:00:01 local
-  // e agenda o reset. Após cada reset, reagenda para a próxima
-  // meia-noite — loop correto sem drift de intervalo.
-  //
-  // Lógica inteligente:
-  // - Reseta done=false em todos os hábitos
-  // - Para usuários Pro: deleta hábitos únicos (não repetem amanhã)
-  // - Para Free: mantém comportamento atual
   const midnightTimer = useRef(null)
 
   useEffect(() => {
@@ -276,31 +228,24 @@ export function AppProvider({ children }) {
       const msRestantes = proxima - agora
 
       midnightTimer.current = setTimeout(() => {
-        // Calcula o dia de semana de amanhã (0=Dom, 6=Sáb)
         const amanha = new Date()
         amanha.setDate(amanha.getDate() + 1)
         const tomorrowDow = amanha.getDay()
 
         setHabits(prev => {
-          // Para Pro: identifica hábitos únicos (não repetem amanhã)
-          // Um hábito é "único" se seus days NÃO incluem o dia de amanhã
           const isPro = plan === 'pro'
-
-          // Primeiro: reseta todos para done=false
           let updated = prev.map(h => ({ ...h, done: false }))
 
-          // Segundo: para Pro, deleta hábitos únicos que foram concluídos
           if (isPro) {
             const uniqueDoneHabits = prev.filter(h =>
-              h.done &&                          // foi concluído hoje
+              h.done &&
               (
-                (Array.isArray(h.days) && h.days.length === 0) ||  // não repete (days vazio)
-                (!Array.isArray(h.days) || !h.days.includes(tomorrowDow))  // NÃO repete amanhã
+                (Array.isArray(h.days) && h.days.length === 0) ||
+                (!Array.isArray(h.days) || !h.days.includes(tomorrowDow))
               )
             )
 
             if (uniqueDoneHabits.length > 0) {
-              // Salva no histórico antes de deletar
               const today = todayStr()
               const newHistory = { ...history }
               uniqueDoneHabits.forEach(h => {
@@ -312,7 +257,6 @@ export function AppProvider({ children }) {
               setHistory(newHistory)
               saveStorage('nex_history', newHistory)
 
-              // Remove hábitos únicos da lista
               const idsToDelete = new Set(uniqueDoneHabits.map(h => h.id))
               updated = updated.filter(h => !idsToDelete.has(h.id))
             }
@@ -322,13 +266,13 @@ export function AppProvider({ children }) {
         })
 
         saveStorage('nex_last_reset', todayStr())
-        agendarProximoReset() // reagenda para a próxima noite
+        agendarProximoReset()
       }, msRestantes)
     }
 
     agendarProximoReset()
     return () => clearTimeout(midnightTimer.current)
-  }, [plan, history]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [plan, history])
 
   // ── Ações — useCallback para identidade estável entre renders ──
 
@@ -340,9 +284,13 @@ export function AppProvider({ children }) {
         const habit = updated.find(h => h.id === id)
         if (habit) {
           const habitToSync = { ...habit, user_id: userId }
-          console.log('[AppContext] Enviando hábito para Supabase:', habitToSync)
           upsertRows('habits', [habitToSync])
             .catch(e => console.warn('[Sync] toggleHabit:', e))
+          analytics.track('habit_toggled', {
+            habit_id: id,
+            habit_name: habit.name,
+            done: !habit.done,
+          })
         }
       }
       return updated
@@ -359,6 +307,11 @@ export function AppProvider({ children }) {
       if (isLoggedIn && userId) {
         upsertRows('habits', [{ ...safe, user_id: userId }])
           .catch(e => console.warn('[Sync] saveHabit:', e))
+        analytics.track('habit_saved', {
+          habit_id: safe.id,
+          habit_name: safe.name,
+          is_new: !prev.some(h => h.id === safe.id),
+        })
       }
       return list
     })
@@ -372,6 +325,12 @@ export function AppProvider({ children }) {
       if (isLoggedIn && userId) {
         upsertRows('habits', [{ ...safe, user_id: userId }])
           .catch(e => console.warn('[Sync] addHabit:', e))
+        analytics.track('habit_created', {
+          habit_id: safe.id,
+          habit_name: safe.name,
+          priority: safe.priority,
+          freq: safe.freq,
+        })
       }
       return updated
     })
@@ -380,10 +339,17 @@ export function AppProvider({ children }) {
   // Remove permanentemente um hábito pelo id
   const deleteHabit = useCallback((id) => {
     setHabits(prev => {
+      const habit = prev.find(h => h.id === id)
       const updated = prev.filter(h => h.id !== id)
       if (isLoggedIn && userId) {
         deleteRow('habits', id, userId)
           .catch(e => console.warn('[Sync] deleteHabit:', e))
+        if (habit) {
+          analytics.track('habit_deleted', {
+            habit_id: id,
+            habit_name: habit.name,
+          })
+        }
       }
       return updated
     })
@@ -396,7 +362,10 @@ export function AppProvider({ children }) {
   }, [])
 
   // Define o tema pelo id (ex: 'dark', 'glass', 'sakura')
-  const setTheme = useCallback((id) => { setThemeState(id) }, [])
+  const setTheme = useCallback((id) => {
+    setThemeState(id)
+    analytics.track('theme_changed', { theme_id: id })
+  }, [])
 
   // Alterna entre claro e escuro (atalho rápido)
   const toggleTheme = useCallback(() => {
@@ -407,14 +376,18 @@ export function AppProvider({ children }) {
   const setSoundOn = useCallback((val) => { setSoundOnSt(val) }, [])
 
   // Define o plano do usuário ('free' | 'pro')
-  const setPlan = useCallback((val) => { setPlanState(val) }, [])
+  const setPlan = useCallback((val) => {
+    setPlanState(val)
+    analytics.track('plan_changed', { plan: val })
+  }, [])
 
   // ── Sincronização de pontos com o perfil ──
-  // Calcula os pontos totais e atualiza no perfil do Supabase
+  // Usa useRef para evitar chamadas duplicadas
+  const lastSyncedPoints = useRef(null)
+  
   useEffect(() => {
     if (!isLoggedIn || !userId) return
 
-    // Calcular pontos totais (histórico + hoje)
     const todayKey = new Date().toISOString().slice(0, 10)
     const avgPtsPerHabit = habits.length > 0
       ? Math.round(habits.reduce((a, h) => a + (h.pts ?? 15), 0) / habits.length)
@@ -426,7 +399,6 @@ export function AppProvider({ children }) {
         return acc + ((registro?.done ?? 0) * avgPtsPerHabit)
       }, 0)
 
-    // Calcular hábitos agendados para hoje
     const todayDow = new Date().getDay()
     const todayHabits = habits.filter(h => Array.isArray(h.days) && h.days.includes(todayDow))
     
@@ -436,14 +408,17 @@ export function AppProvider({ children }) {
 
     const totalPoints = pontosPasados + pontosHoje
 
-    // Atualizar pontos no perfil do Supabase
-    updateProfilePoints(userId, totalPoints)
+    // Evita chamadas duplicadas se os pontos não mudaram
+    if (lastSyncedPoints.current === totalPoints) return
+    
+    lastSyncedPoints.current = totalPoints
+
+    updateProfilePoints(userId, totalPoints, user?.email, profile?.username)
       .then(({ data }) => {
-        // Disparar evento para notificar que o perfil foi atualizado
         window.dispatchEvent(new CustomEvent('profile-points-updated', { detail: { points: totalPoints } }))
       })
       .catch(e => console.warn('[Sync] updateProfilePoints:', e))
-  }, [isLoggedIn, userId, habits, history])
+  }, [isLoggedIn, userId, habits, history, user?.email, profile?.username])
 
   // ── Valor exposto pelo contexto ──
   const value = {
@@ -461,3 +436,24 @@ export function useApp() {
   if (!ctx) throw new Error('useApp deve ser usado dentro de <AppProvider>')
   return ctx
 }
+
+<environment_details>
+# Visual Studio Code Visible Files
+src/pages/Mentor.jsx
+
+# Visual Studio Code Open Tabs
+index.html
+vite.config.js
+src/pages/Profile.jsx
+src/pages/Mentor.module.css
+src/pages/Mentor.jsx
+
+# Current Time
+30/03/2026, 10:34:35 AM (America/Sao_Paulo, UTC-3:00)
+
+# Context Window Usage
+107.307 / 131K tokens used (82%)
+
+# Current Mode
+ACT MODE
+</environment_details>

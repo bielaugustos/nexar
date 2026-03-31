@@ -127,19 +127,85 @@ export async function migrateLocalToSupabase(userId) {
   return { success: errors.length === 0, errors }
 }
 
-// ── Aplicar dados remotos no IndexedDB ──
+// ── Merge de history preservando maior streak ──
+// Compara timestamps e mantém dados mais completos
+// Evita perda de streak ao sincronizar entre dispositivos
+function mergeHistoryPreservingStreak(localHistory, remoteHistory) {
+  const merged = { ...localHistory }
+  
+  for (const [date, remoteData] of Object.entries(remoteHistory)) {
+    const localData = merged[date]
+    
+    if (!localData) {
+      // Remoto tem dados que local não tem
+      merged[date] = remoteData
+    } else {
+      // Merge inteligente: mantém dados mais completos
+      const localDone = localData.done || 0
+      const remoteDone = remoteData.done || 0
+      
+      if (remoteDone > localDone) {
+        // Remoto tem mais conclusões
+        merged[date] = remoteData
+      } else if (remoteDone === localDone && remoteData.habits) {
+        // Mesmo número de conclusões, merge dos hábitos
+        merged[date] = {
+          ...localData,
+          habits: { ...localData.habits, ...remoteData.habits }
+        }
+      }
+      // Se local tem mais conclusões, mantém local
+    }
+  }
+  
+  return merged
+}
 
+// ── Aplicar dados remotos no IndexedDB ──
+// Usa merge inteligente para history (preserva streak)
 export function applyRemoteData(data) {
-  if (data.habits?.length)                                      saveStorage('nex_habits',           data.habits)
-  if (data.history && Object.keys(data.history).length > 0)    saveStorage('nex_history',          data.history)
-  if (data.transactions?.length)                                saveStorage('nex_fin_transactions', data.transactions)
-  if (data.financial_goals?.length)                             saveStorage('nex_fin_goals',        data.financial_goals)
-  if (data.emergency)                                           saveStorage('nex_fin_emergency',    data.emergency)
-  if (data.career_readings?.length)                             saveStorage('nex_career_readings',  data.career_readings)
-  if (data.career_goals?.length)                                saveStorage('nex_career_goals',     data.career_goals)
-  if (data.career_projects?.length)                             saveStorage('nex_career_projects',  data.career_projects)
-  if (data.life_projects?.length)                               saveStorage('nex_projects',         data.life_projects)
-  if (data.journal?.length)                                     saveStorage('nex_journal',          data.journal)
+  if (data.habits?.length) {
+    saveStorage('nex_habits', data.habits)
+  }
+  
+  if (data.history && Object.keys(data.history).length > 0) {
+    // Usa merge preservando streak
+    const localHistory = loadStorage('nex_history', {})
+    const mergedHistory = mergeHistoryPreservingStreak(localHistory, data.history)
+    saveStorage('nex_history', mergedHistory)
+  }
+  
+  if (data.transactions?.length) {
+    saveStorage('nex_fin_transactions', data.transactions)
+  }
+  
+  if (data.financial_goals?.length) {
+    saveStorage('nex_fin_goals', data.financial_goals)
+  }
+  
+  if (data.emergency) {
+    saveStorage('nex_fin_emergency', data.emergency)
+  }
+  
+  if (data.career_readings?.length) {
+    saveStorage('nex_career_readings', data.career_readings)
+  }
+  
+  if (data.career_goals?.length) {
+    saveStorage('nex_career_goals', data.career_goals)
+  }
+  
+  if (data.career_projects?.length) {
+    saveStorage('nex_career_projects', data.career_projects)
+  }
+  
+  if (data.life_projects?.length) {
+    saveStorage('nex_projects', data.life_projects)
+  }
+  
+  if (data.journal?.length) {
+    saveStorage('nex_journal', data.journal)
+  }
 }
 
 // ── Limpeza após migração confirmada ──
