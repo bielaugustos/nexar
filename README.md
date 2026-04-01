@@ -1,106 +1,171 @@
-<h1 style='color:orange'> Rootio — Sua Evolução Pessoal com IA </h1>
+# Rootio — Plataforma de Desenvolvimento Pessoal Inteligente
 
-Um app de crescimento pessoal que combina rastreamento de hábitos, finanças, carreira e mentoria com IA — tudo roda localmente, sem necessidade de criar conta.
+Uma solução SaaS de desenvolvimento pessoal que integra rastreamento de hábitos, gestão financeira, planejamento de carreira e mentoria com inteligência artificial. Arquitetura offline-first com sincronização em nuvem opcional, proporcionando privacidade máxima e acessibilidade universal.
 
-![alt text](public/icons/preview.webp)
-
-<span style="color:pink">Imagem de exenplo: (Se fosse gerado pela IA desta era, seriam muitas excessões e parâmetros)</span>
+![Rootio Preview](public/icons/preview.webp)
 
 ---
 
-## O que rolou no app
+## Visão Geral do Produto
 
-| Módulo |Features |
-|--------|----------|
-| **Hábitos** | CRUD completo, subtarefas, prioridades, frequência e histórico |
-| **Finanças** | Registra receitas/despesas, metas de economia e fundo de emergência |
-| **Progresso** | Dashboard analytics com heatmap 52 semanas, sequências e badges |
-| **Carreira** | Acompanha leituras, metas profissionais e projetos |
-| **Projetos** | Gerencia projetos pessoais com milestones |
-| **Mentor** | Chat em tempo real com Claude + diário com PIN e humor do dia |
-| **Perfil** | Temas, avatar, plano free/pro, loja de goodies e gestão de dados |
+Rootio é uma plataforma digital de autogestão projetada para profissionais e indivíduos que buscam otimizar seu desenvolvimento pessoal de forma estruturada e orientada por dados. A solução combina funcionalidades essenciais de produtividade com IA generativa para oferecer uma experiência personalizada e escalável.
 
----
+### Proposição de Valor
 
-## 🚀 Stack
-
-- **React 18** + **Vite 5** — build e dev server
-- **React Router v6** — navegação client-side com lazy loading
-- **Context API** — estado global (hábitos, histórico, tema, som)
-- **CSS Modules** — estilos escopados por componente
-- **Web Audio API** — sounds procedurais, zero arquivos de áudio
-- **localStorage** — persistência local-first, offline por padrão
-- **Anthropic Claude API** — IA com streaming para mentor e suggestions
+- **Privacidade por Design**: Dados armazenados localmente com opção de backup criptografado na nuvem
+- **IA Contextual**: Mentoria personalizada baseada em padrões de comportamento e objetivos do usuário
+- **Arquitetura Resiliente**: Funcionalidade completa offline com sincronização transparente
+- **Gamificação Estratégica**: Sistema de engajamento baseado em progresso e conquistas
+- **Escalabilidade Técnica**: Arquitetura modular preparada para expansão de funcionalidades
 
 ---
 
-## 🧭 Mapa de Rotas
+## Módulos do Produto
+
+| Módulo | Funcionalidades Principais | Valor de Negócio |
+|---------|-------------------------|-------------------|
+| **Hábitos** | CRUD completo, subtarefas, priorização, frequência configurável, histórico detalhado | Aumento de produtividade através de rastreamento sistemático |
+| **Finanças** | Registro de transações, metas de economia, fundo de emergência, categorização inteligente | Controle financeiro com visualização de tendências |
+| **Progresso** | Dashboard analítico, heatmap anual, sequências de consistência, sistema de badges | Motivação através de visualização de progresso |
+| **Carreira** | Acompanhamento de leituras, metas profissionais, gestão de projetos | Alinhamento entre aprendizado e objetivos de carreira |
+| **Projetos** | Gestão de projetos pessoais com milestones e prazos | Organização de iniciativas complexas |
+| **Mentor IA** | Chat em tempo real com Claude, diário com PIN, rastreamento de humor | Orientação personalizada baseada em IA |
+| **Perfil** | Personalização de temas, avatar, gestão de plano (Free/Pro), loja de funcionalidades | Experiência customizada e monetização |
+
+---
+
+## Arquitetura Técnica
+
+### Stack Tecnológica
+
+- **Frontend**: React 18 + Vite 5 — Build otimizado e desenvolvimento ágil
+- **Navegação**: React Router v6 — Routing client-side com lazy loading de componentes
+- **Gerenciamento de Estado**: Context API — Estado global centralizado e escalável
+- **Estilização**: CSS Modules — Componentes com estilos escopados e manuteníveis
+- **Áudio**: Web Audio API — Sons procedurais, zero dependências de assets
+- **Persistência**: localStorage — Arquitetura local-first com fallback em nuvem
+- **Inteligência Artificial**: Anthropic Claude API — Streaming em tempo real para interações naturais
+
+### Diferenciais Técnicos
+
+1. **Offline-First Architecture**: Funcionalidade completa sem conexão à internet
+2. **Sincronização Híbrida**: LocalStorage como fonte primária, Supabase como backup opcional
+3. **Performance Otimizada**: Lazy loading, code splitting e renderização eficiente
+4. **Acessibilidade WCAG 2.1**: Conformidade com padrões internacionais de acessibilidade
+5. **Progressive Web App**: Suporte a instalação nativa e funcionalidade offline
+
+---
+
+## Mapa de Funcionalidades
 
 ```
-/                   → Home (dashboard)
-/habits             → Hábitos
-/finance            → Finanças
-/progress           → Experiência        🔒 requer purchase na loja
-/mentor             → Mentor             🔒 requer purchase na loja
-/career             → Carreira           🔒 requer purchase na loja
-/projects           → Projetos           🔒 requer purchase na loja
-/profile            → Perfil
-/*                  → redireciona para /
+/                   → Dashboard Principal
+/habits             → Gestão de Hábitos
+/finance            → Controle Financeiro
+/progress           → Analytics e Métricas      🔒 Premium
+/mentor             → Mentoria com IA            🔒 Premium
+/career             → Planejamento de Carreira  🔒 Premium
+/projects           → Gestão de Projetos        🔒 Premium
+/profile            → Configurações de Perfil
+/*                  → Redirecionamento para Home
 ```
+
+**Nota**: Funcionalidades Premium desbloqueadas através de compras na loja interna.
 
 ---
 
-## 💾 Como a sync funciona
+## Estratégia de Sincronização
+
+### Arquitetura de Dados
 
 ```
-Arquitetura: offline-first
-  localStorage → fonte primária (always available)
-  Supabase     → sincronização em background (quando logado)
-
-Escrita (hábitos):
-  toggleHabit / saveHabit / addHabit / deleteHabit
-      │
-      ▼
-  setHabits (atualiza React state)
-      │
-      ├── saveStorage('nex_habits', ...)  ← imediato
-      │
-      └── upsertRows('habits', ...)       ← background (.catch warn)
-          (só se isLoggedIn && userId)
-
-Leitura no login:
-  INITIAL_SESSION + !hasLocalData()
-      │
-      ▼
-  loadFromSupabase(userId)
-      │
-      ▼
-  applyRemoteData(data)  → salva em localStorage
-      │
-      ▼
-  window.location.reload()
-
-Tabelas syncadas:
-  habits · habit_history · transactions
-  financial_goals · emergency_fund
-  career_readings · career_goals · career_projects
-  life_projects · journal
+Offline-First Architecture:
+  localStorage → Fonte Primária (sempre disponível)
+  Supabase     → Backup e Sincronização (quando autenticado)
 ```
+
+### Fluxo de Escrita
+
+```
+Operação (hábitos, finanças, etc.)
+    │
+    ▼
+Atualização de Estado React
+    │
+    ├── saveStorage('nex_*', ...)  ← Persistência imediata (local)
+    │
+    └── upsertRows('table', ...)     ← Sincronização em background (nuvem)
+        (condicional: isLoggedIn && userId)
+```
+
+### Fluxo de Leitura
+
+```
+Login Inicial + Ausência de Dados Locais
+    │
+    ▼
+loadFromSupabase(userId)
+    │
+    ▼
+applyRemoteData(data)  → Persistência em localStorage
+    │
+    ▼
+Recarregamento da Aplicação
+```
+
+### Entidades Sincronizadas
+
+- `habits` — Lista de hábitos ativos
+- `habit_history` — Histórico de conclusões diárias
+- `transactions` — Transações financeiras
+- `financial_goals` — Metas de economia
+- `emergency_fund` — Reserva de emergência
+- `career_readings` — Leituras de desenvolvimento profissional
+- `career_goals` — Metas de carreira
+- `career_projects` — Projetos profissionais
+- `life_projects` — Projetos pessoais
+- `journal` — Diário de reflexões
 
 ---
 
-## ♿ Acessibilidade
+## Acessibilidade e Inclusão
 
-- Landmarks semânticos: `<nav>`, `<main>`, `<aside>`, `<header>`
-- `aria-current="page"` nos links ativos
-- `aria-live="polite"` nas notificações toast
-- `aria-hidden` em ícones decorativos
-- `role="checkbox"` com `aria-checked` no componente CheckBox
-- Keyboard navigation em todos os interactive elements
-- Contraste conforme WCAG 2.1
+### Conformidade WCAG 2.1
+
+- **Landmarks Semânticos**: Uso correto de `<nav>`, `<main>`, `<aside>`, `<header>`
+- **Navegação por Teclado**: Todos os elementos interativos acessíveis via keyboard
+- **ARIA Attributes**: `aria-current="page"`, `aria-live="polite"`, `aria-hidden`
+- **Contraste Visual**: Cores em conformidade com rácios de contraste WCAG
+- **Screen Readers**: Componentes com descrições apropriadas para leitores de tela
+
+### Design Inclusivo
+
+- Interface responsiva adaptável a diferentes tamanhos de tela
+- Suporte a tecnologias assistivas
+- Feedback visual e auditivo para ações do usuário
+- Personalização de temas para acessibilidade visual
 
 ---
 
-## 📄 Licença
+## Modelo de Negócio
 
-Projeto pessoal — todos os direitos reservados.
+### Estrutura de Monetização
+
+- **Plano Gratuito**: Acesso a funcionalidades essenciais (Hábitos, Finanças, Perfil)
+- **Plano Premium**: Acesso a funcionalidades avançadas (Progresso, Mentor, Carreira, Projetos)
+- **Loja de Funcionalidades**: Desbloqueio individual de módulos específicos
+
+### Estratégia de Crescimento
+
+1. **Engajamento**: Gamificação e sistema de conquistas
+2. **Retenção**: IA personalizada e progresso visível
+3. **Monetização**: Upgrade para Premium através de valor percebido
+4. **Expansão**: Novos módulos baseados em feedback de usuários
+
+---
+
+## Licença e Propriedade Intelectual
+
+Este projeto é propriedade exclusiva. Todos os direitos reservados.
+
+© 2024 Rootio. Todos os direitos reservados.
