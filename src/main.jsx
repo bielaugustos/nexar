@@ -24,9 +24,6 @@ initAnalytics()
 
 // ── 2. Ambiente de desenvolvimento ──
 if (import.meta.env.DEV) {
-  // Expõe window.seedDevMode() no console para popular dados de teste
-  import('./devSeed.js')
-
   // Silencia avisos do React Router v6 sobre flags futuras (v7).
   // São inofensivos e já estão configurados no BrowserRouter.
   const originalWarn = console.warn

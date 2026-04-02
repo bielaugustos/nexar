@@ -24,6 +24,7 @@ import Profile        from './pages/Profile'
 import Career         from './pages/Career'
 import Projects       from './pages/Projects'
 import Calculator     from './pages/Calculator'
+import Rewards        from './pages/Rewards'
 import './styles/global.css'
 
 // ── Verifica se o usuário atingiu 60% de qualquer limite free ──
@@ -78,6 +79,7 @@ function Layout() {
             <Route path="/career"    element={<Career />} />
             <Route path="/projects"  element={<Projects />} />
             <Route path="/calculator" element={<Calculator />} />
+            <Route path="/rewards"   element={<Rewards />} />
             <Route path="/profile"   element={<ProfileWrapper />} />
             <Route path="*"          element={<Navigate to="/" replace />} />
           </Routes>

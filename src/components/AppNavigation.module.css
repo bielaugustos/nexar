@@ -1,0 +1,191 @@
+/* ══════════════════════════════════════
+   APP NAVIGATION — CSS Module
+   Design inspirado nos grupos de configurações do Profile
+   ══════════════════════════════════════ */
+
+/* ── Grupo Reformulado ── */
+.settingsGroupReformed {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 0.5px solid var(--border);
+  background: var(--white);
+  margin-bottom: 12px;
+  box-shadow: 2px 2px 0 var(--shadow);
+  animation: fadeIn 0.4s ease both;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settingsGroupReformed:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Header do Grupo ── */
+.settingsGroupHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s ease;
+}
+
+.settingsGroupHeader:hover {
+  background: var(--gold);
+  background: linear-gradient(135deg, var(--surface) 0%, var(--gold) 100%);
+}
+
+.settingsGroupTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  transition: color 0.2s ease;
+}
+
+.settingsGroupHeader:hover .settingsGroupTitle {
+  color: var(--ink);
+}
+
+.settingsGroupSubtitle {
+  font-size: 11px;
+  color: var(--ink3);
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.settingsGroupHeader:hover .settingsGroupSubtitle {
+  color: var(--ink2);
+}
+
+/* ── Conteúdo do Grupo ── */
+.settingsGroupContent {
+  padding: 4px 0;
+}
+
+/* ── Linha de Configuração ── */
+.settingsRow {
+  display: flex;
+  align-items: center;
+  padding: 13px 16px;
+  border-bottom: 0.5px solid var(--border);
+  cursor: pointer;
+  transition: background 0.2s ease, padding-left 0.2s ease;
+}
+
+.settingsRow:last-child {
+  border-bottom: none;
+}
+
+.settingsRow:hover {
+  padding-left: 8px;
+  background: var(--surface);
+}
+
+.settingsRow:active {
+  transform: scale(0.98);
+}
+
+/* ── Ícone de Configuração ── */
+.settingsIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Label de Configuração ── */
+.settingLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ── Chevron de Configuração ── */
+.settingsChevron {
+  width: 6px;
+  height: 10px;
+  border-right: 1.5px solid var(--ink3);
+  border-top: 1.5px solid var(--ink3);
+  transform: rotate(45deg);
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+/* ── Responsividade ── */
+@media (min-width: 600px) {
+  .settingsGroupReformed {
+    margin-bottom: 16px;
+  }
+  
+  .settingsGroupHeader {
+    padding: 14px 20px;
+  }
+  
+  .settingsGroupTitle {
+    font-size: 15px;
+  }
+  
+  .settingsGroupSubtitle {
+    font-size: 12px;
+  }
+  
+  .settingsRow {
+    padding: 15px 20px;
+  }
+  
+  .settingsIcon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .settingLabel {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .settingsGroupReformed {
+    margin-bottom: 20px;
+  }
+  
+  .settingsGroupHeader {
+    padding: 16px 24px;
+  }
+  
+  .settingsGroupTitle {
+    font-size: 16px;
+  }
+  
+  .settingsGroupSubtitle {
+    font-size: 13px;
+  }
+  
+  .settingsRow {
+    padding: 16px 24px;
+  }
+  
+  .settingsIcon {
+    width: 34px;
+    height: 34px;
+  }
+  
+  .settingLabel {
+    font-size: 15px;
+  }
+}

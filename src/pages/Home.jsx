@@ -86,8 +86,8 @@ function AcaoPrincipalCard({ habits, onToggle, onSkip }) {
   }
 
   return (
-    <div className={`card ${styles.acaoCard}`}>
-      <p className={styles.acaoLabel}>O QUE FAZER AGORA?</p>
+    <div className={`${styles.heroCard} ${styles.acaoCard}`}>
+      <p className={styles.heroLabel}>O QUE FAZER AGORA?</p>
 
       {!next ? (
         <div className={styles.acaoConcluido}>
@@ -97,41 +97,19 @@ function AcaoPrincipalCard({ habits, onToggle, onSkip }) {
       ) : (
         <>
           <div className={styles.acaoHabit}>
-            <span className={styles.acaoNome}>{next.name}</span>
-            <div className={styles.acaoBadges}>
-              {next.priority && (
-                <span className={`${styles.acaoPri} ${styles[`pri_${next.priority}`]}`}>
-                  {priLabel[next.priority]}
-                </span>
-              )}
-              {next.estMins && (
-                <span className={styles.acaoTempoBadge}>
-                  {next.estMins < 60 ? `${next.estMins} min` : `${Math.floor(next.estMins / 60)}h`}
-                </span>
-              )}
-              {next.tags?.map(tag => (
-                <span key={tag} className={styles.acaoTag}>{tag}</span>
-              ))}
+            <span className={styles.heroTitle}>{next.name}</span>
+            <div className={styles.heroSub}>
+              {priLabel[next.priority]} · {next.estMins ? `${next.estMins < 60 ? `${next.estMins} min` : `${Math.floor(next.estMins / 60)}h`}` : ''}
             </div>
           </div>
-          <div className={styles.acaoButtons}>
-            <button
-              type="button"
-              className={`${styles.comecarBtn} ${pressing ? styles.comecarBtnPress : ''}`}
-              onClick={handleComecar}
-              disabled={pressing}
-            >
-              <PiArrowRightBold size={13} /> COMEÇAR
-            </button>
-            <button
-              type="button"
-              className={styles.pularBtn}
-              onClick={handlePular}
-              title="Pular para o próximo hábito"
-            >
-              <PiSkipForwardBold size={13} />
-            </button>
-          </div>
+          <button
+            type="button"
+            className={`${styles.heroCta} ${styles.heroCtaGold} ${pressing ? styles.comecarBtnPress : ''}`}
+            onClick={handleComecar}
+            disabled={pressing}
+          >
+            <PiArrowRightBold size={13} /> COMEÇAR
+          </button>
         </>
       )}
     </div>

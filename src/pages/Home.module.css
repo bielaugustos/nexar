@@ -44,6 +44,57 @@
    ══════════════════════════════════════ */
 .pontosCard { display: flex; flex-direction: column; gap: 10px; }
 
+/* ══════════════════════════════════════
+   HERO CARDS — cards escuros com fundo #111
+   ══════════════════════════════════════ */
+.heroCard {
+  background: #111;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.heroLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  color: rgba(255,255,255,0.5);
+}
+
+.heroTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.heroSub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 18px;
+}
+
+.heroCta {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  width: 100%;
+}
+
+.heroCtaGold { background: #F0C020; color: #111; }
+.heroCtaGreen { background: #27ae60; color: #fff; }
+
 .pontosLevelName {
   margin-left: auto;
   font-size: 11px;

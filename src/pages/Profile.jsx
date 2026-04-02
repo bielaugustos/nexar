@@ -37,11 +37,8 @@ import styles        from './Profile.module.css'
 import { SHOP_ITEMS, CAT_LABELS, CAT_DESC } from '../constants/shopConstants'
 import { THEME_LIST } from '../constants/themeConstants'
 import { BASE_AVATARS, SHOP_AVATAR_MAP, getAvailableAvatars } from '../constants/avatarConstants'
-import { FREE_FEATURES, PRO_EXTRAS, WHATSAPP_URL } from '../constants/planConstants'
-import {
-  DEMO_HABITS, generateDemoHistory, generateDemoFinances,
-  DEMO_JOURNAL, DEMO_CAREER, DEMO_PROJECTS
-} from '../constants/demoData'
+import { FREE_FEATURES, PRO_EXTRAS } from '../constants/planConstants'
+
 
 // ══════════════════════════════════════
 // HELPERS
@@ -440,6 +437,7 @@ function ApiKeyCard() {
 function AccountSettingsCard() {
   const { user, profile, reloadProfile, isLoggedIn } = useAuth()
   const [open, setOpen] = useState(false)
+  const legal = useLegal()
 
   // Estados para trocar email
   const [newEmail, setNewEmail] = useState('')
@@ -874,6 +872,25 @@ function AccountSettingsCard() {
             </form>
           )}
 
+          {/* Termos e Privacidade */}
+          <div style={{ height:1, background:'var(--border)', margin:'4px 0' }} />
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            <p style={{ fontSize:10, fontWeight:700, color:'var(--ink2)', margin:0, textTransform:'uppercase', letterSpacing:'0.8px' }}>
+              Legal
+            </p>
+            <div style={{ display:'flex', gap:8 }}>
+              <button type="button" className="btn" style={{ flex:1, fontSize:11, justifyContent:'center' }} onClick={legal.openTermos}>
+                Termos de Uso
+              </button>
+              <button type="button" className="btn" style={{ flex:1, fontSize:11, justifyContent:'center' }} onClick={legal.openPrivacidade}>
+                Privacidade
+              </button>
+              <button type="button" className="btn" style={{ flex:1, fontSize:11, justifyContent:'center' }} onClick={legal.openCookies}>
+                Cookies
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -1008,109 +1025,17 @@ function PlansCard() {
               </button>
             </div>
           ) : (
-            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
-              className="btn btn-primary"
-              style={{ justifyContent: 'center', gap: 6, fontSize: 13, textDecoration: 'none' }}>
-              <PiCrownBold size={15}/> Ativar Pro por R$ 9,90 (WhatsApp)
-            </a>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <stripe-buy-button
+                buy-button-id="buy_btn_1THf7tAh9kVNzJGC4tx1K4fy"
+                publishable-key="pk_live_51RIA2CAh9kVNzJGCuXxsjXs2oYkHoW9hKiXed7CMYuqxofzyZtSCBL4ya5J4ZLnkUbHWWOHY2qTgB19AH2bvrquQ00pXFWSvyl"
+              />
+            </div>
           )}
 
           <p className={styles.plansNote}>
-            Entre em contato pelo WhatsApp para ativar o plano Pro vitalício.
+            Pagamento seguro via Stripe. Ativação instantânea do plano Pro.
           </p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ══════════════════════════════════════
-// MODO DESENVOLVEDOR
-// ══════════════════════════════════════
-function DevCard() {
-  const [on, setOn] = useState(() => localStorage.getItem('nex_devmode') === 'true')
-  const [pointsInput, setPointsInput] = useState('')
-
-  function toggle() {
-    const next = !on; setOn(next)
-    localStorage.setItem('nex_devmode', String(next))
-
-    if (next) {
-      // Limpar todos os dados e recarregar para começar do zero
-      [
-        'nex_habits','nex_history','nex_last_reset',
-        'nex_plan','nex_shop_owned','nex_cal_visible',
-        'nex_fin_transactions','nex_fin_income','nex_fin_monthgoal',
-        'nex_fin_emergency','nex_fin_goals','nex_cats_income','nex_cats_expense',
-        'nex_journal',
-        'nex_career_readings','nex_career_goals','nex_career_projects','nex_projects',
-      ].forEach(k => localStorage.removeItem(k))
-      setTimeout(() => window.location.reload(), 300)
-    } else {
-      // Desativar modo dev - limpar dados de demonstração
-      [
-        'nex_habits','nex_history','nex_last_reset',
-        'nex_plan','nex_shop_owned','nex_cal_visible',
-        'nex_fin_transactions','nex_fin_income','nex_fin_monthgoal',
-        'nex_fin_emergency','nex_fin_goals','nex_cats_income','nex_cats_expense',
-        'nex_journal',
-        'nex_career_readings','nex_career_goals','nex_career_projects','nex_projects',
-      ].forEach(k => localStorage.removeItem(k))
-      setTimeout(() => window.location.reload(), 300)
-    }
-  }
-
-  return (
-    <div className="card">
-      <div className="card-title"><PiCodeBold size={15}/> Desenvolvedor</div>
-      <div className={styles.settingRow}>
-        <span className={styles.settingIcon}><PiCodeBold size={16}/></span>
-        <div style={{ flex:1 }}>
-          <span className={styles.settingLabel}>Dados de demonstração</span>
-          <p className={styles.settingDesc}>
-            Preenche 90 dias de histórico com 7 hábitos completos (prioridades, reason, notas, tags, subtarefas)
-            e carreira, projetos para testar todos os gráficos, níveis e o calendário.
-          </p>
-        </div>
-        <Toggle on={on} onToggle={toggle} label="Demo"/>
-      </div>
-      
-      <div className={styles.settingRow}>
-        <span className={styles.settingIcon}><PiSparkleBold size={16}/></span>
-        <div style={{ flex:1, display:'flex', flexDirection:'column', gap:8 }}>
-          <span className={styles.settingLabel}>Definir pontos para teste</span>
-          <p className={styles.settingDesc}>
-            Defina a quantidade de pontos (io) para testar o plano Pro e comprar temas.
-          </p>
-          <div style={{ display:'flex', gap:8 }}>
-            <input
-              className="input"
-              type="number"
-              placeholder="1000000"
-              value={pointsInput}
-              onChange={e => setPointsInput(e.target.value)}
-              style={{ flex:1, minWidth:120 }}
-            />
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => {
-                const points = parseInt(pointsInput, 10)
-                if (isNaN(points) || points < 0) {
-                  toast('Digite um valor válido de pontos')
-                  return
-                }
-                localStorage.setItem('nex_history', JSON.stringify({
-                  [new Date().toISOString().slice(0, 10)]: { done: 0, total: 0, habits: {} }
-                }))
-                toast(`Pontos definidos para ${points}. Recarregando...`)
-                setTimeout(() => window.location.reload(), 500)
-              }}
-              style={{ whiteSpace:'nowrap' }}
-            >
-              Definir pontos
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -1336,25 +1261,15 @@ export default function Profile({ onNavigate }) {
 
         {/* Redes sociais */}
         <div className={styles.footerSocial}>
-          <a href="https://instagram.com/roootioverso" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Instagram">
+          <a href="https://instagram.com/rootioverso" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Instagram">
             <PiInstagramLogoFill size={18}/>
           </a>
           <a href="https://linkedin.com/company/rootioverso" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="LinkedIn">
             <PiLinkedinLogoFill size={18}/>
           </a>
-          <a href="https://youtube.com/@rootioverso" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="YouTube">
-            <PiYoutubeLogoFill size={18}/>
-          </a>
         </div>
 
-        {/* Legal */}
-        <div className={styles.footerLinks}>
-          <button type="button" className={styles.footerLink} onClick={legal.openTermos}>Termos de Uso</button>
-          <span className={styles.footerDot}>·</span>
-          <button type="button" className={styles.footerLink} onClick={legal.openPrivacidade}>Privacidade</button>
-          <span className={styles.footerDot}>·</span>
-          <button type="button" className={styles.footerLink} onClick={legal.openCookies}>Cookies</button>
-        </div>
+
 
         <p className={styles.footerCopy}>© 2026 Rootio · Todos os direitos reservados</p>
         <p className={styles.footerVersion}>v2.0.0</p>

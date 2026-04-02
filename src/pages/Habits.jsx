@@ -51,7 +51,7 @@ const ICON_OPTIONS = [
   { name: 'PiTrophyBold',       label: 'Conquista'  },
   { name: 'PiRocketLaunchBold', label: 'Meta'       },
 ]
-const PRI_COLORS     = { alta: '#e74c3c', media: '#F59E0B', baixa: '#27ae60' }
+const PRI_COLORS     = { alta: '#E24B4A', media: '#F0C020', baixa: '#3B6D11' }
 const PRI_LABELS     = { alta: 'Alta',    media: 'Média',   baixa: 'Baixa'   }
 const PTS_OPTS       = [0, 5, 10, 15, 20, 25, 30]
 const WEEK_SHORT     = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
@@ -1046,6 +1046,19 @@ function HabitCard({ habit, history, onToggle, onSave, onDelete, selecting, sele
   const priColor    = PRI_COLORS[habit.priority ?? 'media']
   const lastDone    = lastDoneText(habit.id, history)
 
+  // Calcular streak dos últimos 4 dias
+  const streakDots = useMemo(() => {
+    const dots = []
+    for (let i = 0; i < 4; i++) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const k = d.toISOString().slice(0, 10)
+      const done = history[k]?.habits?.[habit.id]
+      dots.unshift(done ? 'done' : 'empty')
+    }
+    return dots
+  }, [habit.id, history])
+
   // Próxima ocorrência — só mostra quando concluído hoje e tem prazo ativo (não vencido)
   let nextOcc = null
   if (habit.done && habit.deadline) {
@@ -1176,11 +1189,45 @@ function HabitCard({ habit, history, onToggle, onSave, onDelete, selecting, sele
               </span>
               {!activeToday && <span className={styles.notTodayChip}>não hoje</span>}
             </div>
+            {/* Chips de metadados */}
+            <div className={styles.taskChips}>
+              <span className={`${styles.chip} ${styles['chip-gray']}`}>
+                {freqText(habit.days)}
+              </span>
+              <span className={`${styles.chip} ${styles[`chip-${habit.priority}`]}`}>
+                {PRI_LABELS[habit.priority]}
+              </span>
+              {habit.done && (
+                <span className={`${styles.chip} ${styles['chip-green']}`}>
+                  concluído
+                </span>
+              )}
+              {!habit.done && dlStatus?.urgent && (
+                <span className={`${styles.chip} ${styles['chip-red']}`}>
+                  atrasado
+                </span>
+              )}
+              {habit.done && (
+                <span className={`${styles.chip} ${styles['chip-pro']}`}>
+                  +{habit.pts} io
+                </span>
+              )}
+            </div>
           </div>
 
-          <span className={[styles.habPts, ptsFlash && styles.habPtsFlash].filter(Boolean).join(' ')}>
-            +{habit.pts}
-          </span>
+          {/* Streak dots */}
+          <div className={styles.streakDots}>
+            {streakDots.map((status, i) => (
+              <div
+                key={i}
+                className={[
+                  styles.streakDot,
+                  status === 'empty' && styles.streakDotEmpty
+                ].filter(Boolean).join(' ')}
+              />
+            ))}
+          </div>
+
           <span className={[styles.expandArrow, expanded && styles.expandArrowOpen].filter(Boolean).join(' ')}>
             <PiCaretDownBold size={10} color={expanded ? 'var(--bg)' : 'var(--ink3)'} />
           </span>
