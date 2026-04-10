@@ -23,6 +23,7 @@ import Profile        from './pages/Profile'
 import Career         from './pages/Career'
 import Projects       from './pages/Projects'
 import Rewards        from './pages/Rewards'
+import SyncDebug      from './components/SyncDebug'
 import './styles/global.css'
 
 // ── Verifica se o usuário atingiu 60% de qualquer limite free ──
@@ -72,6 +73,7 @@ function Layout() {
             <Route path="/projects"  element={<Projects />} />
             <Route path="/projects/:id" element={<Projects />} />
             <Route path="/rewards"   element={<Rewards />} />
+            <Route path="/sync-debug" element={<SyncDebug />} />
             <Route path="/profile"   element={<ProfileWrapper />} />
             <Route path="*"          element={<Navigate to="/" replace />} />
           </Routes>

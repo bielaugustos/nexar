@@ -685,3 +685,147 @@ input, select, textarea {
   --error: #e74c3c;
 }
 
+/* ══════════════════════════════════════
+   SYNC DEBUG
+══════════════════════════════════════ */
+.sync-debug {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sync-debug h2 {
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+
+.debug-user {
+  background: var(--surface);
+  padding: 12px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.debug-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.debug-tabs button {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.debug-tabs button.active {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.debug-warning {
+  background: var(--gold-lt);
+  padding: 12px;
+  border-radius: var(--radius);
+}
+
+.debug-loading {
+  color: var(--ink2);
+}
+
+.debug-error {
+  color: var(--error);
+}
+
+.debug-success {
+  color: #3B6D11;
+  font-weight: bold;
+}
+
+.debug-summary {
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.debug-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.debug-actions button {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.debug-actions button:hover:not(:disabled) {
+  background: var(--gold);
+}
+
+.debug-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.debug-actions button.syncing {
+  background: var(--gold-lt);
+}
+
+.debug-message {
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.debug-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.debug-table th,
+.debug-table td {
+  border: 1px solid var(--border);
+  padding: 8px;
+  text-align: left;
+}
+
+.debug-table th {
+  background: var(--surface);
+}
+
+.debug-preview pre {
+  max-height: 200px;
+  overflow: auto;
+  font-size: 11px;
+  background: var(--surface);
+  padding: 8px;
+  border-radius: var(--radius);
+}
+
+.debug-error-cell {
+  color: var(--error);
+  font-size: 12px;
+}
+
+.debug-error-cell .debug-error {
+  display: block;
+  padding: 4px;
+}
+
+

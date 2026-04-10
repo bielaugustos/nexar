@@ -85,6 +85,73 @@ export async function resetPassword(email) {
 }
 
 export async function signOut() {
+  // Primeiro: sincroniza dados locais para o Supabase
+  const userId = (await getSession())?.user?.id
+  
+  if (userId && supabase) {
+    try {
+      const { loadStorage } = await import('./storage')
+      
+      // Habits
+      const habits = loadStorage('nex_habits', [])
+      if (habits.length > 0) {
+        await supabase.from('habits').upsert(habits.map(h => ({ ...h, user_id: userId })))
+      }
+      
+      // History
+      const history = loadStorage('nex_history', {})
+      const historyRows = Object.entries(history).map(([date, val]) => ({
+        user_id: userId, date,
+        done: val.done ?? 0, total: val.total ?? 0, habits: val.habits ?? {},
+      }))
+      if (historyRows.length > 0) {
+        await supabase.from('habit_history').upsert(historyRows, { onConflict: 'user_id,date' })
+      }
+      
+      // Transactions
+      const transactions = loadStorage('nex_fin_transactions', [])
+      if (transactions.length > 0) {
+        await supabase.from('transactions').upsert(
+          transactions.map(t => ({
+            id: t.id, user_id: userId, type: t.type,
+            amount: t.amount, description: t.desc,
+            category: t.category, date: t.date,
+          }))
+        )
+      }
+      
+      // Goals
+      const goals = loadStorage('nex_fin_goals', [])
+      if (goals.length > 0) {
+        await supabase.from('financial_goals').upsert(goals.map(g => ({ ...g, user_id: userId })))
+      }
+      
+      // Emergency
+      const emergency = loadStorage('nex_fin_emergency', null)
+      if (emergency) {
+        await supabase.from('emergency_fund').upsert([{
+          user_id: userId, target: emergency.target ?? 0, current: emergency.current ?? 0,
+        }], { onConflict: 'user_id' })
+      }
+      
+      // Life Projects
+      const projects = loadStorage('nex_projects', [])
+      if (projects.length > 0) {
+        await supabase.from('life_projects').upsert(projects.map(p => ({ ...p, user_id: userId })))
+      }
+      
+      // Journal
+      const journal = loadStorage('nex_journal', [])
+      if (journal.length > 0) {
+        await supabase.from('journal').upsert(journal.map(j => ({ ...j, user_id: userId })))
+      }
+      
+      console.log('[Sync] Dados sincronizados antes do logout')
+    } catch (e) {
+      console.warn('[Sync] Erro ao sincronizar antes do logout:', e)
+    }
+  }
+
   const APP_KEYS = [
     'nex_habits', 'nex_history', 'nex_last_reset',
     'nex_fin_transactions', 'nex_fin_goals', 'nex_fin_emergency',
@@ -104,7 +171,6 @@ export async function signOut() {
   }
 
   // Redireciona para a tela inicial e força reload completo
-  // Isso garante que o React Router não mantenha o estado da rota anterior
   window.location.href = '/'
   window.location.reload()
 }
@@ -237,11 +303,19 @@ export async function fetchRows(table, userId) {
   if (!supabase) {
     return { data: [], error: { message: 'Supabase não configurado' } }
   }
-  const { data, error } = await supabase
-    .from(table)
-    .select('*')
-    .eq('user_id', userId)
-    .order('id', { ascending: true })
+
+  // Tables sem coluna 'id' - apenas habit_history
+  const noIdTables = ['habit_history']
+  
+  let query = supabase.from(table).select('*').eq('user_id', userId)
+  
+  // Só ordenar por 'date' se for habit_history
+  // Para outras tabelas, não ordenar (deixa como veio do banco)
+  if (table === 'habit_history') {
+    query = query.order('date', { ascending: true })
+  }
+  
+  const { data, error } = await query
   return { data: data ?? [], error }
 }
 

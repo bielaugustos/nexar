@@ -88,37 +88,34 @@ const AppContext = createContext(null)
 
 // ══════════════════════════════════════
 // PROVIDER
-// ══════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 export function AppProvider({ children }) {
 
-  // ── Estado inicial: hábitos com auto-reset de dia ──
+  // ── Estado para loading enquanto carrega do DB
+  const [isLoadingFromDB, setIsLoadingFromDB] = useState(false)
+
+  // ── Estado inicial: hábitos com auto-reset de dia
+  // Só carrega do localStorage se NÃO estiver carregando do DB
   const [habits, setHabits] = useState(() => {
-    const raw       = migrateHabits(loadStorage('nex_habits', DEFAULT_HABITS))
-    const lastReset = loadStorage('nex_last_reset', '')
-    const today     = todayStr()
-
-    // Se o app abriu em um novo dia, reseta done de todos os hábitos
-    if (lastReset !== today) {
-      const reset = raw.map(h => ({ ...h, done: false }))
-      saveStorage('nex_habits', reset)
-      saveStorage('nex_last_reset', today)
-      return reset
-    }
-
+    // Se veio de um logout+login, o localStorage foi limpo
+    // Usa valores padrões mas não faz reset automático aqui
+    const raw = migrateHabits(loadStorage('nex_habits', DEFAULT_HABITS))
     return raw
   })
 
-  const [history,   setHistory]    = useState(() => loadStorage('nex_history', {}))
-  const [theme,     setThemeState] = useState(() => initTheme())
-  const [soundOn,   setSoundOnSt]  = useState(() => loadStorage('nex_sound', true))
-  const [plan,      setPlanState]  = useState(() => loadStorage('nex_plan', 'free'))
+  const [history, setHistory] = useState(() => loadStorage('nex_history', {}))
+  const [theme, setThemeState] = useState(() => initTheme())
+  const [soundOn, setSoundOnSt] = useState(() => loadStorage('nex_sound', true))
+  const [plan, setPlanState] = useState(() => loadStorage('nex_plan', 'free'))
 
   // ── Auth — sync em background quando logado ──
   const { isLoggedIn, user, profile, session } = useAuth()
   const userId = user?.id ?? null
 
+  // ── Estado para indicar que dados foram carregados do DB
+  const [loadedFromDB, setLoadedFromDB] = useState(false)
+
   // ── Sincroniza plano com o perfil Supabase quando o profile carrega
-  // IMPORTANTE: deve vir ANTES de qualquer uso do plan para evitar race condition
   useEffect(() => {
     if (profile?.plan) {
       setPlanState(profile.plan)
@@ -147,37 +144,71 @@ export function AppProvider({ children }) {
     
     const userEnteredWithPassword = !!session?.user
     if (!userEnteredWithPassword) return
-    
-    const localHabits = loadStorage('nex_habits', [])
-    const localHistory = loadStorage('nex_history', {})
-    const hasLocalData = localHabits.length > 0 || Object.keys(localHistory).length > 0
-    
-    if (hasLocalData) return
 
+    setIsLoadingFromDB(true)
+    
     async function loadFromDB() {
-      const { data: habitsData } = await fetchRows('habits', userId)
-      if (habitsData?.length > 0) {
-        const migrated = migrateHabits(habitsData)
-        setHabits(migrated)
-        saveStorage('nex_habits', migrated)
-      }
+      try {
+        // Primeiro carrega o history do Supabase
+        const { data: histRows } = await fetchRows('habit_history', userId)
+        let histObj = {}
+        if (histRows?.length > 0) {
+          histObj = Object.fromEntries(
+            histRows.map(r => [r.date, {
+              done:   r.done,
+              total:  r.total,
+              habits: r.habits ?? {},
+            }])
+          )
+          setHistory(histObj)
+          saveStorage('nex_history', histObj)
+        }
 
-      const { data: histRows } = await fetchRows('habit_history', userId)
-      if (histRows?.length > 0) {
-        const histObj = Object.fromEntries(
-          histRows.map(r => [r.date, {
-            done:   r.done,
-            total:  r.total,
-            habits: r.habits ?? {},
-          }])
-        )
-        setHistory(histObj)
-        saveStorage('nex_history', histObj)
+        // Depois carrega habits usando o history atualizado
+        const { data: habitsData } = await fetchRows('habits', userId)
+        if (habitsData?.length > 0) {
+          const today = todayStr()
+          const todayDone = histObj[today]?.habits || {}
+          
+          const migrated = migrateHabits(habitsData).map(h => ({
+            ...h,
+            done: todayDone[h.id] === true
+          }))
+          
+          setHabits(migrated)
+          saveStorage('nex_habits', migrated)
+        }
+        
+        // Atualiza last_reset para hoje para evitar reset automático
+        saveStorage('nex_last_reset', todayStr())
+        
+        setLoadedFromDB(true)
+      } catch (e) {
+        console.error('[AppContext] Erro ao carregar do DB:', e)
+      } finally {
+        setIsLoadingFromDB(false)
       }
     }
 
     loadFromDB()
   }, [isLoggedIn, userId, session])
+
+  // Reset diário - só executa após carregar do DB
+  useEffect(() => {
+    if (isLoadingFromDB) return
+    if (!loadedFromDB && isLoggedIn) return
+    
+    const lastReset = loadStorage('nex_last_reset', '')
+    const today = todayStr()
+
+    // Só reseta se já passou para um novo dia E já carregou os dados do DB
+    if (lastReset !== today && loadedFromDB) {
+      const reset = habits.map(h => ({ ...h, done: false }))
+      setHabits(reset)
+      saveStorage('nex_habits', reset)
+      saveStorage('nex_last_reset', today)
+    }
+  }, [loadedFromDB, isLoadingFromDB, isLoggedIn, habits])
 
   // Sincroniza histórico com Supabase em background apenas quando usuário entrou com senha
   useEffect(() => {
@@ -283,12 +314,28 @@ export function AppProvider({ children }) {
   const toggleHabit = useCallback((id) => {
     setHabits(prev => {
       const updated = prev.map(h => h.id === id ? { ...h, done: !h.done } : h)
+      
       if (isLoggedIn && userId) {
         const habit = updated.find(h => h.id === id)
         if (habit) {
           const habitToSync = { ...habit, user_id: userId }
           upsertRows('habits', [habitToSync])
             .catch(e => console.warn('[Sync] toggleHabit:', e))
+          
+          // Sincroniza o history imediatamente
+          const today = todayStr()
+          const habMap = {}
+          updated.forEach(h => { if (h.done) habMap[h.id] = true })
+          const historyRow = {
+            user_id: userId,
+            date: today,
+            done: updated.filter(h => h.done).length,
+            total: updated.length,
+            habits: habMap,
+          }
+          upsertRows('habit_history', [historyRow], { onConflict: 'user_id,date' })
+            .catch(e => console.warn('[Sync] toggleHabit history:', e))
+          
           analytics.track('habit_toggled', {
             habit_id: id,
             habit_name: habit.name,
